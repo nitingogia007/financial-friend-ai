@@ -71,7 +71,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   let newSipRequired = 0;
   if (shortfall > 0) {
     if (monthlyRate > 0) {
-       newSipRequired = shortfall / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate));
+       newSipRequired = shortfall * (monthlyRate / (Math.pow(1 + monthlyRate, months) - 1));
     } else if (months > 0) {
       newSipRequired = shortfall / months;
     }
