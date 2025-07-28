@@ -33,7 +33,7 @@ export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
   };
 
   const formatCurrency = (value: number) => {
-    return `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+    return `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   return (

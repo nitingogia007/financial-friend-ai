@@ -76,14 +76,14 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
       newSipRequired = shortfall / months;
     }
   }
-
+  
   return {
     ...goal,
-    futureValueOfGoal: Math.round(futureValueOfGoal),
-    futureValueOfCurrentSave: Math.round(futureValueOfCurrentSave),
-    futureValueOfSip: Math.round(futureValueOfSip),
-    totalFutureValue: Math.round(totalFutureValue),
-    shortfall: Math.round(shortfall),
-    newSipRequired: Math.round(newSipRequired),
+    futureValueOfGoal: futureValueOfGoal,
+    futureValueOfCurrentSave: futureValueOfCurrentSave,
+    futureValueOfSip: futureValueOfSip,
+    totalFutureValue: totalFutureValue,
+    shortfall: shortfall,
+    newSipRequired: newSipRequired,
   };
 }
