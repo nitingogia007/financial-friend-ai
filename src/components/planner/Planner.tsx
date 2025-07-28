@@ -1,13 +1,15 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip, GoalWithCalculations, SipOptimizerReportData } from '@/lib/types';
-import { calculateSip, calculateAge, calculateGoalDetails, calculateTimelines } from '@/lib/calculations';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip } from '@/lib/types';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 import { Header } from './Header';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
@@ -19,6 +21,7 @@ import { SipOptimizerReport } from './SipOptimizerReport';
 
 export function Planner() {
   const { toast } = useToast();
+  const router = useRouter();
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: 'John Doe', dob: '1990-05-15', dependents: 2, retirementAge: 60, mobile: '9876543210', email: 'john.doe@example.com', arn: 'ARN-12345' });
   const [assets, setAssets] = useState<Asset[]>([
@@ -36,7 +39,8 @@ export function Planner() {
   ]);
   const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12, currentSave: 1000000, currentSip: 15000 }]);
   
-  const [reportData, setReportData] = useState<SipOptimizerReportData | null>(null);
+  const [sipReportData, setSipReportData] = useState<SipOptimizerReportData | null>(null);
+  const [detailedReportData, setDetailedReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
@@ -63,13 +67,16 @@ export function Planner() {
     }
 
     setIsGenerating(true);
+    setSipReportData(null);
+    setDetailedReportData(null);
+
     try {
       const primaryGoal = goalsWithCalculations[0];
       const investibleSurplus = (totalAnnualIncome - totalAnnualExpenses) / 12;
       
-      const timelines = calculateTimelines(primaryGoal);
+      const timelines = calculateTimelines(primaryGoal, investibleSurplus);
 
-      const generatedReportData: SipOptimizerReportData = {
+      const generatedSipReportData: SipOptimizerReportData = {
           personalDetails: {
               ...personalDetails,
               name: personalDetails.name || "N/A",
@@ -116,14 +123,60 @@ export function Planner() {
           },
           advisorDetails: {
             companyName: 'Financial Friend',
-            arnName: personalDetails.name,
-            arnNo: personalDetails.arn,
-            mobile: personalDetails.mobile,
-            email: personalDetails.email
+            arnName: personalDetails.name || '',
+            arnNo: personalDetails.arn || '',
+            mobile: personalDetails.mobile || '',
+            email: personalDetails.email || '',
           }
       };
 
-      setReportData(generatedReportData);
+      setSipReportData(generatedSipReportData);
+
+      // Prepare data for detailed report
+      const netWorth = totalAssets - totalLiabilities;
+      const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
+
+      const goalsWithSip: GoalWithSip[] = goals.map(g => ({
+        ...g,
+        sip: calculateSip(g)
+      }));
+
+       const summaryInput = {
+        name: personalDetails.name || "User",
+        netWorth,
+        monthlyCashflow,
+        insuranceCover: 0, // Simplified for now
+        insurancePremium: 0, // Simplified for now
+        goals: goalsWithSip.map(g => ({
+          goalName: g.name,
+          corpus: getNumericValue(g.corpus),
+          years: getNumericValue(g.years),
+          rate: getNumericValue(g.rate),
+          sip: g.sip
+        })),
+      };
+
+      const { summary } = await summarizeFinancialStatus(summaryInput);
+
+      const generatedDetailedReportData: ReportData = {
+        personalDetails: personalDetails,
+        netWorth: netWorth,
+        monthlyCashflow: monthlyCashflow,
+        totalInsuranceCover: 0, // This should be calculated from insurance form
+        totalInsurancePremium: 0, // This should be calculated from insurance form
+        goals: goalsWithSip,
+        totalAssets: totalAssets,
+        totalLiabilities: totalLiabilities,
+        assets: assets,
+        liabilities: liabilities,
+        totalAnnualIncome: totalAnnualIncome,
+        totalAnnualExpenses: totalAnnualExpenses,
+        expenses: expenses,
+        aiSummary: summary,
+      };
+
+      setDetailedReportData(generatedDetailedReportData);
+
 
     } catch (error) {
       console.error("Error generating report:", error);
@@ -136,6 +189,14 @@ export function Planner() {
       setIsGenerating(false);
     }
   };
+
+  const handleViewDetailedReport = () => {
+    if (detailedReportData) {
+      const dataString = encodeURIComponent(JSON.stringify(detailedReportData));
+      router.push(`/report?data=${dataString}`);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,15 +238,24 @@ export function Planner() {
           <Button onClick={handleGenerateReport} disabled={isGenerating} size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
             {isGenerating ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Report
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Reports...
               </>
-            ) : "Generate Financial Report"}
+            ) : "Generate Financial Reports"}
           </Button>
         </div>
 
-        {reportData && (
-          <div className="mt-12">
-            <SipOptimizerReport data={reportData} />
+        {sipReportData && (
+          <div className="mt-12 animate-in fade-in-50">
+            <SipOptimizerReport data={sipReportData} />
+            
+            {detailedReportData && (
+                <div className="text-center mt-8">
+                    <Button onClick={handleViewDetailedReport} variant="secondary" size="lg">
+                        View Detailed Wellness Report
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                </div>
+            )}
           </div>
         )}
       </div>

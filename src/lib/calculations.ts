@@ -1,23 +1,29 @@
 
 import type { Goal, GoalWithCalculations } from './types';
 
-// This function is kept for the AI summary, but detailed calculations are now separate.
 export function calculateSip(goal: Goal): number {
-  const corpus = typeof goal.corpus === 'number' ? goal.corpus : 0;
-  const years = typeof goal.years === 'number' ? goal.years : 0;
-  const rate = typeof goal.rate === 'number' ? goal.rate : 0;
+    const getNum = (val: number | '') => (typeof val === 'number' && !isNaN(val) ? val : 0);
+    const corpus = getNum(goal.corpus);
+    const years = getNum(goal.years);
+    const rate = getNum(goal.rate);
 
-  if (corpus <= 0 || years <= 0 || rate <= 0) {
-    return 0;
-  }
+    if (corpus <= 0 || years <= 0 || rate <= 0) {
+        return 0;
+    }
 
-  const monthlyRate = rate / 100 / 12;
-  const months = years * 12;
-  
-  // Required SIP = Future Value * (r / ((1+r)^n - 1))
-  const sip = corpus * (monthlyRate / (Math.pow(1 + monthlyRate, months) - 1));
+    const inflationRate = 0.06;
+    const futureValue = corpus * Math.pow(1 + inflationRate, years);
 
-  return Math.round(sip);
+    const monthlyRate = rate / 100 / 12;
+    const months = years * 12;
+
+    if (monthlyRate === 0) {
+        return months > 0 ? futureValue / months : 0;
+    }
+
+    const sip = futureValue / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
+
+    return sip;
 }
 
 export function calculateAge(dob: string): number | null {
@@ -65,7 +71,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   const totalFutureValue = futureValueOfCurrentSave + futureValueOfSip;
 
   // 5. Shortfall/Surplus calculation
-  const shortfall = futureValueOfGoal - futureValueOfCurrentSave;
+  const shortfall = futureValueOfGoal - totalFutureValue;
 
   // 6. SIP required for the shortfall
   let newSipRequired = 0;
@@ -88,21 +94,39 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   };
 }
 
-export function calculateTimelines(goal: GoalWithCalculations) {
+export function calculateTimelines(goal: GoalWithCalculations, potentialSip: number) {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
 
     const futureValueGoal = goal.futureValueOfGoal;
     const rate = getNum(goal.rate) / 100;
     const currentSip = getNum(goal.currentSip);
     const requiredSip = goal.newSipRequired;
-    const potentialSip = (goal as any).potentialInvestment || requiredSip; // Fallback, should be passed in report data
     
     const calculateYears = (monthlySip: number) => {
-        if (monthlySip <= 0 || rate <= 0) return Infinity;
-        // Simplified NPER calculation
+        if (monthlySip <= 0 || rate <= 0 || futureValueGoal <= 0) return Infinity;
         const monthlyRate = rate / 12;
-        const nper = Math.log((futureValueGoal * monthlyRate) / monthlySip + 1) / Math.log(1 + monthlyRate);
-        return isFinite(nper) ? Math.ceil(nper / 12) : Infinity;
+        // Using the NPER formula from logs
+        const numerator = Math.log((monthlySip / monthlyRate) + (goal.futureValueOfCurrentSave || 0));
+        const denominator = Math.log(1 + monthlyRate);
+        const fvNper = Math.log((futureValueGoal * monthlyRate + monthlySip) / (monthlySip));
+        const finalNper = fvNper / Math.log(1+monthlyRate);
+
+        let nper = Math.log(1 + (futureValueGoal * monthlyRate) / monthlySip) / Math.log(1 + monthlyRate);
+        if (goal.futureValueOfCurrentSave > 0) {
+            const fvOfSavings = goal.futureValueOfCurrentSave;
+            const remainingFv = futureValueGoal - fvOfSavings;
+            if (remainingFv <= 0) return 0; // Already reached
+            nper = Math.log(1 + (remainingFv * monthlyRate) / monthlySip) / Math.log(1 + monthlyRate);
+        }
+        
+        let years = nper / 12;
+        
+        // Simplified NPER when no savings
+        const simpleNper = Math.log((futureValueGoal * monthlyRate) / monthlySip + 1) / Math.log(1 + monthlyRate);
+        years = simpleNper / 12;
+
+
+        return isFinite(years) ? Math.ceil(years) : Infinity;
     };
 
     return {
