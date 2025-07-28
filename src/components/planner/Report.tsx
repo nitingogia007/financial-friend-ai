@@ -99,7 +99,7 @@ export function Report({ data }: Props) {
                     <TableCell>{Number(goal.corpus).toLocaleString('en-IN')}</TableCell>
                     <TableCell>{goal.years}</TableCell>
                     <TableCell>{goal.rate}%</TableCell>
-                    <TableCell className="text-right font-bold text-primary">{goal.sip.toLocaleString('en-IN')}</TableCell>
+                    <TableCell className="text-right font-bold text-primary">₹{goal.sip.toLocaleString('en-IN')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
