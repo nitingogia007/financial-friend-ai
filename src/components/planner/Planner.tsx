@@ -146,7 +146,6 @@ export function Planner() {
             setIncomes={setIncomes}
             expenses={expenses}
             setExpenses={setExpenses}
-            monthlyCashflow={monthlyCashflow}
             yearlyCashflow={yearlyCashflow}
           />
           <InsuranceForm

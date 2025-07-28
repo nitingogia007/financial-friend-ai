@@ -41,7 +41,7 @@ export function Report({ data }: Props) {
                     <TableCell className="text-right font-bold text-lg">₹{data.netWorth.toLocaleString('en-IN')}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium">Monthly Cashflow</TableCell>
+                    <TableCell className="font-medium">Yearly Cashflow</TableCell>
                     <TableCell className="text-right font-bold text-lg">₹{data.monthlyCashflow.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
                   </TableRow>
                   <TableRow>

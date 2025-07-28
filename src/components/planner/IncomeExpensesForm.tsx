@@ -5,7 +5,7 @@ import { FormSection } from './FormSection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle, HandCoins, Wallet, PiggyBank } from 'lucide-react';
+import { Trash2, PlusCircle, HandCoins, PiggyBank } from 'lucide-react';
 import { Separator } from '../ui/separator';
 
 interface Props {
@@ -13,14 +13,13 @@ interface Props {
   setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   expenses: Expense[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
-  monthlyCashflow: number;
   yearlyCashflow: number;
 }
 
 const incomeSources = ["Salary", "Business", "Rental Income", "Investments", "Other"];
 const expenseTypes = ["Rent", "Groceries", "Education", "Insurance Premium", "Utilities", "Other"];
 
-export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses, monthlyCashflow, yearlyCashflow }: Props) {
+export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses, yearlyCashflow }: Props) {
   
   const handleUpdate = <T extends Income | Expense>(
     items: T[], 
@@ -51,7 +50,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
   return (
     <FormSection
       title="Income & Expenses"
-      description="Understand your monthly cash flow."
+      description="Understand your annual cash flow."
       icon={<HandCoins className="h-6 w-6" />}
     >
       <div className="space-y-6">
@@ -121,16 +120,6 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
 
         {/* Cashflow Display */}
         <div className="bg-primary/10 p-4 rounded-lg space-y-3">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Wallet className="h-7 w-7 text-primary" />
-                    <span className="font-semibold text-primary">Monthly Cashflow</span>
-                </div>
-                <span className={`font-bold text-xl font-headline ${monthlyCashflow >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                    ₹{monthlyCashflow.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                </span>
-            </div>
-            <Separator className="bg-primary/20" />
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <PiggyBank className="h-7 w-7 text-primary" />

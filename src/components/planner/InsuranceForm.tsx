@@ -91,7 +91,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
             {canShowRecommendations && totalAnnualIncome > 0 && <Separator />}
 
             {canShowRecommendations && totalAnnualIncome > 0 ? (
-              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
+              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-200">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                 <div>
                   <p className="font-semibold">Recommended Life Cover:</p>
@@ -99,9 +99,9 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
                    {hasLifeInsurance === 'yes' && lifeCover !== '' && (
                     <div className="text-xs mt-2">
                       {lifeCoverGap > 0 ? (
-                         <p className="text-destructive-foreground font-semibold">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
+                         <p className="font-semibold">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
                       ) : (
-                        <p className="text-green-700 font-semibold">Great! Your cover (₹{Number(lifeCover).toLocaleString('en-IN')}) meets the recommendation.</p>
+                        <p className="font-semibold">Great! Your cover (₹{Number(lifeCover).toLocaleString('en-IN')}) meets the recommendation.</p>
                       )}
                     </div>
                   )}
@@ -152,7 +152,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
             {canShowRecommendations && <Separator />}
 
             {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
+              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-200">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                  <div>
                     <p className="font-semibold">Recommended Health Cover:</p>
