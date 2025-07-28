@@ -8,11 +8,25 @@ import { Separator } from '@/components/ui/separator';
 import { NetWorthBreakdown } from '../charts/NetWorthBreakdown';
 import { ExpenseBreakdown } from '../charts/ExpenseBreakdown';
 import { Button } from '../ui/button';
-import { Printer, FileText } from 'lucide-react';
+import { Printer, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot } from 'lucide-react';
 
 interface Props {
   data: ReportData;
 }
+
+const StatCard = ({ title, value, icon, subValue }: { title: string; value: string; icon: React.ReactNode; subValue?: string }) => (
+    <Card className="bg-card/50">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
+      </CardContent>
+    </Card>
+);
+
 
 export function Report({ data }: Props) {
   const handlePrint = () => {
@@ -22,94 +36,120 @@ export function Report({ data }: Props) {
   const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
 
   return (
-    <Card id="report-section" className="shadow-2xl animate-in fade-in-50 duration-500">
-      <CardHeader className="flex-row items-center justify-between">
+    <div id="report-section" className="space-y-8 animate-in fade-in-50 duration-500">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <CardTitle className="font-headline text-3xl text-primary flex items-center gap-2"><FileText /> Financial Report</CardTitle>
-          <CardDescription>A complete overview of your financial health for {data.personalDetails.name}.</CardDescription>
+          <h2 className="text-3xl font-bold font-headline text-primary flex items-center gap-3">
+            <FileText className="h-8 w-8" />
+            <span>Financial Wellness Report</span>
+          </h2>
+          <p className="text-muted-foreground">
+            A complete overview of your financial health for <span className="font-semibold text-foreground">{data.personalDetails.name}</span>.
+          </p>
         </div>
         <Button onClick={handlePrint} className="no-print">
             <Printer className="mr-2 h-4 w-4" /> Print / Save PDF
         </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="p-6 border rounded-lg printable-area">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-semibold mb-4 border-b pb-2">Key Metrics</h3>
-              <Table>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Net Worth</TableCell>
-                    <TableCell className="text-right font-bold text-lg">₹{data.netWorth.toLocaleString('en-IN')}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Yearly Cashflow</TableCell>
-                    <TableCell className="text-right font-bold text-lg">₹{yearlyCashflow.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Total Insurance Cover</TableCell>
-                    <TableCell className="text-right font-bold text-lg">₹{data.totalInsuranceCover.toLocaleString('en-IN')}</TableCell>
-  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Total Annual Premium</TableCell>
-                    <TableCell className="text-right font-bold text-lg">₹{data.totalInsurancePremium.toLocaleString('en-IN')}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-             <div className="prose prose-blue max-w-none bg-primary/5 p-4 rounded-lg">
-                <h3 className="text-xl font-semibold mt-0">AI Financial Summary</h3>
-                <p className="text-sm">{data.aiSummary}</p>
-            </div>
-          </div>
-          
-          <Separator className="my-8" />
+      </div>
+      
+      <div className="p-6 border-2 border-dashed rounded-xl printable-area bg-card">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div >
-                <h3 className="text-xl font-semibold mb-4 border-b pb-2">Asset & Liability Breakdown</h3>
-                <div className="h-80">
-                   <NetWorthBreakdown assets={data.totalAssets} liabilities={data.totalLiabilities} netWorth={data.netWorth} />
-                </div>
-            </div>
-             <div >
-                <h3 className="text-xl font-semibold mb-4 border-b pb-2">Annual Expense Breakdown</h3>
-                <div className="h-80">
-                   <ExpenseBreakdown expenses={data.expenses} />
-                </div>
-            </div>
-          </div>
+        {/* AI Summary */}
+        <Card className="mb-8 bg-primary/5 border-primary/20 shadow-lg">
+           <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-primary">
+              <Bot className="h-6 w-6" />
+              AI Financial Summary
+            </CardTitle>
+           </CardHeader>
+           <CardContent>
+             <p className="prose prose-blue dark:prose-invert max-w-none text-foreground/90">{data.aiSummary}</p>
+           </CardContent>
+        </Card>
 
-          <Separator className="my-8" />
-
-          <div>
-            <h3 className="text-xl font-semibold mb-4 border-b pb-2">Financial Goals & SIP</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Goal</TableHead>
-                  <TableHead>Corpus (₹)</TableHead>
-                  <TableHead>Years</TableHead>
-                  <TableHead>Rate (%)</TableHead>
-                  <TableHead className="text-right">Monthly SIP (₹)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.goals.map(goal => (
-                  <TableRow key={goal.id}>
-                    <TableCell className="font-medium">{goal.name}</TableCell>
-                    <TableCell>{Number(goal.corpus).toLocaleString('en-IN')}</TableCell>
-                    <TableCell>{goal.years}</TableCell>
-                    <TableCell>{goal.rate}%</TableCell>
-                    <TableCell className="text-right font-bold text-primary">₹{goal.sip.toLocaleString('en-IN')}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        {/* Key Metrics Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <StatCard 
+                title="Net Worth"
+                value={`₹${data.netWorth.toLocaleString('en-IN')}`}
+                icon={<Wallet className="h-5 w-5"/>}
+            />
+             <StatCard 
+                title="Yearly Cashflow"
+                value={`₹${yearlyCashflow.toLocaleString('en-IN')}`}
+                subValue="After all expenses"
+                icon={<PiggyBank className="h-5 w-5"/>}
+            />
+             <StatCard 
+                title="Total Insurance"
+                value={`₹${data.totalInsuranceCover.toLocaleString('en-IN')}`}
+                subValue={`Premium: ₹${data.totalInsurancePremium.toLocaleString('en-IN')}/yr`}
+                icon={<ShieldCheck className="h-5 w-5"/>}
+            />
+            <StatCard 
+                title="Goals"
+                value={data.goals.length.toString()}
+                subValue="Financial milestones tracked"
+                icon={<TrendingUp className="h-5 w-5"/>}
+            />
         </div>
-      </CardContent>
-    </Card>
+          
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left Column */}
+            <div className="lg:col-span-3 space-y-8">
+                <Card className="shadow-md">
+                    <CardHeader>
+                        <CardTitle>Asset & Liability Breakdown</CardTitle>
+                        <CardDescription>A visual representation of your net worth.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-80 -ml-4">
+                       <NetWorthBreakdown assets={data.totalAssets} liabilities={data.totalLiabilities} netWorth={data.netWorth} />
+                    </CardContent>
+                </Card>
+                <Card className="shadow-md">
+                    <CardHeader>
+                        <CardTitle>Financial Goals & Projections</CardTitle>
+                        <CardDescription>Your required investment path for each goal.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Goal</TableHead>
+                              <TableHead>Target (Today)</TableHead>
+                              <TableHead>Years</TableHead>
+                              <TableHead className="text-right">Required SIP</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {data.goals.map(goal => (
+                              <TableRow key={goal.id}>
+                                <TableCell className="font-medium">{goal.name}</TableCell>
+                                <TableCell>₹{Number(goal.corpus).toLocaleString('en-IN')}</TableCell>
+                                <TableCell>{goal.years}</TableCell>
+                                <TableCell className="text-right font-bold text-primary">₹{goal.sip.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+            {/* Right Column */}
+            <div className="lg:col-span-2 space-y-8">
+                <Card className="shadow-md">
+                    <CardHeader>
+                        <CardTitle>Annual Expense Breakdown</CardTitle>
+                        <CardDescription>Where your money is going each year.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-80">
+                        <ExpenseBreakdown expenses={data.expenses} />
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+
+      </div>
+    </div>
   );
 }
