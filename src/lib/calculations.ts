@@ -61,10 +61,10 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
     futureValueOfSip = currentSip * months;
   }
 
-  // 4. Total after X years
+  // 4. Total projected value
   const totalFutureValue = futureValueOfCurrentSave + futureValueOfSip;
 
-  // 5. FV required (This is the shortfall)
+  // 5. Shortfall/Surplus calculation
   const shortfall = futureValueOfGoal - totalFutureValue;
 
   // 6. SIP required for the shortfall
