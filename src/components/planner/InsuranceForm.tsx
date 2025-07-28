@@ -58,13 +58,22 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
                 <Label htmlFor="life-no">No</Label>
               </div>
             </RadioGroup>
-            {(hasLifeInsurance === 'yes' || hasLifeInsurance === 'no') && (
+            {hasLifeInsurance && (
               <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                 <div>
-                    <p className="font-semibold">Recommended Life Cover:</p>
-                    <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
-                    <p className="text-xs">Based on your age and income, this is the suggested minimum cover to ensure your family's financial security.</p>
+                    {hasLifeInsurance === 'yes' ? (
+                        <>
+                            <p className="font-semibold">Recommended Life Cover:</p>
+                            <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
+                            <p className="text-xs">Based on your age and income, this is the suggested minimum cover to ensure your family's financial security.</p>
+                        </>
+                    ) : (
+                        <>
+                             <p className="font-semibold">Action Recommended:</p>
+                            <p className="text-base">It's highly recommended to get a life insurance policy to protect your family's future.</p>
+                        </>
+                    )}
                 </div>
               </div>
             )}
