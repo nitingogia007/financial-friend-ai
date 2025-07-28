@@ -38,7 +38,8 @@ export function Planner() {
   
   const totalAnnualIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
   const totalAnnualExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
-  const monthlyCashflow = useMemo(() => (totalAnnualIncome - totalAnnualExpenses) / 12, [totalAnnualIncome, totalAnnualExpenses]);
+  const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
+  const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
 
   const totalInsuranceCover = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.cover), 0), [insurances]);
   const totalInsurancePremium = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.premium), 0), [insurances]);
@@ -143,6 +144,7 @@ export function Planner() {
             expenses={expenses}
             setExpenses={setExpenses}
             monthlyCashflow={monthlyCashflow}
+            yearlyCashflow={yearlyCashflow}
           />
           <InsuranceForm
             insurances={insurances}
