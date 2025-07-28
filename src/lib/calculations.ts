@@ -53,10 +53,10 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   // 2. FV of current save for goal
   const futureValueOfCurrentSave = currentSave * Math.pow(1 + rate / 100, years);
   
-  // 3. FV of monthly SIP
+  // 3. FV of monthly SIP (annuity due formula)
   let futureValueOfSip = 0;
   if (monthlyRate > 0) {
-    futureValueOfSip = currentSip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+    futureValueOfSip = currentSip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
   } else {
     futureValueOfSip = currentSip * months;
   }
@@ -71,7 +71,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   let newSipRequired = 0;
   if (shortfall > 0) {
     if (monthlyRate > 0) {
-       newSipRequired = shortfall * (monthlyRate / (Math.pow(1 + monthlyRate, months) - 1));
+       newSipRequired = shortfall / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
     } else if (months > 0) {
       newSipRequired = shortfall / months;
     }
