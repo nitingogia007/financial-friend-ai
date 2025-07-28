@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
 import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip } from '@/lib/types';
-import { calculateSip } from '@/lib/calculations';
+import { calculateSip, calculateAge } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -24,13 +24,14 @@ export function Planner() {
   const [liabilities, setLiabilities] = useState<Liability[]>([{ id: '1', type: 'Credit Card', amount: 50000 }]);
   const [incomes, setIncomes] = useState<Income[]>([{ id: '1', source: 'Salary', amount: 1200000 }]);
   const [expenses, setExpenses] = useState<Expense[]>([{ id: '1', type: 'Rent', amount: 360000 }]);
-  const [insurances, setInsurances] = useState<Insurance[]>([{ id: '1', type: 'Life', cover: 10000000, premium: 25000 }]);
   const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12 }]);
   
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
+
+  const age = useMemo(() => calculateAge(personalDetails.dob), [personalDetails.dob]);
 
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + getNumericValue(a.amount), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
@@ -41,6 +42,8 @@ export function Planner() {
   const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
   const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
 
+  // This state is not used in the new InsuranceForm, but we'll keep it for the report generation logic.
+  const [insurances, setInsurances] = useState<Insurance[]>([{ id: '1', type: 'Life', cover: 10000000, premium: 25000 }]);
   const totalInsuranceCover = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.cover), 0), [insurances]);
   const totalInsurancePremium = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.premium), 0), [insurances]);
 
@@ -147,8 +150,8 @@ export function Planner() {
             yearlyCashflow={yearlyCashflow}
           />
           <InsuranceForm
-            insurances={insurances}
-            setInsurances={setInsurances}
+            age={age}
+            totalAnnualIncome={totalAnnualIncome}
           />
           <GoalsForm
             goals={goals}
