@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReportData } from '@/lib/types';
@@ -17,6 +18,8 @@ export function Report({ data }: Props) {
   const handlePrint = () => {
     window.print();
   };
+
+  const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
 
   return (
     <Card id="report-section" className="shadow-2xl animate-in fade-in-50 duration-500">
@@ -42,12 +45,12 @@ export function Report({ data }: Props) {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Yearly Cashflow</TableCell>
-                    <TableCell className="text-right font-bold text-lg">₹{data.monthlyCashflow.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
+                    <TableCell className="text-right font-bold text-lg">₹{yearlyCashflow.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Total Insurance Cover</TableCell>
                     <TableCell className="text-right font-bold text-lg">₹{data.totalInsuranceCover.toLocaleString('en-IN')}</TableCell>
-                  </TableRow>
+  </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Total Annual Premium</TableCell>
                     <TableCell className="text-right font-bold text-lg">₹{data.totalInsurancePremium.toLocaleString('en-IN')}</TableCell>
