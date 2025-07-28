@@ -15,6 +15,9 @@ interface Props {
   totalAnnualIncome: number;
 }
 
+// A simple estimation function for premium.
+const estimatePremium = (cover: number, factor: number) => Math.round(cover * factor);
+
 export function InsuranceForm({ age, totalAnnualIncome }: Props) {
   const [hasLifeInsurance, setHasLifeInsurance] = useState<'yes' | 'no'>('no');
   const [hasHealthInsurance, setHasHealthInsurance] = useState<'yes' | 'no'>('no');
@@ -37,14 +40,33 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
     const gap = recommendedLifeCover - Number(lifeCover);
     return gap > 0 ? gap : 0;
   }, [hasLifeInsurance, lifeCover, recommendedLifeCover]);
-  
-  const recommendedHealthCover = useMemo(() => {
+
+  const recommendedLifePremium = useMemo(() => estimatePremium(recommendedLifeCover, 0.0025), [recommendedLifeCover]);
+
+
+  const recommendedHealthCoverText = useMemo(() => {
     if (!age) return 'N/A';
     if (age < 30) return '₹7 Lac - ₹10 Lac';
     if (age >= 30 && age <= 45) return '₹15 Lac - ₹20 Lac';
     if (age > 45 && age <= 60) return '₹25 Lac - ₹30 Lac';
     return '₹30 Lac - ₹40 Lac';
   }, [age]);
+
+  const numericRecommendedHealthCover = useMemo(() => {
+    if (!age) return 0;
+    if (age < 30) return 1000000;
+    if (age >= 30 && age <= 45) return 2000000;
+    if (age > 45 && age <= 60) return 3000000;
+    return 4000000;
+  }, [age]);
+
+  const healthCoverGap = useMemo(() => {
+    if(hasHealthInsurance === 'no' || !healthCover) return numericRecommendedHealthCover;
+    const gap = numericRecommendedHealthCover - Number(healthCover);
+    return gap > 0 ? gap : 0;
+  }, [hasHealthInsurance, healthCover, numericRecommendedHealthCover]);
+  
+  const recommendedHealthPremium = useMemo(() => estimatePremium(numericRecommendedHealthCover, 0.015), [numericRecommendedHealthCover]);
 
   const canShowRecommendations = age !== null && age > 0;
 
@@ -91,17 +113,22 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
             {canShowRecommendations && totalAnnualIncome > 0 && <Separator />}
 
             {canShowRecommendations && totalAnnualIncome > 0 ? (
-              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-200">
-                <Info className="h-5 w-5 mt-0.5 shrink-0"/>
-                <div>
-                  <p className="font-semibold">Recommended Life Cover:</p>
-                  <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
+              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-300">
+                <Info className="h-5 w-5 mt-0.5 shrink-0 text-blue-500"/>
+                <div className="w-full">
+                  <p className="font-semibold text-blue-600 dark:text-blue-200">Recommendation:</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-1">
+                      <span className="font-medium">Ideal Life Cover:</span>
+                      <span className="font-bold text-right">₹{recommendedLifeCover.toLocaleString('en-IN')}</span>
+                      <span className="font-medium">Est. Annual Premium:</span>
+                      <span className="font-bold text-right">₹{recommendedLifePremium.toLocaleString('en-IN')}</span>
+                  </div>
                    {hasLifeInsurance === 'yes' && lifeCover !== '' && (
-                    <div className="text-xs mt-2">
+                    <div className="text-xs mt-3 pt-2 border-t border-blue-500/20">
                       {lifeCoverGap > 0 ? (
-                         <p className="font-semibold">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
+                         <p className="font-semibold text-orange-600 dark:text-orange-400">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
                       ) : (
-                        <p className="font-semibold">Great! Your cover (₹{Number(lifeCover).toLocaleString('en-IN')}) meets the recommendation.</p>
+                        <p className="font-semibold text-green-600 dark:text-green-400">Great! Your cover meets the recommendation.</p>
                       )}
                     </div>
                   )}
@@ -152,12 +179,26 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
             {canShowRecommendations && <Separator />}
 
             {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-200">
-                <Info className="h-5 w-5 mt-0.5 shrink-0"/>
-                 <div>
-                    <p className="font-semibold">Recommended Health Cover:</p>
-                    <p className="text-lg font-bold">{recommendedHealthCover}</p>
-                    <p className="text-xs mt-1">This is a suggested range for individual health coverage to handle medical emergencies without financial strain.</p>
+              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-300">
+                <Info className="h-5 w-5 mt-0.5 shrink-0 text-blue-500"/>
+                 <div className="w-full">
+                    <p className="font-semibold text-blue-600 dark:text-blue-200">Recommendation:</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-1">
+                      <span className="font-medium">Ideal Health Cover:</span>
+                      <span className="font-bold text-right">{recommendedHealthCoverText}</span>
+                      <span className="font-medium">Est. Annual Premium:</span>
+                      <span className="font-bold text-right">₹{recommendedHealthPremium.toLocaleString('en-IN')}</span>
+                  </div>
+                  {hasHealthInsurance === 'yes' && healthCover !== '' && (
+                    <div className="text-xs mt-3 pt-2 border-t border-blue-500/20">
+                      {healthCoverGap > 0 ? (
+                         <p className="font-semibold text-orange-600 dark:text-orange-400">You have a coverage gap of ₹{healthCoverGap.toLocaleString('en-IN')}.</p>
+                      ) : (
+                        <p className="font-semibold text-green-600 dark:text-green-400">Great! Your cover meets the recommendation.</p>
+                      )}
+                    </div>
+                  )}
+                  {hasHealthInsurance === 'no' && <p className="text-xs mt-1">This is a suggested range for individual health coverage.</p>}
                  </div>
               </div>
             ) : (
