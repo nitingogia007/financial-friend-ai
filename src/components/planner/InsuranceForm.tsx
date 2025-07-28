@@ -1,10 +1,14 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
 import { ShieldCheck, Info } from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 interface Props {
   age: number | null;
@@ -12,12 +16,28 @@ interface Props {
 }
 
 export function InsuranceForm({ age, totalAnnualIncome }: Props) {
+  const [hasLifeInsurance, setHasLifeInsurance] = useState<'yes' | 'no'>('no');
+  const [hasHealthInsurance, setHasHealthInsurance] = useState<'yes' | 'no'>('no');
+  const [lifeCover, setLifeCover] = useState<number | ''>('');
+  const [lifePremium, setLifePremium] = useState<number | ''>('');
+  const [healthCover, setHealthCover] = useState<number | ''>('');
+  const [healthPremium, setHealthPremium] = useState<number | ''>('');
+
   const recommendedLifeCover = useMemo(() => {
     if (!age || !totalAnnualIncome) return 0;
-    const multiplier = age < 50 ? 15 : 10;
-    return totalAnnualIncome * multiplier;
+    if (age >= 20 && age <= 35) return totalAnnualIncome * 20;
+    if (age > 35 && age <= 50) return totalAnnualIncome * 15;
+    if (age > 50 && age <= 60) return totalAnnualIncome * 10;
+    if (age > 60) return totalAnnualIncome * 1;
+    return 0;
   }, [age, totalAnnualIncome]);
 
+  const lifeCoverGap = useMemo(() => {
+    if (hasLifeInsurance === 'no' || !lifeCover) return recommendedLifeCover;
+    const gap = recommendedLifeCover - Number(lifeCover);
+    return gap > 0 ? gap : 0;
+  }, [hasLifeInsurance, lifeCover, recommendedLifeCover]);
+  
   const recommendedHealthCover = useMemo(() => {
     if (!age) return 'N/A';
     if (age < 30) return '₹7 Lac - ₹10 Lac';
@@ -26,7 +46,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
     return '₹30 Lac - ₹40 Lac';
   }, [age]);
 
-  const canShowRecommendations = age !== null && totalAnnualIncome > 0;
+  const canShowRecommendations = age !== null && age > 0;
 
   return (
     <FormSection
@@ -38,21 +58,58 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
         {/* Life Insurance */}
         <Card className="bg-background/50">
           <CardHeader>
-            <CardTitle className="text-lg">Life Insurance Recommendation</CardTitle>
-            <CardDescription>Based on your age and income.</CardDescription>
+            <CardTitle className="text-lg">Life Insurance</CardTitle>
           </CardHeader>
-          <CardContent>
-            {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-primary/10 rounded-lg flex items-start gap-3 text-primary">
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Do you have Life Insurance?</Label>
+              <RadioGroup value={hasLifeInsurance} onValueChange={(value: 'yes' | 'no') => setHasLifeInsurance(value)} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="life-yes" />
+                  <Label htmlFor="life-yes">Yes</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="life-no" />
+                  <Label htmlFor="life-no">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            {hasLifeInsurance === 'yes' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-50">
+                <div className="space-y-2">
+                  <Label htmlFor="life-cover">Annual Cover (₹)</Label>
+                  <Input id="life-cover" type="number" placeholder="e.g., 10000000" value={lifeCover} onChange={e => setLifeCover(e.target.value === '' ? '' : Number(e.target.value))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="life-premium">Annual Premium (₹)</Label>
+                  <Input id="life-premium" type="number" placeholder="e.g., 25000" value={lifePremium} onChange={e => setLifePremium(e.target.value === '' ? '' : Number(e.target.value))} />
+                </div>
+              </div>
+            )}
+
+            {canShowRecommendations && totalAnnualIncome > 0 && <Separator />}
+
+            {canShowRecommendations && totalAnnualIncome > 0 ? (
+              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                 <div>
                   <p className="font-semibold">Recommended Life Cover:</p>
                   <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
-                  <p className="text-xs mt-1">This is the suggested minimum cover to ensure your family's financial security. Please verify your existing policy meets or exceeds this amount.</p>
+                   {hasLifeInsurance === 'yes' && lifeCover !== '' && (
+                    <div className="text-xs mt-2">
+                      {lifeCoverGap > 0 ? (
+                         <p className="text-destructive-foreground font-semibold">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
+                      ) : (
+                        <p className="text-green-700 font-semibold">Great! Your cover (₹{Number(lifeCover).toLocaleString('en-IN')}) meets the recommendation.</p>
+                      )}
+                    </div>
+                  )}
+                  {hasLifeInsurance === 'no' && <p className="text-xs mt-1">This is the suggested minimum cover to ensure your family's financial security.</p>}
                 </div>
               </div>
             ) : (
-                <div className="text-center text-muted-foreground p-4">
+                <div className="text-center text-muted-foreground p-4 text-sm">
                     Enter your Date of Birth and Income to see recommendations.
                 </div>
             )}
@@ -62,12 +119,40 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
         {/* Health Insurance */}
         <Card className="bg-background/50">
           <CardHeader>
-            <CardTitle className="text-lg">Health Insurance Recommendation</CardTitle>
-            <CardDescription>Based on your age.</CardDescription>
+            <CardTitle className="text-lg">Health Insurance</CardTitle>
           </CardHeader>
-          <CardContent>
-             {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-primary/10 rounded-lg flex items-start gap-3 text-primary">
+           <CardContent className="space-y-4">
+             <div className="space-y-2">
+              <Label>Do you have Health Insurance?</Label>
+              <RadioGroup value={hasHealthInsurance} onValueChange={(value: 'yes' | 'no') => setHasHealthInsurance(value)} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="health-yes" />
+                  <Label htmlFor="health-yes">Yes</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="health-no" />
+                  <Label htmlFor="health-no">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            {hasHealthInsurance === 'yes' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-50">
+                <div className="space-y-2">
+                  <Label htmlFor="health-cover">Annual Cover (₹)</Label>
+                  <Input id="health-cover" type="number" placeholder="e.g., 1000000" value={healthCover} onChange={e => setHealthCover(e.target.value === '' ? '' : Number(e.target.value))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="health-premium">Annual Premium (₹)</Label>
+                  <Input id="health-premium" type="number" placeholder="e.g., 15000" value={healthPremium} onChange={e => setHealthPremium(e.target.value === '' ? '' : Number(e.target.value))} />
+                </div>
+              </div>
+            )}
+
+            {canShowRecommendations && <Separator />}
+
+            {canShowRecommendations ? (
+              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                  <div>
                     <p className="font-semibold">Recommended Health Cover:</p>
@@ -76,7 +161,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
                  </div>
               </div>
             ) : (
-                <div className="text-center text-muted-foreground p-4">
+                <div className="text-center text-muted-foreground p-4 text-sm">
                     Enter your Date of Birth to see recommendations.
                 </div>
             )}
