@@ -43,7 +43,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
           </CardHeader>
           <CardContent>
             {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
+              <div className="mt-4 p-3 bg-primary/10 rounded-lg flex items-start gap-3 text-primary">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                 <div>
                   <p className="font-semibold">Recommended Life Cover:</p>
@@ -67,7 +67,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
           </CardHeader>
           <CardContent>
              {canShowRecommendations ? (
-              <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
+              <div className="mt-4 p-3 bg-primary/10 rounded-lg flex items-start gap-3 text-primary">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                  <div>
                     <p className="font-semibold">Recommended Health Cover:</p>
