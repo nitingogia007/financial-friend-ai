@@ -1,3 +1,4 @@
+
 export interface PersonalDetails {
   name: string;
   dob: string;
@@ -45,11 +46,23 @@ export interface Goal {
   corpus: number | '';
   years: number | '';
   rate: number | '';
+  currentSave: number | '';
+  currentSip: number | '';
 }
 
 export interface GoalWithSip extends Goal {
   sip: number;
 }
+
+export interface GoalWithCalculations extends Goal {
+  futureValueOfGoal: number;
+  futureValueOfCurrentSave: number;
+  futureValueOfSip: number;
+  totalFutureValue: number;
+  shortfall: number;
+  newSipRequired: number;
+}
+
 
 export interface ReportData {
   personalDetails: PersonalDetails;

@@ -1,5 +1,7 @@
-import type { Goal } from './types';
 
+import type { Goal, GoalWithCalculations } from './types';
+
+// This function is kept for the AI summary, but detailed calculations are now separate.
 export function calculateSip(goal: Goal): number {
   const corpus = typeof goal.corpus === 'number' ? goal.corpus : 0;
   const years = typeof goal.years === 'number' ? goal.years : 0;
@@ -29,4 +31,59 @@ export function calculateAge(dob: string): number | null {
       age--;
   }
   return age;
+}
+
+
+export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
+  const getNum = (val: number | '') => (typeof val === 'number' && !isNaN(val) ? val : 0);
+
+  const corpus = getNum(goal.corpus);
+  const years = getNum(goal.years);
+  const rate = getNum(goal.rate);
+  const currentSave = getNum(goal.currentSave);
+  const currentSip = getNum(goal.currentSip);
+
+  const inflationRate = 0.06;
+  const monthlyRate = rate / 100 / 12;
+  const months = years * 12;
+
+  // 1. Future Value of Goal (FV of Corpus)
+  const futureValueOfGoal = corpus * Math.pow(1 + inflationRate, years);
+
+  // 2. FV of current save for goal
+  const futureValueOfCurrentSave = currentSave * Math.pow(1 + rate / 100, years);
+  
+  // 3. FV of monthly SIP
+  let futureValueOfSip = 0;
+  if (monthlyRate > 0) {
+    futureValueOfSip = currentSip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+  } else {
+    futureValueOfSip = currentSip * months;
+  }
+
+  // 4. Total after X years
+  const totalFutureValue = futureValueOfCurrentSave + futureValueOfSip;
+
+  // 5. FV required (This is the shortfall)
+  const shortfall = futureValueOfGoal - totalFutureValue;
+
+  // 6. SIP required for the shortfall
+  let newSipRequired = 0;
+  if (shortfall > 0) {
+    if (monthlyRate > 0) {
+       newSipRequired = shortfall / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate));
+    } else if (months > 0) {
+      newSipRequired = shortfall / months;
+    }
+  }
+
+  return {
+    ...goal,
+    futureValueOfGoal: Math.round(futureValueOfGoal),
+    futureValueOfCurrentSave: Math.round(futureValueOfCurrentSave),
+    futureValueOfSip: Math.round(futureValueOfSip),
+    totalFutureValue: Math.round(totalFutureValue),
+    shortfall: Math.round(shortfall),
+    newSipRequired: Math.round(newSipRequired),
+  };
 }

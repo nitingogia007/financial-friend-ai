@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip } from '@/lib/types';
-import { calculateSip, calculateAge } from '@/lib/calculations';
+import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip, GoalWithCalculations } from '@/lib/types';
+import { calculateSip, calculateAge, calculateGoalDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -24,7 +25,7 @@ export function Planner() {
   const [liabilities, setLiabilities] = useState<Liability[]>([{ id: '1', type: 'Credit Card', amount: 50000 }]);
   const [incomes, setIncomes] = useState<Income[]>([{ id: '1', source: 'Salary', amount: 1200000 }]);
   const [expenses, setExpenses] = useState<Expense[]>([{ id: '1', type: 'Rent', amount: 360000 }]);
-  const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12 }]);
+  const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12, currentSave: 1000000, currentSip: 5000 }]);
   
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -48,6 +49,8 @@ export function Planner() {
   const totalInsurancePremium = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.premium), 0), [insurances]);
 
   const goalsWithSip = useMemo<GoalWithSip[]>(() => goals.map(g => ({ ...g, sip: calculateSip(g) })), [goals]);
+  const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
+
 
   const handleGenerateReport = async () => {
     if (!personalDetails.name || !personalDetails.email) {
@@ -155,7 +158,7 @@ export function Planner() {
           <GoalsForm
             goals={goals}
             setGoals={setGoals}
-            goalsWithSip={goalsWithSip}
+            goalsWithCalculations={goalsWithCalculations}
           />
         </div>
 
