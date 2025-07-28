@@ -87,3 +87,27 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
     newSipRequired: newSipRequired,
   };
 }
+
+export function calculateTimelines(goal: GoalWithCalculations) {
+    const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
+
+    const futureValueGoal = goal.futureValueOfGoal;
+    const rate = getNum(goal.rate) / 100;
+    const currentSip = getNum(goal.currentSip);
+    const requiredSip = goal.newSipRequired;
+    const potentialSip = (goal as any).potentialInvestment || requiredSip; // Fallback, should be passed in report data
+    
+    const calculateYears = (monthlySip: number) => {
+        if (monthlySip <= 0 || rate <= 0) return Infinity;
+        // Simplified NPER calculation
+        const monthlyRate = rate / 12;
+        const nper = Math.log((futureValueGoal * monthlyRate) / monthlySip + 1) / Math.log(1 + monthlyRate);
+        return isFinite(nper) ? Math.ceil(nper / 12) : Infinity;
+    };
+
+    return {
+        timelineWithCurrentSip: calculateYears(currentSip),
+        timelineWithRequiredSip: calculateYears(requiredSip),
+        timelineWithPotentialSip: calculateYears(potentialSip),
+    };
+}

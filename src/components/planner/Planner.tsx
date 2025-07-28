@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip, GoalWithCalculations } from '@/lib/types';
-import { calculateSip, calculateAge, calculateGoalDetails } from '@/lib/calculations';
+import type { Asset, Liability, Income, Expense, Insurance, Goal, PersonalDetails, ReportData, GoalWithSip, GoalWithCalculations, SipOptimizerReportData } from '@/lib/types';
+import { calculateSip, calculateAge, calculateGoalDetails, calculateTimelines } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -15,19 +15,28 @@ import { AssetsLiabilitiesForm } from './AssetsLiabilitiesForm';
 import { IncomeExpensesForm } from './IncomeExpensesForm';
 import { InsuranceForm } from './InsuranceForm';
 import { GoalsForm } from './GoalsForm';
-import { Report } from './Report';
+import { SipOptimizerReport } from './SipOptimizerReport';
 
 export function Planner() {
   const { toast } = useToast();
 
-  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' });
-  const [assets, setAssets] = useState<Asset[]>([{ id: '1', type: 'Bank', amount: 500000 }]);
-  const [liabilities, setLiabilities] = useState<Liability[]>([{ id: '1', type: 'Credit Card', amount: 50000 }]);
-  const [incomes, setIncomes] = useState<Income[]>([{ id: '1', source: 'Salary', amount: 1200000 }]);
-  const [expenses, setExpenses] = useState<Expense[]>([{ id: '1', type: 'Rent', amount: 360000 }]);
-  const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12, currentSave: 1000000, currentSip: 5000 }]);
+  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: 'John Doe', dob: '1990-05-15', dependents: 2, retirementAge: 60, mobile: '9876543210', email: 'john.doe@example.com', arn: 'ARN-12345' });
+  const [assets, setAssets] = useState<Asset[]>([
+      { id: '1', type: 'Stocks', amount: 500000 },
+      { id: '2', type: 'Mutual Fund', amount: 1000000 },
+      { id: '3', type: 'Gold', amount: 200000 },
+      { id: '4', type: 'Fixed Deposit', amount: 300000 },
+  ]);
+  const [liabilities, setLiabilities] = useState<Liability[]>([{ id: '1', type: 'Home Loan', amount: 2500000 }]);
+  const [incomes, setIncomes] = useState<Income[]>([{ id: '1', source: 'Salary', amount: 1800000 }]);
+  const [expenses, setExpenses] = useState<Expense[]>([
+      { id: '1', type: 'Rent', amount: 360000 },
+      { id: '2', type: 'Groceries', amount: 120000 },
+      { id: '3', type: 'Utilities', amount: 60000 },
+  ]);
+  const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12, currentSave: 1000000, currentSip: 15000 }]);
   
-  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportData, setReportData] = useState<SipOptimizerReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
@@ -36,21 +45,12 @@ export function Planner() {
 
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + getNumericValue(a.amount), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
-  const netWorth = useMemo(() => totalAssets - totalLiabilities, [totalAssets, totalLiabilities]);
   
   const totalAnnualIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
   const totalAnnualExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
   const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
-  const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
 
-  // This state is not used in the new InsuranceForm, but we'll keep it for the report generation logic.
-  const [insurances, setInsurances] = useState<Insurance[]>([{ id: '1', type: 'Life', cover: 10000000, premium: 25000 }]);
-  const totalInsuranceCover = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.cover), 0), [insurances]);
-  const totalInsurancePremium = useMemo(() => insurances.reduce((sum, i) => sum + getNumericValue(i.premium), 0), [insurances]);
-
-  const goalsWithSip = useMemo<GoalWithSip[]>(() => goals.map(g => ({ ...g, sip: calculateSip(g) })), [goals]);
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
-
 
   const handleGenerateReport = async () => {
     if (!personalDetails.name || !personalDetails.email) {
@@ -64,62 +64,73 @@ export function Planner() {
 
     setIsGenerating(true);
     try {
-      const aiInput = {
-        name: personalDetails.name,
-        netWorth,
-        monthlyCashflow,
-        insuranceCover: totalInsuranceCover,
-        insurancePremium: totalInsurancePremium,
-        goals: goalsWithSip.map(g => ({
-          goalName: g.name,
-          corpus: getNumericValue(g.corpus),
-          years: getNumericValue(g.years),
-          rate: getNumericValue(g.rate),
-          sip: g.sip,
-        })),
-      };
+      const primaryGoal = goalsWithCalculations[0];
+      const investibleSurplus = (totalAnnualIncome - totalAnnualExpenses) / 12;
       
-      const { summary } = await summarizeFinancialStatus(aiInput);
+      const timelines = calculateTimelines(primaryGoal);
 
-      setReportData({
-        personalDetails,
-        netWorth,
-        monthlyCashflow,
-        totalInsuranceCover,
-        totalInsurancePremium,
-        goals: goalsWithSip,
-        totalAssets,
-        totalLiabilities,
-        assets,
-        liabilities,
-        totalAnnualIncome,
-        totalAnnualExpenses,
-        expenses,
-        aiSummary: summary,
-      });
+      const generatedReportData: SipOptimizerReportData = {
+          personalDetails: {
+              ...personalDetails,
+              name: personalDetails.name || "N/A",
+              dob: personalDetails.dob || "N/A",
+              dependents: personalDetails.dependents || 0,
+              retirementAge: personalDetails.retirementAge || "N/A",
+              mobile: personalDetails.mobile || "N/A",
+              email: personalDetails.email || "N/A",
+              arn: personalDetails.arn || "N/A",
+          },
+          cashflow: {
+              totalMonthlyIncome: totalAnnualIncome / 12,
+              totalMonthlyExpenses: totalAnnualExpenses / 12,
+              investibleSurplus: investibleSurplus,
+          },
+          investmentStatus: {
+              currentInvestment: getNumericValue(primaryGoal.currentSip),
+              requiredInvestment: primaryGoal.newSipRequired,
+              potentialInvestment: investibleSurplus,
+          },
+          primaryGoal: {
+              name: primaryGoal.name,
+              targetCorpus: getNumericValue(primaryGoal.corpus),
+              futureValue: primaryGoal.futureValueOfGoal,
+              timeline: {
+                  current: timelines.timelineWithCurrentSip,
+                  required: timelines.timelineWithRequiredSip,
+                  potential: timelines.timelineWithPotentialSip,
+              },
+          },
+          detailedTables: {
+              incomeExpenses: {
+                  totalMonthlyIncome: totalAnnualIncome / 12,
+                  fixedExpenses: expenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
+                  emiExpenses: liabilities.filter(l => l.type.includes('Loan')).reduce((sum, l) => sum + (getNumericValue(l.amount) * 0.01), 0) / 12, // Simplified EMI
+                  otherExpenses: expenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
+              },
+              assetAllocation: {
+                  mutualFunds: { corpus: assets.find(a=>a.type==='Mutual Fund')?.amount || 0, monthly: 0},
+                  gold: { corpus: assets.find(a=>a.type==='Gold')?.amount || 0, monthly: 0},
+                  stocks: { corpus: assets.find(a=>a.type==='Stocks')?.amount || 0, monthly: 0},
+                  fixedDeposits: { corpus: assets.find(a=>a.type==='Fixed Deposit')?.amount || 0, monthly: 0},
+              }
+          },
+          advisorDetails: {
+            companyName: 'Financial Friend',
+            arnName: personalDetails.name,
+            arnNo: personalDetails.arn,
+            mobile: personalDetails.mobile,
+            email: personalDetails.email
+          }
+      };
+
+      setReportData(generatedReportData);
 
     } catch (error) {
       console.error("Error generating report:", error);
       toast({
         title: "Error",
-        description: "Failed to generate AI summary. Please try again.",
+        description: "Failed to generate report. Please check the console for details.",
         variant: "destructive",
-      });
-      setReportData({
-        personalDetails,
-        netWorth,
-        monthlyCashflow,
-        totalInsuranceCover,
-        totalInsurancePremium,
-        goals: goalsWithSip,
-        totalAssets,
-        totalLiabilities,
-        assets,
-        liabilities,
-        totalAnnualIncome,
-        totalAnnualExpenses,
-        expenses,
-        aiSummary: 'Could not generate AI summary at this time.',
       });
     } finally {
       setIsGenerating(false);
@@ -142,7 +153,7 @@ export function Planner() {
             setAssets={setAssets} 
             liabilities={liabilities} 
             setLiabilities={setLiabilities}
-            netWorth={netWorth}
+            netWorth={totalAssets - totalLiabilities}
           />
           <IncomeExpensesForm
             incomes={incomes}
@@ -174,7 +185,7 @@ export function Planner() {
 
         {reportData && (
           <div className="mt-12">
-            <Report data={reportData} />
+            <SipOptimizerReport data={reportData} />
           </div>
         )}
       </div>

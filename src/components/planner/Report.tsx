@@ -63,7 +63,7 @@ export function Report({ data }: Props) {
             </CardTitle>
            </CardHeader>
            <CardContent>
-             <p className="prose prose-blue dark:prose-invert max-w-none text-foreground/90">{data.aiSummary}</p>
+             <p className="prose prose-blue dark:prose-invert max-w-none text-foreground/90">{data.aiSummary || 'AI summary is being generated...'}</p>
            </CardContent>
         </Card>
 

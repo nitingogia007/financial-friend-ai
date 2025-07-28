@@ -1,4 +1,5 @@
 
+
 export interface PersonalDetails {
   name: string;
   dob: string;
@@ -79,4 +80,59 @@ export interface ReportData {
   totalAnnualExpenses: number;
   expenses: Expense[];
   aiSummary: string;
+}
+
+
+// New types for the SIP Optimizer Report
+export interface SipOptimizerReportData {
+  personalDetails: {
+    name: string;
+    dob: string;
+    dependents: number | '';
+    retirementAge: number | '';
+    mobile: string;
+    email: string;
+    arn: string;
+  };
+  cashflow: {
+    totalMonthlyIncome: number;
+    totalMonthlyExpenses: number;
+    investibleSurplus: number;
+  };
+  investmentStatus: {
+    currentInvestment: number;
+    requiredInvestment: number;
+    potentialInvestment: number;
+  };
+  primaryGoal: {
+    name: string;
+    targetCorpus: number;
+    futureValue: number;
+    timeline: {
+      current: number;
+      required: number;
+      potential: number;
+    };
+  };
+  detailedTables: {
+    incomeExpenses: {
+      totalMonthlyIncome: number;
+      fixedExpenses: number;
+      emiExpenses: number;
+      otherExpenses: number;
+    };
+    assetAllocation: {
+        mutualFunds: { corpus: number | '', monthly: number | '' };
+        gold: { corpus: number | '', monthly: number | '' };
+        stocks: { corpus: number | '', monthly: number | '' };
+        fixedDeposits: { corpus: number | '', monthly: number | '' };
+    };
+  };
+  advisorDetails: {
+    companyName: string;
+    arnName: string;
+    arnNo: string;
+    mobile: string;
+    email: string;
+  };
 }
