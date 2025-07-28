@@ -1,10 +1,8 @@
+
 "use client";
 
-import { useState, useMemo } from 'react';
-import type { Insurance } from '@/lib/types';
+import { useMemo } from 'react';
 import { FormSection } from './FormSection';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldCheck, Info } from 'lucide-react';
 
@@ -14,9 +12,6 @@ interface Props {
 }
 
 export function InsuranceForm({ age, totalAnnualIncome }: Props) {
-  const [hasLifeInsurance, setHasLifeInsurance] = useState<'yes' | 'no' | null>(null);
-  const [hasHealthInsurance, setHasHealthInsurance] = useState<'yes' | 'no' | null>(null);
-
   const recommendedLifeCover = useMemo(() => {
     if (!age || !totalAnnualIncome) return 0;
     const multiplier = age < 50 ? 15 : 10;
@@ -31,6 +26,8 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
     return '₹30 Lac - ₹40 Lac';
   }, [age]);
 
+  const canShowRecommendations = age !== null && totalAnnualIncome > 0;
+
   return (
     <FormSection
       title="Insurance Checkup"
@@ -41,41 +38,23 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
         {/* Life Insurance */}
         <Card className="bg-background/50">
           <CardHeader>
-            <CardTitle className="text-lg">Life Insurance</CardTitle>
-            <CardDescription>Do you have a life insurance policy?</CardDescription>
+            <CardTitle className="text-lg">Life Insurance Recommendation</CardTitle>
+            <CardDescription>Based on your age and income.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup
-              onValueChange={(value: 'yes' | 'no') => setHasLifeInsurance(value)}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="life-yes" />
-                <Label htmlFor="life-yes">Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="life-no" />
-                <Label htmlFor="life-no">No</Label>
-              </div>
-            </RadioGroup>
-            {hasLifeInsurance && (
+            {canShowRecommendations ? (
               <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                 <div>
-                    {hasLifeInsurance === 'yes' ? (
-                        <>
-                            <p className="font-semibold">Recommended Life Cover:</p>
-                            <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
-                            <p className="text-xs">Based on your age and income, this is the suggested minimum cover to ensure your family's financial security.</p>
-                        </>
-                    ) : (
-                        <>
-                             <p className="font-semibold">Action Recommended:</p>
-                            <p className="text-base">It's highly recommended to get a life insurance policy to protect your family's future.</p>
-                        </>
-                    )}
+                  <p className="font-semibold">Recommended Life Cover:</p>
+                  <p className="text-lg font-bold">₹{recommendedLifeCover.toLocaleString('en-IN')}</p>
+                  <p className="text-xs mt-1">This is the suggested minimum cover to ensure your family's financial security. Please verify your existing policy meets or exceeds this amount.</p>
                 </div>
               </div>
+            ) : (
+                <div className="text-center text-muted-foreground p-4">
+                    Enter your Date of Birth and Income to see recommendations.
+                </div>
             )}
           </CardContent>
         </Card>
@@ -83,32 +62,23 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
         {/* Health Insurance */}
         <Card className="bg-background/50">
           <CardHeader>
-            <CardTitle className="text-lg">Health Insurance</CardTitle>
-            <CardDescription>Do you have a health insurance policy?</CardDescription>
+            <CardTitle className="text-lg">Health Insurance Recommendation</CardTitle>
+            <CardDescription>Based on your age.</CardDescription>
           </CardHeader>
           <CardContent>
-             <RadioGroup
-              onValueChange={(value: 'yes' | 'no') => setHasHealthInsurance(value)}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="health-yes" />
-                <Label htmlFor="health-yes">Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="health-no" />
-                <Label htmlFor="health-no">No</Label>
-              </div>
-            </RadioGroup>
-             {(hasHealthInsurance === 'yes' || hasHealthInsurance === 'no') && (
+             {canShowRecommendations ? (
               <div className="mt-4 p-3 bg-accent/20 rounded-lg flex items-start gap-3 text-accent-foreground">
                 <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                  <div>
                     <p className="font-semibold">Recommended Health Cover:</p>
                     <p className="text-lg font-bold">{recommendedHealthCover}</p>
-                    <p className="text-xs">This is a suggested range for individual health coverage to handle medical emergencies without financial strain.</p>
+                    <p className="text-xs mt-1">This is a suggested range for individual health coverage to handle medical emergencies without financial strain.</p>
                  </div>
               </div>
+            ) : (
+                <div className="text-center text-muted-foreground p-4">
+                    Enter your Date of Birth to see recommendations.
+                </div>
             )}
           </CardContent>
         </Card>
