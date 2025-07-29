@@ -23,21 +23,12 @@ export function Planner() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: 'John Doe', dob: '1990-05-15', dependents: 2, retirementAge: 60, mobile: '9876543210', email: 'john.doe@example.com', arn: 'ARN-12345' });
-  const [assets, setAssets] = useState<Asset[]>([
-      { id: '1', type: 'Stocks', amount: 500000 },
-      { id: '2', type: 'Mutual Fund', amount: 1000000 },
-      { id: '3', type: 'Gold', amount: 200000 },
-      { id: '4', type: 'Fixed Deposit', amount: 300000 },
-  ]);
-  const [liabilities, setLiabilities] = useState<Liability[]>([{ id: '1', type: 'Home Loan', amount: 2500000 }]);
-  const [incomes, setIncomes] = useState<Income[]>([{ id: '1', source: 'Salary', amount: 1800000 }]);
-  const [expenses, setExpenses] = useState<Expense[]>([
-      { id: '1', type: 'Rent', amount: 360000 },
-      { id: '2', type: 'Groceries', amount: 120000 },
-      { id: '3', type: 'Utilities', amount: 60000 },
-  ]);
-  const [goals, setGoals] = useState<Goal[]>([{ id: '1', name: 'Retirement', corpus: 20000000, years: 25, rate: 12, currentSave: 1000000, currentSip: 15000 }]);
+  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' });
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [liabilities, setLiabilities] = useState<Liability[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   
   const [sipReportData, setSipReportData] = useState<SipOptimizerReportData | null>(null);
   const [detailedReportData, setDetailedReportData] = useState<ReportData | null>(null);
@@ -71,10 +62,10 @@ export function Planner() {
     setDetailedReportData(null);
 
     try {
-      const primaryGoal = goalsWithCalculations[0];
+      const primaryGoal = goalsWithCalculations[0] || { currentSip: 0, newSipRequired: 0, name: 'Primary Goal', corpus: 0, futureValueOfGoal: 0 };
       const investibleSurplus = (totalAnnualIncome - totalAnnualExpenses) / 12;
       
-      const timelines = calculateTimelines(primaryGoal, investibleSurplus);
+      const timelines = calculateTimelines(primaryGoal as GoalWithCalculations, investibleSurplus);
 
       const generatedSipReportData: SipOptimizerReportData = {
           personalDetails: {
