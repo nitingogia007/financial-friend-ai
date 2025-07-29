@@ -53,7 +53,9 @@ export function SipOptimizerReport({ data }: Props) {
     window.print();
   };
   
-  const additionalSipRequired = Math.max(0, data.totalInvestmentStatus.requiredInvestment - data.totalInvestmentStatus.currentInvestment);
+  const additionalSipRequired = data.totalInvestmentStatus
+    ? Math.max(0, data.totalInvestmentStatus.requiredInvestment - data.totalInvestmentStatus.currentInvestment)
+    : 0;
   
   const handleViewDetailedReport = () => {
     router.push('/report');
@@ -178,6 +180,7 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
 
         {/* Underinvesting Section */}
+        {data.totalInvestmentStatus && (
         <section className="mt-4">
              <div className="text-red-600 font-semibold flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5"/>
@@ -207,6 +210,7 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
              <p className="text-xs text-gray-500 mt-2 text-left">The "What I can invest" indicates your maximum potential monthly SIP, enabling you to fast-track your progress toward achieving your goals.</p>
         </section>
+        )}
 
         {/* Timeline Visual */}
          <section className="mt-4">
@@ -288,6 +292,7 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
 
         {/* Detailed Tables */}
+        {data.detailedTables && (
         <section className="mt-4 grid grid-cols-2 gap-6 text-sm flex-grow">
             <div>
                 <h3 className="font-bold mb-2 text-gray-700">Income & expenses</h3>
@@ -319,6 +324,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </table>
             </div>
         </section>
+        )}
         
         <footer className="mt-auto pt-4 border-t-2 border-gray-300">
             <p className="text-xs text-gray-500 text-center leading-tight">
