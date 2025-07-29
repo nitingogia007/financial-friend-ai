@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -121,6 +121,9 @@ export function SipOptimizerReport({ data }: Props) {
             border: none;
             background: white;
           }
+           .print-avoid-break {
+            break-inside: avoid;
+          }
         }
         #report-container * {
             font-family: 'Poppins', sans-serif;
@@ -142,7 +145,7 @@ export function SipOptimizerReport({ data }: Props) {
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border bg-white flex flex-col">
         {/* Header */}
-        <header style={{ background: 'linear-gradient(to right, #002554, #003a7a)', color: 'white' }} className="p-4 rounded-t-lg">
+        <header className="p-4 rounded-t-lg">
             <div className="flex justify-center items-center">
                 <div className="text-center text-xs">
                     <p><strong>RM name:</strong> Gunjan Kataria</p>
@@ -152,12 +155,12 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </header>
 
-        <section className="text-center py-4 bg-white">
+        <section className="text-center py-4 bg-white print-avoid-break">
             <h1 className="text-xl font-bold text-gray-800 tracking-wide">SIP Optimizer Report</h1>
         </section>
 
         {/* Investor Details */}
-        <section className="bg-white p-4 border rounded-lg shadow-sm">
+        <section className="bg-white p-4 border rounded-lg shadow-sm print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-3">Investor details</h2>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
                 <InfoRow icon={User} label="Name" value={data.personalDetails.name} />
@@ -169,9 +172,40 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </section>
 
+        {/* Net Worth */}
+        <section className="mt-4 print-avoid-break">
+             <div className="p-3 rounded-lg bg-gray-100 text-center">
+                <h3 className="font-bold text-gray-700">Your Net Worth</h3>
+            </div>
+            <div className="mt-3 text-center">
+                <p className="text-4xl font-bold roboto text-blue-700">{formatCurrency(data.netWorth)}</p>
+            </div>
+        </section>
+
+        {/* Monthly Cashflow Summary */}
+        <section className="mt-4 print-avoid-break">
+             <div className="p-3 rounded-lg bg-gray-100 text-center">
+                <h3 className="font-bold text-gray-700">Your Monthly Cashflow Summary</h3>
+            </div>
+            <div className="mt-3 relative h-8 bg-gray-200 rounded-full overflow-hidden">
+                <div className="absolute inset-0 flex">
+                    <div className="bg-red-400 h-full" style={{ width: `${(data.cashflow.totalMonthlyExpenses / data.cashflow.totalMonthlyIncome) * 100}%` }}></div>
+                    <div className="bg-green-400 h-full" style={{ width: `${(data.cashflow.investibleSurplus / data.cashflow.totalMonthlyIncome) * 100}%` }}></div>
+                </div>
+                 <div className="absolute inset-0 flex justify-between items-center px-4 text-white text-xs font-bold">
+                    <span>Total expenses ({formatCurrency(data.cashflow.totalMonthlyExpenses)})</span>
+                    <span>Investible Surplus ({formatCurrency(data.cashflow.investibleSurplus)})</span>
+                </div>
+            </div>
+             <div className="flex justify-between mt-1 text-xs">
+                <span>Total income ({formatCurrency(data.cashflow.totalMonthlyIncome)})</span>
+                <span>This is what you must invest!</span>
+             </div>
+        </section>
+
         {/* Underinvesting Section */}
         {data.totalInvestmentStatus && (
-        <section className="mt-4">
+        <section className="mt-4 print-avoid-break">
              <div className="text-red-600 font-semibold flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5"/>
                 <h3>Underinvesting</h3>
@@ -202,8 +236,10 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
 
-        {/* Timeline Visual */}
-         <section className="mt-4">
+        {/* Goal Planning */}
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2">Goal Planning</h2>
+            {/* Timeline Visual */}
              {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
                 <div key={goal.id} className="mt-4 first:mt-0">
                     {renderGoalTimeline(goal)}
@@ -215,30 +251,9 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </section>
 
-        {/* Monthly Cashflow Summary */}
-        <section className="mt-4">
-             <div className="p-3 rounded-lg bg-gray-100 text-center">
-                <h3 className="font-bold text-gray-700">Your monthly cashflow summary</h3>
-            </div>
-            <div className="mt-3 relative h-8 bg-gray-200 rounded-full overflow-hidden">
-                <div className="absolute inset-0 flex">
-                    <div className="bg-red-400 h-full" style={{ width: `${(data.cashflow.totalMonthlyExpenses / data.cashflow.totalMonthlyIncome) * 100}%` }}></div>
-                    <div className="bg-green-400 h-full" style={{ width: `${(data.cashflow.investibleSurplus / data.cashflow.totalMonthlyIncome) * 100}%` }}></div>
-                </div>
-                 <div className="absolute inset-0 flex justify-between items-center px-4 text-white text-xs font-bold">
-                    <span>Total expenses ({formatCurrency(data.cashflow.totalMonthlyExpenses)})</span>
-                    <span>Investible Surplus ({formatCurrency(data.cashflow.investibleSurplus)})</span>
-                </div>
-            </div>
-             <div className="flex justify-between mt-1 text-xs">
-                <span>Total income ({formatCurrency(data.cashflow.totalMonthlyIncome)})</span>
-                <span>This is what you must invest!</span>
-             </div>
-        </section>
-
         {/* Goals Table */}
-        <section className="mt-4">
-            <h2 className="font-bold text-gray-700 mb-2">Goals</h2>
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
                      <div key={goal.id} className="border-b pb-4 last:border-b-0">
@@ -276,7 +291,7 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Insurance Analysis */}
         {data.insuranceAnalysis && (
-        <section className="mt-4">
+        <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gray-500"/>Insurance Analysis</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="border rounded-lg p-3 bg-blue-50/50">
@@ -298,16 +313,8 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </section>
         )}
-
-
-        {/* Detailed Tables */}
-        {data.detailedTables && (
-        <section className="mt-4 grid grid-cols-2 gap-6 text-sm flex-grow">
-            
-        </section>
-        )}
         
-        <footer className="mt-auto pt-4 border-t-2 border-gray-300">
+        <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
                 <strong>Disclaimer:</strong> The calculators are based on past returns and are meant for illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
             </p>
@@ -316,3 +323,4 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
