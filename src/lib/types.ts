@@ -94,6 +94,7 @@ export interface SipOptimizerReportData {
     email: string;
     arn: string;
   };
+  netWorth: number;
   cashflow: {
     totalMonthlyIncome: number;
     totalMonthlyExpenses: number;
@@ -129,10 +130,11 @@ export interface SipOptimizerReportData {
     };
   };
   advisorDetails: {
-    companyName: string;
     arnName: string;
     arnNo: string;
     mobile: string;
     email: string;
   };
 }
+
+    

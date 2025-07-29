@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -40,6 +41,7 @@ export function Planner() {
 
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + getNumericValue(a.amount), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
+  const netWorth = useMemo(() => totalAssets - totalLiabilities, [totalAssets, totalLiabilities]);
   
   const totalAnnualIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
   const totalAnnualExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
@@ -62,14 +64,13 @@ export function Planner() {
     setDetailedReportData(null);
 
     try {
-      const primaryGoal = goalsWithCalculations[0] || { currentSip: 0, newSipRequired: 0, name: 'Primary Goal', corpus: 0, futureValueOfGoal: 0 };
+      const primaryGoal = goalsWithCalculations[0] || { currentSip: 0, newSipRequired: 0, name: 'Primary Goal', corpus: 0, futureValueOfGoal: 0, years: 0, rate: 0, currentSave: 0 };
       const investibleSurplus = (totalAnnualIncome - totalAnnualExpenses) / 12;
       
-      const timelines = calculateTimelines(primaryGoal as GoalWithCalculations, investibleSurplus);
+      const timelines = calculateTimelines(primaryGoal, investibleSurplus);
 
       const generatedSipReportData: SipOptimizerReportData = {
           personalDetails: {
-              ...personalDetails,
               name: personalDetails.name || "N/A",
               dob: personalDetails.dob || "N/A",
               dependents: personalDetails.dependents || 0,
@@ -78,6 +79,7 @@ export function Planner() {
               email: personalDetails.email || "N/A",
               arn: personalDetails.arn || "N/A",
           },
+          netWorth: netWorth,
           cashflow: {
               totalMonthlyIncome: totalAnnualIncome / 12,
               totalMonthlyExpenses: totalAnnualExpenses / 12,
@@ -106,25 +108,23 @@ export function Planner() {
                   otherExpenses: expenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
               },
               assetAllocation: {
-                  mutualFunds: { corpus: assets.find(a=>a.type==='Mutual Fund')?.amount || 0, monthly: 0},
+                  mutualFunds: { corpus: assets.find(a=>a.type==='Mutual Fund')?.amount || 0, monthly: goals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
                   gold: { corpus: assets.find(a=>a.type==='Gold')?.amount || 0, monthly: 0},
                   stocks: { corpus: assets.find(a=>a.type==='Stocks')?.amount || 0, monthly: 0},
-                  fixedDeposits: { corpus: assets.find(a=>a.type==='Fixed Deposit')?.amount || 0, monthly: 0},
+                  fixedDeposits: { corpus: assets.find(a=>a.type==='Bank')?.amount || 0, monthly: 0},
               }
           },
           advisorDetails: {
-            companyName: 'Financial Friend',
-            arnName: personalDetails.name || '',
-            arnNo: personalDetails.arn || '',
-            mobile: personalDetails.mobile || '',
-            email: personalDetails.email || '',
+            arnName: 'Gunjan Kataria',
+            arnNo: personalDetails.arn || 'N/A',
+            mobile: personalDetails.mobile || 'N/A',
+            email: personalDetails.email || 'N/A',
           }
       };
 
       setSipReportData(generatedSipReportData);
 
       // Prepare data for detailed report
-      const netWorth = totalAssets - totalLiabilities;
       const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
 
       const goalsWithSip: GoalWithSip[] = goals.map(g => ({
@@ -205,7 +205,7 @@ export function Planner() {
             setAssets={setAssets} 
             liabilities={liabilities} 
             setLiabilities={setLiabilities}
-            netWorth={totalAssets - totalLiabilities}
+            netWorth={netWorth}
           />
           <IncomeExpensesForm
             incomes={incomes}
@@ -240,7 +240,7 @@ export function Planner() {
             <SipOptimizerReport data={sipReportData} />
             
             {detailedReportData && (
-                <div className="text-center mt-8">
+                <div className="text-center mt-8 no-print">
                     <Button onClick={handleViewDetailedReport} variant="secondary" size="lg">
                         View Detailed Wellness Report
                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -256,3 +256,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
