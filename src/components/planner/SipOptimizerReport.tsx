@@ -323,4 +323,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
