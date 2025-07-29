@@ -127,6 +127,8 @@ export interface SipOptimizerReportData {
         gold: { corpus: number | '', monthly: number | '' };
         stocks: { corpus: number | '', monthly: number | '' };
         fixedDeposits: { corpus: number | '', monthly: number | '' };
+        others: { corpus: number, monthly: number };
+        total: { corpus: number, monthly: number };
     };
   };
   advisorDetails: {
@@ -136,5 +138,3 @@ export interface SipOptimizerReportData {
     email: string;
   };
 }
-
-    

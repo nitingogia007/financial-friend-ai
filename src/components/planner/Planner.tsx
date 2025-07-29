@@ -64,6 +64,18 @@ export function Planner() {
       
       const timelines = calculateTimelines(primaryGoal, investibleSurplus);
 
+      const assetAllocation = {
+          mutualFunds: { corpus: getNumericValue(assets.find(a=>a.type==='Mutual Fund')?.amount), monthly: goals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
+          gold: { corpus: getNumericValue(assets.find(a=>a.type==='Gold')?.amount), monthly: 0},
+          stocks: { corpus: getNumericValue(assets.find(a=>a.type==='Stocks')?.amount), monthly: 0},
+          fixedDeposits: { corpus: getNumericValue(assets.find(a=>a.type==='Bank')?.amount), monthly: 0},
+          others: { corpus: getNumericValue(assets.find(a=>a.type==='Other')?.amount), monthly: 0},
+          total: { corpus: 0, monthly: 0 }
+      };
+
+      assetAllocation.total.corpus = Object.values(assetAllocation).reduce((sum, val) => sum + (val.corpus || 0), 0);
+      assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0);
+
       // SIP Optimizer Report Data
       const generatedSipReportData: SipOptimizerReportData = {
           personalDetails: {
@@ -100,21 +112,16 @@ export function Planner() {
               incomeExpenses: {
                   totalMonthlyIncome: totalAnnualIncome / 12,
                   fixedExpenses: expenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
-                  emiExpenses: liabilities.filter(l => l.type.includes('Loan')).reduce((sum, l) => sum + (getNumericValue(l.amount) * 0.01), 0) / 12,
+                  emiExpenses: liabilities.filter(l => l.type.includes('Loan')).reduce((sum, l) => sum + (getNumericValue(l.amount) * 0.02), 0) / 12, // Simple EMI estimation
                   otherExpenses: expenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
               },
-              assetAllocation: {
-                  mutualFunds: { corpus: getNumericValue(assets.find(a=>a.type==='Mutual Fund')?.amount), monthly: goals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
-                  gold: { corpus: getNumericValue(assets.find(a=>a.type==='Gold')?.amount), monthly: 0},
-                  stocks: { corpus: getNumericValue(assets.find(a=>a.type==='Stocks')?.amount), monthly: 0},
-                  fixedDeposits: { corpus: getNumericValue(assets.find(a=>a.type==='Bank')?.amount), monthly: 0},
-              }
+              assetAllocation: assetAllocation
           },
           advisorDetails: {
             arnName: 'Gunjan Kataria',
-            arnNo: personalDetails.arn || 'N/A',
-            mobile: personalDetails.mobile || 'N/A',
-            email: personalDetails.email || 'N/A',
+            arnNo: personalDetails.arn || 'ARN-157982',
+            mobile: 'Not Available',
+            email: 'Not Available',
           }
       };
       
@@ -162,7 +169,7 @@ export function Planner() {
       sessionStorage.setItem('sipOptimizerReportData', JSON.stringify(generatedSipReportData));
       sessionStorage.setItem('detailedReportData', JSON.stringify(generatedDetailedReportData));
 
-      router.push('/report');
+      router.push('/sip-optimizer-report');
 
     } catch (error) {
       console.error("Error generating report:", error);
