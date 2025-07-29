@@ -154,8 +154,8 @@ export function Planner() {
           advisorDetails: {
             arnName: 'Gunjan Kataria',
             arnNo: personalDetails.arn || 'ARN-157982',
-            mobile: 'Not Available',
-            email: 'Not Available',
+            mobile: '9460825477',
+            email: 'contact@financialfriend.in',
           },
           insuranceAnalysis: insuranceAnalysis,
       };
@@ -271,3 +271,5 @@ export function Planner() {
     </div>
   );
 }
+
+    

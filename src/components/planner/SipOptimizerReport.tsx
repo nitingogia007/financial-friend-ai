@@ -143,21 +143,12 @@ export function SipOptimizerReport({ data }: Props) {
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border bg-white flex flex-col">
         {/* Header */}
         <header style={{ background: 'linear-gradient(to right, #002554, #003a7a)', color: 'white' }} className="p-4 rounded-t-lg">
-            <div className="flex justify-between items-center">
-                <div className="relative h-12 w-36">
-                    <Image 
-                        src="/financial-friend-logo.png" 
-                        alt="FinFriend Planner Logo" 
-                        fill
-                        style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-                        priority
-                    />
-                </div>
+            <div className="flex justify-end items-center">
                 <div className="text-right text-xs">
-                    <p><strong>ARN name:</strong> {data.advisorDetails.arnName}</p>
+                    <p><strong>RM name:</strong> Gunjan Kataria</p>
                     <p><strong>ARN no:</strong> {data.advisorDetails.arnNo}</p>
-                    <p><strong>Mobile no:</strong> {data.advisorDetails.mobile}</p>
-                    <p><strong>Email:</strong> {data.advisorDetails.email}</p>
+                    <p><strong>Mobile no:</strong> 9460825477</p>
+                    <p><strong>Email:</strong> contact@financialfriend.in</p>
                 </div>
             </div>
         </header>
@@ -326,3 +317,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
