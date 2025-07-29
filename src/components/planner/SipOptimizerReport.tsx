@@ -214,7 +214,7 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Timeline Visual */}
          <section className="mt-4">
-             {data.goals.map(goal => (
+             {Array.isArray(data.goals) && data.goals.map(goal => (
                 <div key={goal.id} className="mt-4 first:mt-0">
                     {renderGoalTimeline(goal)}
                 </div>
@@ -260,7 +260,7 @@ export function SipOptimizerReport({ data }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {data.goals.map(goal => (
+                        {Array.isArray(data.goals) && data.goals.map(goal => (
                             <tr key={goal.id} className="border-b">
                                 <td className="p-2 font-semibold">{goal.name}</td>
                                 <td className="p-2 bg-red-50">
@@ -335,3 +335,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
