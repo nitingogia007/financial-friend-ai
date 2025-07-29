@@ -162,7 +162,7 @@ export function Planner() {
       sessionStorage.setItem('sipOptimizerReportData', JSON.stringify(generatedSipReportData));
       sessionStorage.setItem('detailedReportData', JSON.stringify(generatedDetailedReportData));
 
-      router.push('/sip-optimizer-report');
+      router.push('/report');
 
     } catch (error) {
       console.error("Error generating report:", error);
