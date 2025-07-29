@@ -136,7 +136,7 @@ export function SipOptimizerReport({ data }: Props) {
             <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
         <Button onClick={handlePrint}>
-            <Download className="mr-2 h-4 w-4" /> Download
+            <Download className="mr-2 h-4 w-4" />
         </Button>
       </div>
 
@@ -313,35 +313,7 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Detailed Tables */}
         {data.detailedTables && (
         <section className="mt-4 grid grid-cols-2 gap-6 text-sm flex-grow">
-            <div>
-                <h3 className="font-bold mb-2 text-gray-700">Income & expenses</h3>
-                <div className="space-y-1 text-xs">
-                    <div className="flex justify-between"><p>Total monthly income</p><p className="font-bold roboto">{formatCurrency(data.detailedTables.incomeExpenses.totalMonthlyIncome)}</p></div>
-                    <div className="flex justify-between"><p>Monthly fixed expenses</p><p className="font-bold roboto">{formatCurrency(data.detailedTables.incomeExpenses.fixedExpenses)}</p></div>
-                    <div className="flex justify-between"><p>Monthly expenses towards EMI</p><p className="font-bold roboto">{formatCurrency(data.detailedTables.incomeExpenses.emiExpenses)}</p></div>
-                    <div className="flex justify-between"><p>Other expenses</p><p className="font-bold roboto">{formatCurrency(data.detailedTables.incomeExpenses.otherExpenses)}</p></div>
-                </div>
-            </div>
-            <div>
-                <h3 className="font-bold mb-2 text-gray-700">Current corpus and monthly investments</h3>
-                 <table className="w-full text-xs">
-                    <thead className="bg-gray-100">
-                        <tr className="text-left text-gray-600 font-semibold">
-                           <th className="py-1 px-2 font-semibold">Asset name</th>
-                           <th className="py-1 px-2 font-semibold text-right">Current corpus</th>
-                           <th className="py-1 px-2 font-semibold text-right">Monthly investments</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-b"><td className="py-1 px-2">Mutual funds</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.mutualFunds.corpus)}</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.mutualFunds.monthly)}</td></tr>
-                        <tr className="border-b"><td className="py-1 px-2">Gold</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.gold.corpus)}</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.gold.monthly)}</td></tr>
-                        <tr className="border-b"><td className="py-1 px-2">Stocks</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.stocks.corpus)}</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.stocks.monthly)}</td></tr>
-                        <tr className="border-b"><td className="py-1 px-2">Fixed Deposits</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.fixedDeposits.corpus)}</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.fixedDeposits.monthly)}</td></tr>
-                        <tr className="border-b"><td className="py-1 px-2">Others</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.others.corpus)}</td><td className="text-right font-medium roboto">{formatCurrency(data.detailedTables.assetAllocation.others.monthly)}</td></tr>
-                        <tr className="bg-gray-100 font-bold"><td className="py-1 px-2">Total</td><td className="text-right font-bold roboto">{formatCurrency(data.detailedTables.assetAllocation.total.corpus)}</td><td className="text-right font-bold roboto">{formatCurrency(data.detailedTables.assetAllocation.total.monthly)}</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            
         </section>
         )}
         
