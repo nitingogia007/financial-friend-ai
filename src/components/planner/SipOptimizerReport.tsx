@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, Wallet, ArrowRight, AlertTriangle, Info, Goal as GoalIcon } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -29,16 +29,19 @@ const formatDate = (dateString: string) => {
 };
 
 const formatYears = (years: number) => {
-    if (!isFinite(years) || years <= 0) return 'N/A';
+    if (!isFinite(years) || years <= 0 || isNaN(years)) return 'N/A';
     const y = Math.floor(years);
     const m = Math.round((years - y) * 12);
-    return `${y}Y ${m}M`;
+    if (y > 0 && m > 0) return `${y}Y ${m}M`;
+    if (y > 0) return `${y}Y`;
+    if (m > 0) return `${m}M`;
+    return '0M';
 }
 
 const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
     <div className="flex items-center text-sm gap-2">
         <Icon className="h-4 w-4 text-gray-400" />
-        <span className="text-gray-600">{label}</span>
+        <span className="text-gray-600">{label}:</span>
         <span className="font-semibold text-gray-800">{value}</span>
     </div>
 );
@@ -50,11 +53,46 @@ export function SipOptimizerReport({ data }: Props) {
     window.print();
   };
   
-  const additionalSipRequired = Math.max(0, data.investmentStatus.requiredInvestment - data.investmentStatus.currentInvestment);
+  const additionalSipRequired = Math.max(0, data.totalInvestmentStatus.requiredInvestment - data.totalInvestmentStatus.currentInvestment);
   
   const handleViewDetailedReport = () => {
     router.push('/report');
   };
+
+  const renderGoalTimeline = (goal: SipOptimizerGoal) => (
+      <div className="relative pl-8 pr-4 mt-2">
+          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          
+          {/* Goal Header */}
+          <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 z-10 p-1.5 bg-white border-2 border-blue-600 rounded-full">
+                  <GoalIcon className="h-5 w-5 text-blue-600"/>
+              </div>
+              <p className="font-bold text-blue-800">{goal.name}</p>
+              <p className="ml-auto font-bold text-blue-800 roboto">{formatCurrency(goal.futureValue)}</p>
+          </div>
+
+          {/* Timelines */}
+          <div className="pl-12 mt-2 space-y-2 text-xs">
+              <div className="relative">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-red-200" style={{width: '100%'}}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 -left-1 h-2 w-2 bg-red-500 rounded-full z-10"></div>
+                  <p className="relative z-20 bg-white inline-block pr-2">Expected in <span className="font-bold">{formatYears(goal.timeline.current)}</span> with {formatCurrency(goal.investmentStatus.currentInvestment)}/month</p>
+              </div>
+              <div className="relative">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-orange-200" style={{width: '75%'}}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(75%-8px)] h-2 w-2 bg-orange-500 rounded-full z-10"></div>
+                  <p className="relative z-20 bg-white inline-block pr-2">Achievable in <span className="font-bold">{formatYears(goal.timeline.required)}</span> with {formatCurrency(goal.investmentStatus.requiredInvestment)}/month</p>
+              </div>
+               <div className="relative">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-green-200" style={{width: '50%'}}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(50%-8px)] h-2 w-2 bg-green-500 rounded-full z-10"></div>
+                  <p className="relative z-20 bg-white inline-block pr-2">Achievable in <span className="font-bold">{formatYears(goal.timeline.potential)}</span> with {formatCurrency(goal.investmentStatus.potentialInvestment)}/month</p>
+              </div>
+          </div>
+      </div>
+  )
+
 
   return (
     <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
@@ -153,17 +191,17 @@ export function SipOptimizerReport({ data }: Props) {
             <div className="grid grid-cols-3 gap-3 mt-3 text-center text-xs">
                 <div className="border border-red-200 bg-red-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I am investing</p>
-                    <p className="font-bold text-red-700 roboto text-lg mt-1">{formatCurrency(data.investmentStatus.currentInvestment)}</p>
+                    <p className="font-bold text-red-700 roboto text-lg mt-1">{formatCurrency(data.totalInvestmentStatus.currentInvestment)}</p>
                     <p className="text-gray-500">Monthly</p>
                 </div>
                 <div className="border border-orange-200 bg-orange-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I must invest</p>
-                    <p className="font-bold text-orange-700 roboto text-lg mt-1">{formatCurrency(data.investmentStatus.requiredInvestment)}</p>
+                    <p className="font-bold text-orange-700 roboto text-lg mt-1">{formatCurrency(data.totalInvestmentStatus.requiredInvestment)}</p>
                     <p className="text-gray-500">Monthly</p>
                 </div>
                 <div className="border border-green-200 bg-green-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I can invest</p>
-                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.investmentStatus.potentialInvestment)}</p>
+                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.totalInvestmentStatus.potentialInvestment)}</p>
                     <p className="text-gray-500">Monthly</p>
                 </div>
             </div>
@@ -172,36 +210,14 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Timeline Visual */}
          <section className="mt-4">
-            <div className="relative pl-8 pr-4">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0 z-10 p-1.5 bg-white border-2 border-blue-600 rounded-full">
-                        <GoalIcon className="h-5 w-5 text-blue-600"/>
-                    </div>
-                    <p className="font-bold text-blue-800">{data.primaryGoal.name}</p>
-                    <p className="ml-auto font-bold text-blue-800 roboto">{formatCurrency(data.primaryGoal.futureValue)}</p>
+             {data.goals.map(goal => (
+                <div key={goal.id} className="mt-4 first:mt-0">
+                    {renderGoalTimeline(goal)}
                 </div>
-                <div className="pl-12 mt-2 space-y-2 text-xs">
-                    <div className="relative">
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 w-full bg-red-200"></div>
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 h-2 w-2 bg-red-500 rounded-full z-10"></div>
-                        <p className="relative z-20 bg-white inline-block pr-2">Expected in <span className="font-bold">{formatYears(data.primaryGoal.timeline.current)}</span> with {formatCurrency(data.investmentStatus.currentInvestment)}/month</p>
-                    </div>
-                    <div className="relative">
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 w-full bg-orange-200"></div>
-                        <div className="absolute top-1/2 -translate-y-1/2 left-1/4 h-2 w-2 bg-orange-500 rounded-full z-10"></div>
-                        <p className="relative z-20 bg-white inline-block pr-2">Achievable in <span className="font-bold">{formatYears(data.primaryGoal.timeline.required)}</span> with {formatCurrency(data.investmentStatus.requiredInvestment)}/month</p>
-                    </div>
-                     <div className="relative">
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 w-full bg-green-200"></div>
-                        <div className="absolute top-1/2 -translate-y-1/2 left-2/3 h-2 w-2 bg-green-500 rounded-full z-10"></div>
-                        <p className="relative z-20 bg-white inline-block pr-2">Expected in <span className="font-bold">{formatYears(data.primaryGoal.timeline.potential)}</span> with {formatCurrency(data.investmentStatus.potentialInvestment)}/month</p>
-                    </div>
-                </div>
-            </div>
+            ))}
              <div className="mt-3 flex items-start gap-2 text-xs text-gray-500 p-2 bg-gray-50 rounded-lg">
                 <Info className="h-4 w-4 mt-0.5 shrink-0"/>
-                <p>To help you reach all your goals, your existing monthly SIP is divided based on each goal's target and timeline.</p>
+                <p>To help you reach all your goals, your investable surplus is divided based on each goal's target amount.</p>
             </div>
         </section>
 
@@ -240,30 +256,32 @@ export function SipOptimizerReport({ data }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr className="border-b">
-                            <td className="p-2 font-semibold">{data.primaryGoal.name}</td>
-                            <td className="p-2 bg-red-50">
-                                <div className="grid grid-cols-3 text-center gap-1">
-                                    <div><span className="font-bold roboto">{formatCurrency(data.investmentStatus.currentInvestment)}</span><p className="text-gray-500 text-[10px]">Current SIP</p></div>
-                                    <div><span className="font-bold roboto">{formatYears(data.primaryGoal.timeline.current)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                    <div><span className="font-bold roboto">{formatCurrency(data.primaryGoal.targetCorpus)}</span><p className="text-gray-500 text-[10px]">Goal amt</p></div>
-                                </div>
-                            </td>
-                            <td className="p-2 bg-orange-50">
-                                <div className="grid grid-cols-3 text-center gap-1">
-                                    <div><span className="font-bold roboto">{formatCurrency(data.investmentStatus.requiredInvestment)}</span><p className="text-gray-500 text-[10px]">Required SIP</p></div>
-                                    <div><span className="font-bold roboto">{formatYears(data.primaryGoal.timeline.required)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                    <div><span className="font-bold roboto">{formatCurrency(data.primaryGoal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
-                                </div>
-                            </td>
-                            <td className="p-2 bg-green-50">
-                                <div className="grid grid-cols-3 text-center gap-1">
-                                    <div><span className="font-bold roboto">{formatCurrency(data.investmentStatus.potentialInvestment)}</span><p className="text-gray-500 text-[10px]">Potential SIP</p></div>
-                                    <div><span className="font-bold roboto">{formatYears(data.primaryGoal.timeline.potential)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                    <div><span className="font-bold roboto">{formatCurrency(data.primaryGoal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
-                                </div>
-                            </td>
-                        </tr>
+                        {data.goals.map(goal => (
+                            <tr key={goal.id} className="border-b">
+                                <td className="p-2 font-semibold">{goal.name}</td>
+                                <td className="p-2 bg-red-50">
+                                    <div className="grid grid-cols-3 text-center gap-1">
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.currentInvestment)}</span><p className="text-gray-500 text-[10px]">Current SIP</p></div>
+                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.current)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.targetCorpus)}</span><p className="text-gray-500 text-[10px]">Goal amt</p></div>
+                                    </div>
+                                </td>
+                                <td className="p-2 bg-orange-50">
+                                    <div className="grid grid-cols-3 text-center gap-1">
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span><p className="text-gray-500 text-[10px]">Required SIP</p></div>
+                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.required)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
+                                    </div>
+                                </td>
+                                <td className="p-2 bg-green-50">
+                                    <div className="grid grid-cols-3 text-center gap-1">
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span><p className="text-gray-500 text-[10px]">Potential SIP</p></div>
+                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.potential)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
+                                        <div><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

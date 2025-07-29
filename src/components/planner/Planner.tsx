@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +26,7 @@ export function Planner() {
   const [liabilities, setLiabilities] = useState<Liability[]>([]);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([{ id: Date.now().toString(), name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
   
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -53,17 +53,22 @@ export function Planner() {
       });
       return;
     }
+     if (goals.length === 0) {
+      toast({
+        title: "No Goals",
+        description: "Please add at least one financial goal.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsGenerating(true);
 
     try {
       // Common data preparation
       const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
-      const primaryGoal = goalsWithCalculations[0] || { currentSip: 0, newSipRequired: 0, name: 'Primary Goal', corpus: 0, futureValueOfGoal: 0, years: 0, rate: 0, currentSave: 0, futureValueOfCurrentSave: 0 };
       const investibleSurplus = monthlyCashflow > 0 ? monthlyCashflow : 0;
       
-      const timelines = calculateTimelines(primaryGoal, investibleSurplus);
-
       const assetAllocation = {
           mutualFunds: { corpus: getNumericValue(assets.find(a=>a.type==='Mutual Fund')?.amount), monthly: goals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
           gold: { corpus: getNumericValue(assets.find(a=>a.type==='Gold')?.amount), monthly: 0},
@@ -73,8 +78,40 @@ export function Planner() {
           total: { corpus: 0, monthly: 0 }
       };
 
-      assetAllocation.total.corpus = Object.values(assetAllocation).reduce((sum, val) => sum + (val.corpus || 0), 0);
-      assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0);
+      assetAllocation.total.corpus = Object.values(assetAllocation).reduce((sum, val) => sum + (val.corpus || 0), 0) - assetAllocation.total.corpus;
+      assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0) - assetAllocation.total.monthly;
+
+      // SIP Optimizer Logic
+      const totalGoalsCorpus = goalsWithCalculations.reduce((sum, goal) => sum + getNumericValue(goal.corpus), 0);
+
+      const optimizerGoals: SipOptimizerGoal[] = goalsWithCalculations.map(goal => {
+          const goalWeight = totalGoalsCorpus > 0 ? getNumericValue(goal.corpus) / totalGoalsCorpus : 1;
+          const potentialInvestment = investibleSurplus * goalWeight;
+          const timelines = calculateTimelines(goal, potentialInvestment);
+
+          return {
+              id: goal.id,
+              name: goal.name,
+              targetCorpus: getNumericValue(goal.corpus),
+              futureValue: goal.futureValueOfGoal,
+              timeline: {
+                  current: timelines.timelineWithCurrentSip,
+                  required: timelines.timelineWithRequiredSip,
+                  potential: timelines.timelineWithPotentialSip,
+              },
+              investmentStatus: {
+                  currentInvestment: getNumericValue(goal.currentSip),
+                  requiredInvestment: goal.newSipRequired,
+                  potentialInvestment: potentialInvestment,
+              },
+          };
+      });
+
+       const totalInvestmentStatus = {
+          currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
+          requiredInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.requiredInvestment, 0),
+          potentialInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.potentialInvestment, 0),
+      };
 
       // SIP Optimizer Report Data
       const generatedSipReportData: SipOptimizerReportData = {
@@ -93,26 +130,13 @@ export function Planner() {
               totalMonthlyExpenses: totalAnnualExpenses / 12,
               investibleSurplus: investibleSurplus,
           },
-          investmentStatus: {
-              currentInvestment: getNumericValue(primaryGoal.currentSip),
-              requiredInvestment: primaryGoal.newSipRequired,
-              potentialInvestment: investibleSurplus,
-          },
-          primaryGoal: {
-              name: primaryGoal.name,
-              targetCorpus: getNumericValue(primaryGoal.corpus),
-              futureValue: primaryGoal.futureValueOfGoal,
-              timeline: {
-                  current: timelines.timelineWithCurrentSip,
-                  required: timelines.timelineWithRequiredSip,
-                  potential: timelines.timelineWithPotentialSip,
-              },
-          },
+          goals: optimizerGoals,
+          totalInvestmentStatus,
           detailedTables: {
               incomeExpenses: {
                   totalMonthlyIncome: totalAnnualIncome / 12,
                   fixedExpenses: expenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
-                  emiExpenses: liabilities.filter(l => l.type.includes('Loan')).reduce((sum, l) => sum + (getNumericValue(l.amount) * 0.02), 0) / 12, // Simple EMI estimation
+                  emiExpenses: 0, // Placeholder
                   otherExpenses: expenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
               },
               assetAllocation: assetAllocation

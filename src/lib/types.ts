@@ -42,7 +42,7 @@ export interface Insurance {
 }
 
 export interface Goal {
-  id: string;
+  id:string;
   name: string;
   corpus: number | '';
   years: number | '';
@@ -83,7 +83,26 @@ export interface ReportData {
 }
 
 
-// New types for the SIP Optimizer Report
+// Types for the SIP Optimizer Report
+
+export interface SipOptimizerGoal {
+    id: string;
+    name: string;
+    targetCorpus: number;
+    futureValue: number;
+    timeline: {
+        current: number;
+        required: number;
+        potential: number;
+    };
+    investmentStatus: {
+        currentInvestment: number;
+        requiredInvestment: number;
+        potentialInvestment: number;
+    };
+}
+
+
 export interface SipOptimizerReportData {
   personalDetails: {
     name: string;
@@ -100,20 +119,11 @@ export interface SipOptimizerReportData {
     totalMonthlyExpenses: number;
     investibleSurplus: number;
   };
-  investmentStatus: {
-    currentInvestment: number;
-    requiredInvestment: number;
-    potentialInvestment: number;
-  };
-  primaryGoal: {
-    name: string;
-    targetCorpus: number;
-    futureValue: number;
-    timeline: {
-      current: number;
-      required: number;
-      potential: number;
-    };
+  goals: SipOptimizerGoal[];
+  totalInvestmentStatus: {
+      currentInvestment: number;
+      requiredInvestment: number;
+      potentialInvestment: number;
   };
   detailedTables: {
     incomeExpenses: {
