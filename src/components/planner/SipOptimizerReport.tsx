@@ -74,27 +74,30 @@ export function SipOptimizerReport({ data }: Props) {
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const ratio = canvasWidth / pdfWidth;
         
-        const imgWidth = pdfWidth;
-        const imgHeight = imgWidth / ratio;
-
+        const imgHeight = canvasHeight / ratio;
         let heightLeft = imgHeight;
+
         let position = 0;
 
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
 
         while (heightLeft > 0) {
           position = -heightLeft;
           pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
           heightLeft -= pdfHeight;
         }
         
         pdf.save('sip-optimizer-report.pdf');
       });
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
   
   const additionalSipRequired = data.totalInvestmentStatus
@@ -184,11 +187,16 @@ export function SipOptimizerReport({ data }: Props) {
         </Button>
         <Button onClick={handleDownloadPdf}>
             <Download className="mr-2 h-4 w-4" />
+            Download PDF
+        </Button>
+        <Button onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Print
         </Button>
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
-        background: "linear-gradient(to bottom, #FEA6A6, #FEC6C6, #FEE7E7)"
+        background: "linear-gradient(to bottom, #FEC6C6, #FEE7E7, #FFFFFF)"
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
