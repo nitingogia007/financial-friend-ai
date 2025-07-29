@@ -11,7 +11,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="flex items-center gap-3">
             <div className="relative h-8 w-40 animate-logo-bob">
                 <Image 
                     src="/financial-friend-logo.png" 
