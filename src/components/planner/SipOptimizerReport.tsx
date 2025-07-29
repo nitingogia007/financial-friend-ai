@@ -251,37 +251,38 @@ export function SipOptimizerReport({ data }: Props) {
             <h2 className="font-bold text-gray-700 mb-2">Goals</h2>
             <div className="overflow-x-auto text-xs">
                 <table className="w-full border-collapse">
-                    <thead>
-                        <tr className="text-left">
-                            <th className="p-2 font-semibold">Goal Name</th>
-                            <th className="p-2 font-semibold text-center bg-red-50">What I am investing / Month</th>
-                            <th className="p-2 font-semibold text-center bg-orange-50">What I must invest / Month</th>
-                            <th className="p-2 font-semibold text-center bg-green-50">What I can invest / Month</th>
-                        </tr>
-                    </thead>
                     <tbody>
                         {Array.isArray(data.goals) && data.goals.map(goal => (
                             <tr key={goal.id} className="border-b">
-                                <td className="p-2 font-semibold align-top">{goal.name}</td>
-                                <td className="p-2 bg-red-50">
-                                    <div className="grid grid-flow-row sm:grid-cols-3 text-center gap-1">
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.currentInvestment)}</span><p className="text-gray-500 text-[10px]">Current SIP</p></div>
-                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.current)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.targetCorpus)}</span><p className="text-gray-500 text-[10px]">Goal amt</p></div>
+                                <td className="p-2 font-semibold align-middle w-1/4">{goal.name}</td>
+                                <td className="p-2 align-middle">
+                                    <div className="p-2 rounded-lg border border-red-200 bg-red-50">
+                                        <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
+                                        <div className="flex justify-around text-center">
+                                            <div><p className="text-gray-500 text-[10px]">Current SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.current)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Goal amt</p><span className="font-bold roboto">{formatCurrency(goal.targetCorpus)}</span></div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td className="p-2 bg-orange-50">
-                                    <div className="grid grid-flow-row sm:grid-cols-3 text-center gap-1">
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span><p className="text-gray-500 text-[10px]">Required SIP</p></div>
-                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.required)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
+                                <td className="p-2 align-middle">
+                                    <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
+                                        <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
+                                        <div className="flex justify-around text-center">
+                                            <div><p className="text-gray-500 text-[10px]">Required SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.required)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span></div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td className="p-2 bg-green-50">
-                                    <div className="grid grid-flow-row sm:grid-cols-3 text-center gap-1">
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span><p className="text-gray-500 text-[10px]">Potential SIP</p></div>
-                                        <div><span className="font-bold roboto">{formatYears(goal.timeline.potential)}</span><p className="text-gray-500 text-[10px]">Time</p></div>
-                                        <div><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span><p className="text-gray-500 text-[10px]">Expected Corpus</p></div>
+                                <td className="p-2 align-middle">
+                                    <div className="p-2 rounded-lg border border-green-200 bg-green-50">
+                                        <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
+                                        <div className="flex justify-around text-center">
+                                            <div><p className="text-gray-500 text-[10px]">Potential SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.potential)}</span></div>
+                                            <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span></div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -290,6 +291,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </table>
             </div>
         </section>
+
 
         {/* Detailed Tables */}
         {data.detailedTables && (
@@ -328,7 +330,7 @@ export function SipOptimizerReport({ data }: Props) {
         
         <footer className="mt-auto pt-4 border-t-2 border-gray-300">
             <p className="text-xs text-gray-500 text-center leading-tight">
-                <strong>Disclaimer:</strong> The calculators are based on past returns and meant for Illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
+                <strong>Disclaimer:</strong> The calculators are based on past returns and are meant for illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
             </p>
         </footer>
       </div>
