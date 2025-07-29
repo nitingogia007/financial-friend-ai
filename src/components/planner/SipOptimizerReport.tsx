@@ -214,7 +214,7 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Timeline Visual */}
          <section className="mt-4">
-             {Array.isArray(data.goals) && data.goals.map(goal => (
+             {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
                 <div key={goal.id} className="mt-4 first:mt-0">
                     {renderGoalTimeline(goal)}
                 </div>
@@ -249,46 +249,41 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Goals Table */}
         <section className="mt-4">
             <h2 className="font-bold text-gray-700 mb-2">Goals</h2>
-            <div className="overflow-x-auto text-xs">
-                <table className="w-full border-collapse">
-                    <tbody>
-                        {Array.isArray(data.goals) && data.goals.map(goal => (
-                            <tr key={goal.id} className="border-b">
-                                <td className="p-2 font-semibold align-middle w-1/4">{goal.name}</td>
-                                <td className="p-2 align-middle">
-                                    <div className="p-3 rounded-lg border border-red-200 bg-red-50">
-                                        <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
-                                        <div className="flex justify-around text-center">
-                                            <div><p className="text-gray-500 text-[10px]">Current SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Goal amt</p><span className="font-bold roboto text-sm">{formatCurrency(goal.targetCorpus)}</span></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-2 align-middle">
-                                    <div className="p-3 rounded-lg border border-orange-200 bg-orange-50">
-                                        <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
-                                        <div className="flex justify-around text-center">
-                                            <div><p className="text-gray-500 text-[10px]">Required SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.required)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-2 align-middle">
-                                    <div className="p-3 rounded-lg border border-green-200 bg-green-50">
-                                        <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
-                                        <div className="flex justify-around text-center">
-                                            <div><p className="text-gray-500 text-[10px]">Potential SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
-                                            <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="overflow-x-auto text-xs space-y-4">
+                {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
+                    <div key={goal.id} className="border-b pb-4">
+                        <h3 className="font-bold text-base text-gray-800 mb-2">{goal.name}</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                             {/* Card 1: What I am investing */}
+                            <div className="p-2 rounded-lg border border-red-200 bg-red-50">
+                                <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div><p className="text-gray-500 text-[10px]">Current SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Goal amt</p><span className="font-bold roboto text-sm">{formatCurrency(goal.targetCorpus)}</span></div>
+                                </div>
+                            </div>
+                            {/* Card 2: What I must invest */}
+                            <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
+                                <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div><p className="text-gray-500 text-[10px]">Required SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.required)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                </div>
+                            </div>
+                            {/* Card 3: What I can invest */}
+                             <div className="p-2 rounded-lg border border-green-200 bg-green-50">
+                                <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div><p className="text-gray-500 text-[10px]">Potential SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
+                                    <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         </section>
 
