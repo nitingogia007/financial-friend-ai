@@ -145,7 +145,7 @@ export function SipOptimizerReport({ data }: Props) {
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border bg-white flex flex-col">
         {/* Header */}
-        <header className="p-4 rounded-t-lg">
+        <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
             <div className="flex justify-center items-center">
                 <div className="text-center text-xs">
                     <p><strong>RM name:</strong> Gunjan Kataria</p>
