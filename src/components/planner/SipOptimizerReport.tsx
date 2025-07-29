@@ -3,10 +3,11 @@
 
 import type { SipOptimizerReportData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, Wallet } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, Wallet, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   data: SipOptimizerReportData;
@@ -14,7 +15,6 @@ interface Props {
 
 const formatCurrency = (value: number | '', prefix = '₹') => {
     const num = typeof value === 'number' ? value : 0;
-    // Format with commas and no decimal places
     return `${prefix}${num.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 };
 
@@ -28,16 +28,20 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
 
 
 export function SipOptimizerReport({ data }: Props) {
+  const router = useRouter();
   const handlePrint = () => {
     window.print();
   };
   
   const additionalSipRequired = Math.max(0, data.investmentStatus.requiredInvestment - data.investmentStatus.currentInvestment);
+  
+  const handleViewDetailedReport = () => {
+    router.push('/report');
+  };
 
   return (
-    <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
+    <div id="report-section" className="bg-gray-50 text-gray-800 font-sans">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
         @page {
           size: A4;
           margin: 0;
@@ -68,7 +72,11 @@ export function SipOptimizerReport({ data }: Props) {
         }
       `}</style>
       
-      <div className="flex justify-end p-4 no-print">
+      <div className="flex justify-end p-4 gap-4 no-print">
+         <Button onClick={handleViewDetailedReport} variant="secondary">
+            View Detailed Wellness Report
+            <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
         <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Print / Save PDF
         </Button>
@@ -87,7 +95,7 @@ export function SipOptimizerReport({ data }: Props) {
               />
             </div>
             <div className="text-right">
-                <p className="font-bold text-lg text-gray-900">RM NAME: Gunjan Kataria</p>
+                <p className="font-bold text-lg text-gray-900">RM NAME: {data.advisorDetails.arnName}</p>
                 <div className="text-sm text-gray-600 mt-1 space-y-1">
                     <p className="flex items-center justify-end gap-2"><Phone size={14} /> {data.advisorDetails.mobile}</p>
                     <p className="flex items-center justify-end gap-2"><Mail size={14} /> {data.advisorDetails.email}</p>
@@ -236,5 +244,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
