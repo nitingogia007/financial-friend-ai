@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Props {
   data: SipOptimizerReportData;
@@ -49,8 +51,51 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
 
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
-  const handlePrint = () => {
-    window.print();
+
+  const handleDownloadPdf = () => {
+    const input = document.getElementById('report-container');
+    if (input) {
+      html2canvas(input, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true, 
+        logging: true,
+        width: input.offsetWidth,
+        height: input.offsetHeight
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        
+        // A4 page dimensions in mm: 210 x 297
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        
+        const width = pdfWidth;
+        const height = width / ratio;
+
+        let position = 0;
+        let heightLeft = height;
+
+        pdf.addImage(imgData, 'PNG', 0, position, width, height);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - height;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, width, height);
+          heightLeft -= pdfHeight;
+        }
+        
+        pdf.save('sip-optimizer-report.pdf');
+      });
+    }
   };
   
   const additionalSipRequired = data.totalInvestmentStatus
@@ -99,7 +144,7 @@ export function SipOptimizerReport({ data }: Props) {
   return (
     <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         @page {
           size: A4;
           margin: 0;
@@ -114,7 +159,7 @@ export function SipOptimizerReport({ data }: Props) {
           }
           #report-container {
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
             margin: 0;
             padding: 0;
             box-shadow: none;
@@ -138,7 +183,7 @@ export function SipOptimizerReport({ data }: Props) {
             View Detailed Report
             <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
-        <Button onClick={handlePrint}>
+        <Button onClick={handleDownloadPdf}>
             <Download className="mr-2 h-4 w-4" />
         </Button>
       </div>
