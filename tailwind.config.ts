@@ -95,10 +95,15 @@ export default {
             height: '0',
           },
         },
+        'logo-bob': {
+          '0%, 100%': { transform: 'translateY(-4%)' },
+          '50%': { transform: 'translateY(0)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'logo-bob': 'logo-bob 3s ease-in-out infinite',
       },
     },
   },
