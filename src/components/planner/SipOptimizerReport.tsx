@@ -256,9 +256,9 @@ export function SipOptimizerReport({ data }: Props) {
                             <tr key={goal.id} className="border-b">
                                 <td className="p-2 font-semibold align-middle w-1/4">{goal.name}</td>
                                 <td className="p-2 align-middle">
-                                    <div className="p-2 rounded-lg border border-red-200 bg-red-50">
+                                    <div className="p-3 rounded-lg border border-red-200 bg-red-50">
                                         <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
-                                        <div className="flex justify-around text-center">
+                                        <div className="grid grid-cols-3 gap-1 text-center">
                                             <div><p className="text-gray-500 text-[10px]">Current SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.current)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Goal amt</p><span className="font-bold roboto">{formatCurrency(goal.targetCorpus)}</span></div>
@@ -266,9 +266,9 @@ export function SipOptimizerReport({ data }: Props) {
                                     </div>
                                 </td>
                                 <td className="p-2 align-middle">
-                                    <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
+                                    <div className="p-3 rounded-lg border border-orange-200 bg-orange-50">
                                         <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
-                                        <div className="flex justify-around text-center">
+                                        <div className="grid grid-cols-3 gap-1 text-center">
                                             <div><p className="text-gray-500 text-[10px]">Required SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.required)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span></div>
@@ -276,9 +276,9 @@ export function SipOptimizerReport({ data }: Props) {
                                     </div>
                                 </td>
                                 <td className="p-2 align-middle">
-                                    <div className="p-2 rounded-lg border border-green-200 bg-green-50">
+                                    <div className="p-3 rounded-lg border border-green-200 bg-green-50">
                                         <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
-                                        <div className="flex justify-around text-center">
+                                        <div className="grid grid-cols-3 gap-1 text-center">
                                             <div><p className="text-gray-500 text-[10px]">Potential SIP</p><span className="font-bold roboto">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto">{formatYears(goal.timeline.potential)}</span></div>
                                             <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto">{formatCurrency(goal.futureValue)}</span></div>
