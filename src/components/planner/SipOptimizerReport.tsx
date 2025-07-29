@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import type jsPDF from 'jspdf';
+import type html2canvas from 'html2canvas';
 
 interface Props {
   data: SipOptimizerReportData;
@@ -52,9 +52,12 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     const input = document.getElementById('report-container');
     if (input) {
+      const { default: html2canvas } = await import('html2canvas');
+      const { default: jsPDF } = await import('jspdf');
+
       html2canvas(input, {
         scale: 2, // Higher scale for better quality
         useCORS: true, 
@@ -189,7 +192,7 @@ export function SipOptimizerReport({ data }: Props) {
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
-        background: "linear-gradient(to bottom, #FEAFAE, #FEEEEE, #FFFFFF)"
+        background: "linear-gradient(to bottom, #FEEEEE, #FFFFFF)"
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
