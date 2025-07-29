@@ -62,12 +62,8 @@ export function SipOptimizerReport({ data }: Props) {
         scale: 2, // Higher scale for better quality
         useCORS: true, 
         logging: true,
-        width: input.offsetWidth,
-        height: input.offsetHeight
       }).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
-        
-        // A4 page dimensions in mm: 210 x 297
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
@@ -80,19 +76,19 @@ export function SipOptimizerReport({ data }: Props) {
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
         
-        const width = pdfWidth;
-        const height = width / ratio;
+        const imgWidth = pdfWidth;
+        const imgHeight = imgWidth / ratio;
 
+        let heightLeft = imgHeight;
         let position = 0;
-        let heightLeft = height;
 
-        pdf.addImage(imgData, 'PNG', 0, position, width, height);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
 
         while (heightLeft > 0) {
-          position = heightLeft - height;
+          position = -heightLeft;
           pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, width, height);
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
           heightLeft -= pdfHeight;
         }
         
@@ -192,16 +188,14 @@ export function SipOptimizerReport({ data }: Props) {
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
-        background: "linear-gradient(to bottom, #FEEEEE, #FFFFFF)"
+        background: "linear-gradient(to bottom, #FEA6A6, #FEC6C6, #FEE7E7)"
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
-            <div className="flex justify-center items-center">
-                <div className="text-center text-xs">
-                    <p><strong>RM name:</strong> Gunjan Kataria</p>
-                    <p><strong>Mobile no:</strong> 9460825477</p>
-                    <p><strong>Email:</strong> contact@financialfriend.in</p>
-                </div>
+            <div className="text-center text-xs">
+                <p><strong>RM name:</strong> Gunjan Kataria</p>
+                <p><strong>Mobile no:</strong> 9460825477</p>
+                <p><strong>Email:</strong> contact@financialfriend.in</p>
             </div>
         </header>
 
