@@ -144,7 +144,7 @@ export function SipOptimizerReport({ data }: Props) {
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
-        background: "linear-gradient(to bottom, #FE4E4E, #FE7E7E, #FEAFAE, #FEEEEE)"
+        background: "linear-gradient(to bottom, #FE7E7E, #FEAFAE, #FEEEEE)"
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
