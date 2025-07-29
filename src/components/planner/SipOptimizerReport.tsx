@@ -146,7 +146,6 @@ export function SipOptimizerReport({ data }: Props) {
             <div className="flex justify-center items-center">
                 <div className="text-center text-xs">
                     <p><strong>RM name:</strong> Gunjan Kataria</p>
-                    <p><strong>ARN no:</strong> {data.advisorDetails.arnNo}</p>
                     <p><strong>Mobile no:</strong> 9460825477</p>
                     <p><strong>Email:</strong> contact@financialfriend.in</p>
                 </div>
