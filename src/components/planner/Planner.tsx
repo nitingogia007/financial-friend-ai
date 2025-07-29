@@ -216,7 +216,7 @@ export function Planner() {
           />
           <InsuranceForm
             age={age}
-            totalAnnualIncome={totalAnnualIncome}
+            incomes={incomes}
           />
           <GoalsForm
             goals={goals}
@@ -256,5 +256,3 @@ export function Planner() {
     </div>
   );
 }
-
-    

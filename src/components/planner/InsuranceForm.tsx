@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import type { Income } from '@/lib/types';
 import { FormSection } from './FormSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,13 +13,13 @@ import { Separator } from '../ui/separator';
 
 interface Props {
   age: number | null;
-  totalAnnualIncome: number;
+  incomes: Income[];
 }
 
 // A simple estimation function for premium.
 const estimatePremium = (cover: number, factor: number) => Math.round(cover * factor);
 
-export function InsuranceForm({ age, totalAnnualIncome }: Props) {
+export function InsuranceForm({ age, incomes }: Props) {
   const [hasLifeInsurance, setHasLifeInsurance] = useState<'yes' | 'no'>('no');
   const [hasHealthInsurance, setHasHealthInsurance] = useState<'yes' | 'no'>('no');
   const [lifeCover, setLifeCover] = useState<number | ''>('');
@@ -26,19 +27,25 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
   const [healthCover, setHealthCover] = useState<number | ''>('');
   const [healthPremium, setHealthPremium] = useState<number | ''>('');
 
+  const relevantAnnualIncome = useMemo(() => {
+    return incomes
+      .filter(i => i.source === 'Salary' || i.source === 'Business')
+      .reduce((sum, i) => sum + (typeof i.amount === 'number' ? i.amount : 0), 0);
+  }, [incomes]);
+
   const recommendedLifeCover = useMemo(() => {
-    if (!age || !totalAnnualIncome) return 0;
-    if (age >= 20 && age <= 35) return totalAnnualIncome * 20;
-    if (age > 35 && age <= 50) return totalAnnualIncome * 15;
-    if (age > 50 && age <= 60) return totalAnnualIncome * 10;
-    if (age > 60) return totalAnnualIncome * 1;
+    if (!age || !relevantAnnualIncome) return 0;
+    if (age >= 20 && age < 35) return relevantAnnualIncome * 20;
+    if (age >= 35 && age < 50) return relevantAnnualIncome * 15;
+    if (age >= 50 && age < 60) return relevantAnnualIncome * 10;
+    if (age >= 60) return relevantAnnualIncome * 1;
     return 0;
-  }, [age, totalAnnualIncome]);
+  }, [age, relevantAnnualIncome]);
 
   const lifeCoverGap = useMemo(() => {
-    if (hasLifeInsurance === 'no' || !lifeCover) return recommendedLifeCover;
+    if (hasLifeInsurance === 'no' || lifeCover === '') return recommendedLifeCover;
     const gap = recommendedLifeCover - Number(lifeCover);
-    return gap > 0 ? gap : 0;
+    return gap; // Can be positive (gap) or negative (surplus)
   }, [hasLifeInsurance, lifeCover, recommendedLifeCover]);
 
   const recommendedLifePremium = useMemo(() => estimatePremium(recommendedLifeCover, 0.0025), [recommendedLifeCover]);
@@ -110,9 +117,9 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
               </div>
             )}
 
-            {canShowRecommendations && totalAnnualIncome > 0 && <Separator />}
+            {canShowRecommendations && relevantAnnualIncome > 0 && <Separator />}
 
-            {canShowRecommendations && totalAnnualIncome > 0 ? (
+            {canShowRecommendations && relevantAnnualIncome > 0 ? (
               <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3 text-blue-800 dark:text-blue-300">
                 <Info className="h-5 w-5 mt-0.5 shrink-0 text-blue-500"/>
                 <div className="w-full">
@@ -128,7 +135,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
                       {lifeCoverGap > 0 ? (
                          <p className="font-semibold text-orange-600 dark:text-orange-400">You have a coverage gap of ₹{lifeCoverGap.toLocaleString('en-IN')}.</p>
                       ) : (
-                        <p className="font-semibold text-green-600 dark:text-green-400">Great! Your cover meets the recommendation.</p>
+                        <p className="font-semibold text-green-600 dark:text-green-400">Great! Your cover of ₹{Number(lifeCover).toLocaleString('en-IN')} exceeds the recommendation.</p>
                       )}
                     </div>
                   )}
@@ -137,7 +144,7 @@ export function InsuranceForm({ age, totalAnnualIncome }: Props) {
               </div>
             ) : (
                 <div className="text-center text-muted-foreground p-4 text-sm">
-                    Enter your Date of Birth and Income to see recommendations.
+                    Enter your Date of Birth and Salary/Business Income to see recommendations.
                 </div>
             )}
           </CardContent>
