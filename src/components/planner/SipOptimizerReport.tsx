@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -136,7 +136,7 @@ export function SipOptimizerReport({ data }: Props) {
             <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
         <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" /> Print / Save PDF
+            <Download className="mr-2 h-4 w-4" /> Download
         </Button>
       </div>
 
@@ -336,4 +336,5 @@ export function SipOptimizerReport({ data }: Props) {
   );
 }
 
+    
     

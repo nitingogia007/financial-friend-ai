@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { NetWorthBreakdown } from '../charts/NetWorthBreakdown';
 import { ExpenseBreakdown } from '../charts/ExpenseBreakdown';
 import { Button } from '../ui/button';
-import { Printer, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot } from 'lucide-react';
+import { Download, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot } from 'lucide-react';
 
 interface Props {
   data: ReportData;
@@ -48,7 +48,7 @@ export function Report({ data }: Props) {
           </p>
         </div>
         <Button onClick={handlePrint} className="no-print">
-            <Printer className="mr-2 h-4 w-4" /> Print / Save PDF
+            <Download className="mr-2 h-4 w-4" /> Download
         </Button>
       </div>
       
@@ -153,3 +153,5 @@ export function Report({ data }: Props) {
     </div>
   );
 }
+
+    
