@@ -102,6 +102,19 @@ export interface SipOptimizerGoal {
     };
 }
 
+export interface InsuranceAnalysisData {
+    lifeInsurance: {
+        recommendedCover: number;
+        estimatedPremium: number;
+        coverageGap: number;
+    };
+    healthInsurance: {
+        recommendedCover: string;
+        estimatedPremium: number;
+        coverageGap: number;
+    };
+}
+
 
 export interface SipOptimizerReportData {
   personalDetails: {
@@ -147,4 +160,5 @@ export interface SipOptimizerReportData {
     mobile: string;
     email: string;
   };
+  insuranceAnalysis: InsuranceAnalysisData;
 }

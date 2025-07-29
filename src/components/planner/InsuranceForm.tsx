@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Income } from '@/lib/types';
 import { FormSection } from './FormSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,16 +10,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { ShieldCheck, Info } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import type { InsuranceAnalysisData } from '@/lib/types';
 
 interface Props {
   age: number | null;
   incomes: Income[];
+  onInsuranceDataChange: (data: InsuranceAnalysisData) => void;
 }
 
 // A simple estimation function for premium.
 const estimatePremium = (cover: number, factor: number) => Math.round(cover * factor);
 
-export function InsuranceForm({ age, incomes }: Props) {
+export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
   const [hasLifeInsurance, setHasLifeInsurance] = useState<'yes' | 'no'>('no');
   const [hasHealthInsurance, setHasHealthInsurance] = useState<'yes' | 'no'>('no');
   const [lifeCover, setLifeCover] = useState<number | ''>('');
@@ -76,6 +78,25 @@ export function InsuranceForm({ age, incomes }: Props) {
   const recommendedHealthPremium = useMemo(() => estimatePremium(numericRecommendedHealthCover, 0.015), [numericRecommendedHealthCover]);
 
   const canShowRecommendations = age !== null && age > 0;
+
+  useEffect(() => {
+    onInsuranceDataChange({
+      lifeInsurance: {
+        recommendedCover: recommendedLifeCover,
+        estimatedPremium: recommendedLifePremium,
+        coverageGap: lifeCoverGap
+      },
+      healthInsurance: {
+        recommendedCover: recommendedHealthCoverText,
+        estimatedPremium: recommendedHealthPremium,
+        coverageGap: healthCoverGap
+      }
+    });
+  }, [
+    recommendedLifeCover, recommendedLifePremium, lifeCoverGap,
+    recommendedHealthCoverText, recommendedHealthPremium, healthCoverGap,
+    onInsuranceDataChange
+  ]);
 
   return (
     <FormSection

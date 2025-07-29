@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +27,7 @@ export function Planner() {
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [goals, setGoals] = useState<Goal[]>([{ id: Date.now().toString(), name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
+  const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
   
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -61,6 +62,15 @@ export function Planner() {
       });
       return;
     }
+    if (!insuranceAnalysis) {
+      toast({
+        title: "Insurance Data Missing",
+        description: "Could not retrieve insurance analysis data. Please fill out the insurance section.",
+        variant: "destructive"
+      });
+      return;
+    }
+
 
     setIsGenerating(true);
 
@@ -146,7 +156,8 @@ export function Planner() {
             arnNo: personalDetails.arn || 'ARN-157982',
             mobile: 'Not Available',
             email: 'Not Available',
-          }
+          },
+          insuranceAnalysis: insuranceAnalysis,
       };
       
       // Detailed Wellness Report Data
@@ -234,6 +245,7 @@ export function Planner() {
           <InsuranceForm
             age={age}
             incomes={incomes}
+            onInsuranceDataChange={setInsuranceAnalysis}
           />
           <GoalsForm
             goals={goals}

@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -251,34 +251,31 @@ export function SipOptimizerReport({ data }: Props) {
             <h2 className="font-bold text-gray-700 mb-2">Goals</h2>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
-                    <div key={goal.id} className="border-b pb-4">
+                     <div key={goal.id} className="border-b pb-4 last:border-b-0">
                         <h3 className="font-bold text-base text-gray-800 mb-2">{goal.name}</h3>
                         <div className="grid grid-cols-3 gap-2">
-                             {/* Card 1: What I am investing */}
                             <div className="p-2 rounded-lg border border-red-200 bg-red-50">
                                 <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
                                 <div className="flex flex-col items-center text-center space-y-1">
-                                    <div><p className="text-gray-500 text-[10px]">Current SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Goal amt</p><span className="font-bold roboto text-sm">{formatCurrency(goal.targetCorpus)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Current SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal amt</span><span className="font-bold roboto text-sm">{formatCurrency(goal.targetCorpus)}</span></div>
                                 </div>
                             </div>
-                            {/* Card 2: What I must invest */}
                             <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
                                 <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
                                 <div className="flex flex-col items-center text-center space-y-1">
-                                    <div><p className="text-gray-500 text-[10px]">Required SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.required)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Required SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.required)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
                                 </div>
                             </div>
-                            {/* Card 3: What I can invest */}
                              <div className="p-2 rounded-lg border border-green-200 bg-green-50">
                                 <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
                                 <div className="flex flex-col items-center text-center space-y-1">
-                                    <div><p className="text-gray-500 text-[10px]">Potential SIP</p><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Time</p><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
-                                    <div><p className="text-gray-500 text-[10px]">Expected Corpus</p><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Potential SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -286,6 +283,31 @@ export function SipOptimizerReport({ data }: Props) {
                 ))}
             </div>
         </section>
+
+        {/* Insurance Analysis */}
+        {data.insuranceAnalysis && (
+        <section className="mt-4">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gray-500"/>Insurance Analysis</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="border rounded-lg p-3 bg-blue-50/50">
+                    <h3 className="font-semibold text-blue-800 mb-2">Life Insurance</h3>
+                    <div className="space-y-1 text-xs">
+                        <div className="flex justify-between"><p>Ideal Life Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.recommendedCover)}</p></div>
+                        <div className="flex justify-between"><p>Est. Annual Premium:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.estimatedPremium)}</p></div>
+                        <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.lifeInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.lifeInsurance.coverageGap)}</p></div>
+                    </div>
+                </div>
+                <div className="border rounded-lg p-3 bg-green-50/50">
+                    <h3 className="font-semibold text-green-800 mb-2">Health Insurance</h3>
+                     <div className="space-y-1 text-xs">
+                        <div className="flex justify-between"><p>Ideal Health Cover:</p><p className="font-bold roboto">{data.insuranceAnalysis.healthInsurance.recommendedCover}</p></div>
+                        <div className="flex justify-between"><p>Est. Annual Premium:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.healthInsurance.estimatedPremium)}</p></div>
+                        <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.healthInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.healthInsurance.coverageGap)}</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        )}
 
 
         {/* Detailed Tables */}
