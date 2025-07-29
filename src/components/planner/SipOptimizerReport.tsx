@@ -143,7 +143,9 @@ export function SipOptimizerReport({ data }: Props) {
         </Button>
       </div>
 
-      <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border bg-white flex flex-col">
+      <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
+        background: "linear-gradient(to bottom, #FE4E4E, #FE7E7E, #FEAFAE, #FEEEEE)"
+      }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
             <div className="flex justify-center items-center">
@@ -171,7 +173,7 @@ export function SipOptimizerReport({ data }: Props) {
                 <InfoRow icon={Mail} label="Email Id" value={data.personalDetails.email} />
             </div>
         </section>
-
+        
         {/* Net Worth */}
         <section className="mt-4 print-avoid-break">
              <div className="p-3 rounded-lg bg-gray-100 text-center">
@@ -202,7 +204,7 @@ export function SipOptimizerReport({ data }: Props) {
                 <span>This is what you must invest!</span>
              </div>
         </section>
-
+        
         {/* Underinvesting Section */}
         {data.totalInvestmentStatus && (
         <section className="mt-4 print-avoid-break">
