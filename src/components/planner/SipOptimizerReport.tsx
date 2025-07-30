@@ -60,7 +60,7 @@ export function SipOptimizerReport({ data }: Props) {
 
       const originalHeight = input.style.height;
       input.style.height = `${input.scrollHeight}px`;
-      
+
       html2canvas(input, {
         scale: 2,
         useCORS: true,
@@ -69,19 +69,56 @@ export function SipOptimizerReport({ data }: Props) {
         windowHeight: input.scrollHeight
       }).then(canvas => {
         input.style.height = originalHeight;
-        
         const imgData = canvas.toDataURL('image/png');
-        const pdfWidth = 210; // A4 width in mm
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: [pdfWidth, pdfHeight],
+          format: 'a4',
         });
         
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('sip-optimizer-report.pdf');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
+        const pdfAspectRatio = pdfWidth / pdfHeight;
+
+        let renderWidth = pdfWidth;
+        let renderHeight = pdfWidth / canvasAspectRatio;
+
+        const totalPdfHeight = canvasHeight * pdfWidth / canvasWidth;
+        let y = 0;
+        let position = 0;
+        const pageHeight = pdf.internal.pageSize.height;
+        
+        while (position < canvasHeight) {
+          const remainingHeight = canvasHeight - position;
+          const imgHeightOnPage = Math.min(remainingHeight, canvas.width * pageHeight / canvas.width);
+          
+          pdf.addImage(
+            imgData,
+            'PNG',
+            0,
+            -position * (pdfWidth / canvasWidth),
+            pdfWidth,
+            totalPdfHeight
+          );
+
+          position += imgHeightOnPage;
+
+          if (position < canvasHeight) {
+            pdf.addPage();
+          }
+        }
+
+        const customPdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [pdfWidth, totalPdfHeight]
+        });
+
+        customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, totalPdfHeight);
+        customPdf.save('sip-optimizer-report.pdf');
       });
     }
   };
@@ -166,24 +203,31 @@ export function SipOptimizerReport({ data }: Props) {
           }
           #report-container {
             width: 100%;
+            height: auto;
             margin: 0;
             padding: 1cm;
             box-shadow: none !important;
             border: none !important;
             background: white !important;
             transform: scale(1);
+            min-height: 0;
           }
-           .print-avoid-break {
-            break-inside: avoid;
+          #report-container * {
+             font-size: 10px !important;
+             line-height: 1.2 !important;
           }
+           #report-container h1 { font-size: 16px !important; }
+           #report-container h2 { font-size: 14px !important; }
+           #report-container h3 { font-size: 12px !important; }
+           #report-container h4 { font-size: 11px !important; }
            #report-container section {
-            break-inside: avoid;
-            margin-top: 0;
-            padding-top: 0;
-          }
-          #report-container .flex-col {
-            height: auto !important;
-          }
+             margin-top: 0.5rem !important;
+             padding-top: 0 !important;
+             break-inside: avoid;
+           }
+           .print-avoid-break {
+             break-inside: avoid;
+           }
         }
       `}</style>
       
