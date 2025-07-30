@@ -59,7 +59,7 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: jsPDF } = await import('jspdf');
 
       html2canvas(input, {
-        scale: 2,
+        scale: 2, // Higher scale for better quality
         useCORS: true,
         logging: true,
         windowWidth: input.scrollWidth,
@@ -78,15 +78,18 @@ export function SipOptimizerReport({ data }: Props) {
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         
+        // Calculate the ratio to fit the canvas width to the PDF width
         const ratio = canvasWidth / pdfWidth;
         const imgHeight = canvasHeight / ratio;
         
         let heightLeft = imgHeight;
         let position = 0;
 
+        // Add the first page
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
 
+        // Add new pages if the content is longer than one page
         while (heightLeft > 0) {
           position = -heightLeft;
           pdf.addPage();
@@ -149,6 +152,7 @@ export function SipOptimizerReport({ data }: Props) {
   return (
     <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
         @page {
           size: A4;
@@ -176,10 +180,10 @@ export function SipOptimizerReport({ data }: Props) {
           }
         }
         #report-container * {
-            font-family: 'Comic Sans MS', cursive;
+            font-family: 'Comic Sans MS', 'Roboto', sans-serif;
         }
         .roboto {
-            font-family: 'Comic Sans MS', cursive;
+            font-family: 'Roboto', sans-serif;
         }
       `}</style>
       
@@ -199,7 +203,7 @@ export function SipOptimizerReport({ data }: Props) {
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
-        background: "linear-gradient(to bottom, #FEC6C6, #FEE7E7, #FFFFFF)"
+        background: "linear-gradient(to bottom, #FEE7E7, #FFFFFF, #FFFFFF)"
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
