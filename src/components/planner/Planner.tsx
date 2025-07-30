@@ -161,6 +161,7 @@ export function Planner() {
           },
           insuranceAnalysis: insuranceAnalysis,
           assets: assets,
+          willStatus: willStatus,
       };
       
       // Detailed Wellness Report Data

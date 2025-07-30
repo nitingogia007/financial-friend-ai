@@ -162,4 +162,5 @@ export interface SipOptimizerReportData {
   };
   insuranceAnalysis: InsuranceAnalysisData;
   assets: Asset[];
+  willStatus: 'yes' | 'no' | null;
 }
