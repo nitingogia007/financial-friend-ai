@@ -166,7 +166,6 @@ export function SipOptimizerReport({ data }: Props) {
           }
           #report-container {
             width: 100%;
-            min-height: auto;
             margin: 0;
             padding: 1cm;
             box-shadow: none !important;
@@ -176,6 +175,14 @@ export function SipOptimizerReport({ data }: Props) {
           }
            .print-avoid-break {
             break-inside: avoid;
+          }
+           #report-container section {
+            break-inside: avoid;
+            margin-top: 0;
+            padding-top: 0;
+          }
+          #report-container .flex-col {
+            height: auto !important;
           }
         }
       `}</style>
@@ -375,5 +382,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
