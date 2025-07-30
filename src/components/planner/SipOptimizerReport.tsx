@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase, PieChart } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import type jsPDF from 'jspdf';
 import type html2canvas from 'html2canvas';
+import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 
 interface Props {
   data: SipOptimizerReportData;
@@ -57,11 +58,16 @@ export function SipOptimizerReport({ data }: Props) {
     if (input) {
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
-
+      
       const canvas = await html2canvas(input, {
-        scale: 2,
-        useCORS: true,
-        logging: true,
+          scale: 2,
+          useCORS: true,
+          logging: true,
+          windowWidth: input.scrollWidth,
+          windowHeight: input.scrollHeight,
+          height: input.scrollHeight,
+          y: 0,
+          scrollY: -window.scrollY
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -71,48 +77,21 @@ export function SipOptimizerReport({ data }: Props) {
         format: 'a4',
       });
 
+      const imgProps= pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const canvasAspectRatio = canvasWidth / canvasHeight;
-      const pdfAspectRatio = pdfWidth / pdfHeight;
-
-      let finalCanvasHeight = canvasHeight;
-      let finalCanvasWidth = canvasWidth;
-
-      if (canvasAspectRatio > pdfAspectRatio) {
-        finalCanvasHeight = canvasWidth / pdfAspectRatio;
-      } else {
-        finalCanvasWidth = canvasHeight * pdfAspectRatio;
-      }
-
-      const totalPages = Math.ceil(canvasHeight / (finalCanvasHeight * (pdfWidth/finalCanvasWidth)));
-
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
       const customPdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: 'a4'
+          format: [pdfWidth, pdfHeight]
       });
 
-      const pageHeight = customPdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      
-      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        customPdf.addPage();
-        customPdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
+      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       customPdf.save('sip-optimizer-report.pdf');
     }
   };
+
 
   const handlePrint = () => {
     window.print();
@@ -203,6 +182,7 @@ export function SipOptimizerReport({ data }: Props) {
             padding: 0;
             margin: 0;
             background: none;
+            overflow: visible;
           }
           #report-container {
             width: 100%;
@@ -215,6 +195,8 @@ export function SipOptimizerReport({ data }: Props) {
             transform: scale(1);
             font-size: 8px !important;
             line-height: 1.2 !important;
+            height: auto;
+            overflow: visible;
           }
            #report-container h1 { font-size: 14px !important; }
            #report-container h2 { font-size: 12px !important; }
@@ -223,10 +205,10 @@ export function SipOptimizerReport({ data }: Props) {
            #report-container section {
              margin-top: 0.5rem !important;
              padding: 0 !important;
-             break-inside: avoid;
+             page-break-inside: avoid;
            }
            .print-avoid-break {
-             break-inside: avoid;
+             page-break-inside: avoid;
            }
         }
       `}</style>
@@ -429,33 +411,38 @@ export function SipOptimizerReport({ data }: Props) {
         {sortedAssets.length > 0 && (
           <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">Asset Name</th>
-                    {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="p-2 border font-semibold">Amount</td>
-                    {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
-                  </tr>
-                  <tr>
-                    <td className="p-2 border font-semibold">Allocation %</td>
-                    {sortedAssets.map(asset => {
-                      const amount = getNumericAmount(asset.amount);
-                      const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
-                      return (
-                        <td key={asset.id} className="p-2 border text-center roboto">
-                          {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </tbody>
-              </table>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 border">Asset Name</th>
+                      {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="p-2 border font-semibold">Amount</td>
+                      {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
+                    </tr>
+                    <tr>
+                      <td className="p-2 border font-semibold">Allocation %</td>
+                      {sortedAssets.map(asset => {
+                        const amount = getNumericAmount(asset.amount);
+                        const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
+                        return (
+                          <td key={asset.id} className="p-2 border text-center roboto">
+                            {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex items-center justify-center h-48">
+                  <AssetAllocationChart assets={data.assets} />
+              </div>
             </div>
           </section>
         )}
