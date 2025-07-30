@@ -180,7 +180,8 @@ export function SipOptimizerReport({ data }: Props) {
         @media print {
           html, body {
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
+            height: auto;
             margin: 0;
             padding: 0;
             background: white;
@@ -418,11 +419,11 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        <div className="grid grid-cols-2 gap-4 mt-4 print-avoid-break">
+        <div className="grid grid-cols-2 gap-x-4 mt-4 print-avoid-break">
             {/* Left Column: Asset Allocation */}
-            <div className="space-y-4">
+            <div className="col-span-1 flex flex-col">
                 {sortedAssets.length > 0 && (
-                  <section>
+                  <section className="flex-grow">
                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs border-collapse">
@@ -460,7 +461,7 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
 
             {/* Right Column: Estate Planning */}
-            <div>
+            <div className="col-span-1">
                 {data.willStatus && (
                 <section>
                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
@@ -490,4 +491,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
