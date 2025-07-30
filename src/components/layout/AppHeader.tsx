@@ -1,10 +1,9 @@
 
 "use client";
 
-import { HandCoins } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserDropdown } from "./UserDropdown";
-import Image from "next/image";
+import { Logo } from "./Logo";
 
 export function AppHeader() {
   return (
@@ -13,13 +12,7 @@ export function AppHeader() {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-3">
             <div className="relative h-8 w-40 animate-logo-bob">
-                <Image 
-                    src="/financial-friend-logo.png"
-                    alt="FinFriend Planner Logo" 
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    priority
-                />
+                <Logo />
             </div>
           </div>
         </div>

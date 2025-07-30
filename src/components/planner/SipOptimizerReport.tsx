@@ -4,14 +4,11 @@
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase, PieChart, FileText, CheckCircle, XCircle } from 'lucide-react';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Separator } from '../ui/separator';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import type jsPDF from 'jspdf';
-import type html2canvas from 'html2canvas';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
+import { Logo } from '../layout/Logo';
 
 
 interface Props {
@@ -247,12 +244,7 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center">
             <div className="relative h-12 w-48">
-              <Image 
-                src="/financial-friend-logo.png"
-                alt="Financial Friend Logo" 
-                fill
-                style={{objectFit: 'contain'}}
-              />
+              <Logo />
             </div>
             <div className="text-center text-xs">
                 <p><strong>RM name:</strong> Gunjan Kataria</p>
