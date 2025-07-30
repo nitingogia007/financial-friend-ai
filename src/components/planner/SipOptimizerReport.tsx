@@ -146,7 +146,7 @@ export function SipOptimizerReport({ data }: Props) {
   return (
     <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
         @page {
           size: A4;
           margin: 0;
@@ -173,10 +173,10 @@ export function SipOptimizerReport({ data }: Props) {
           }
         }
         #report-container * {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Comic Sans MS', cursive;
         }
         .roboto {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Comic Sans MS', cursive;
         }
       `}</style>
       
