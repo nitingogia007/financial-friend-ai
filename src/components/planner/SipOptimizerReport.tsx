@@ -59,22 +59,26 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: jsPDF } = await import('jspdf');
 
       html2canvas(input, {
-        scale: 2,
+        scale: 2, // Higher scale for better quality
         useCORS: true,
         logging: true,
+        // Allow the canvas to grow to the height of the content
+        height: input.scrollHeight,
+        windowHeight: input.scrollHeight,
       }).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        
+        // A4 width in mm is 210
+        const pdfWidth = 210; 
+        const pdfHeight = (canvasHeight * pdfWidth) / canvasWidth;
+
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: 'a4'
+          format: [pdfWidth, pdfHeight], // Custom format to fit all content
         });
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
-        const pdfHeight = pdfWidth / ratio;
         
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save('sip-optimizer-report.pdf');
@@ -362,6 +366,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
-    
