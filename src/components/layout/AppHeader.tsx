@@ -14,7 +14,7 @@ export function AppHeader() {
           <div className="flex items-center gap-3">
             <div className="relative h-8 w-40 animate-logo-bob">
                 <Image 
-                    src="/financial-friend-logo.png" 
+                    src="/financial-friend-logo.png"
                     alt="FinFriend Planner Logo" 
                     fill
                     style={{ objectFit: 'contain' }}

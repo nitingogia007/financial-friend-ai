@@ -13,6 +13,7 @@ import type jsPDF from 'jspdf';
 import type html2canvas from 'html2canvas';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 
+
 interface Props {
   data: SipOptimizerReportData;
 }
@@ -144,7 +145,7 @@ export function SipOptimizerReport({ data }: Props) {
 
   const assetOrder = ["Bank", "Stocks", "Mutual Fund", "Gold", "Property", "Other"];
 
-  const getNumericAmount = (amount: number | '') => typeof amount === 'number' ? amount : 0;
+  const getNumericAmount = (amount: number | '') => typeof value === 'number' ? value : 0;
 
   const sortedAssets = (data.assets || [])
     .filter(a => a.type && a.amount)
@@ -247,7 +248,7 @@ export function SipOptimizerReport({ data }: Props) {
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center">
             <div className="relative h-12 w-48">
               <Image 
-                src="/financial-friend-logo.png" 
+                src="/financial-friend-logo.png"
                 alt="Financial Friend Logo" 
                 fill
                 style={{objectFit: 'contain'}}
