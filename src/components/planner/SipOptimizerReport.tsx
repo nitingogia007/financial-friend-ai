@@ -56,6 +56,9 @@ export function SipOptimizerReport({ data }: Props) {
   const handleDownloadPdf = async () => {
     const input = document.getElementById('report-container');
     if (input) {
+      // Temporarily set a fixed height to ensure full capture
+      input.style.height = `${input.scrollHeight}px`;
+
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
       
@@ -63,12 +66,12 @@ export function SipOptimizerReport({ data }: Props) {
           scale: 2,
           useCORS: true,
           logging: true,
-          windowWidth: input.scrollWidth,
-          windowHeight: input.scrollHeight,
-          height: input.scrollHeight,
-          y: 0,
+          windowHeight: input.scrollHeight, // Use scrollHeight
           scrollY: -window.scrollY
       });
+
+      // Restore original height
+      input.style.height = '';
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -158,6 +161,11 @@ export function SipOptimizerReport({ data }: Props) {
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
         
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
         #report-container * {
             font-family: 'Comic Sans MS', 'Roboto', sans-serif !important;
         }
@@ -170,10 +178,12 @@ export function SipOptimizerReport({ data }: Props) {
           margin: 0;
         }
         @media print {
-          body {
-            background-color: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+          html, body {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            padding: 0;
+            background: white;
           }
           .no-print {
             display: none !important;
@@ -183,6 +193,7 @@ export function SipOptimizerReport({ data }: Props) {
             margin: 0;
             background: none;
             overflow: visible;
+            height: auto;
           }
           #report-container {
             width: 100%;
@@ -407,63 +418,68 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        {/* Asset Allocation */}
-        {sortedAssets.length > 0 && (
-          <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 border">Asset Name</th>
-                      {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="p-2 border font-semibold">Amount</td>
-                      {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
-                    </tr>
-                    <tr>
-                      <td className="p-2 border font-semibold">Allocation %</td>
-                      {sortedAssets.map(asset => {
-                        const amount = getNumericAmount(asset.amount);
-                        const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
-                        return (
-                          <td key={asset.id} className="p-2 border text-center roboto">
-                            {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex items-center justify-center h-48">
-                  <AssetAllocationChart assets={data.assets} />
-              </div>
+        <div className="grid grid-cols-2 gap-4 mt-4 print-avoid-break">
+            {/* Left Column: Asset Allocation */}
+            <div className="space-y-4">
+                {sortedAssets.length > 0 && (
+                  <section>
+                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="p-2 border">Asset Name</th>
+                              {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td className="p-2 border font-semibold">Amount</td>
+                              {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
+                            </tr>
+                            <tr>
+                              <td className="p-2 border font-semibold">Allocation %</td>
+                              {sortedAssets.map(asset => {
+                                const amount = getNumericAmount(asset.amount);
+                                const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
+                                return (
+                                  <td key={asset.id} className="p-2 border text-center roboto">
+                                    {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          </tbody>
+                        </table>
+                    </div>
+                    <div className="flex items-center justify-center h-48 mt-2">
+                        <AssetAllocationChart assets={data.assets} />
+                    </div>
+                  </section>
+                )}
             </div>
-          </section>
-        )}
 
-        {/* Estate Planning */}
-        {data.willStatus && (
-        <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
-            {data.willStatus === 'yes' ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800">
-                    <CheckCircle className="h-5 w-5"/>
-                    <p className="font-semibold">Estate planning - done</p>
-                </div>
-            ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800">
-                    <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
-                    <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
-                </div>
-            )}
-        </section>
-        )}
+            {/* Right Column: Estate Planning */}
+            <div>
+                {data.willStatus && (
+                <section>
+                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
+                    {data.willStatus === 'yes' ? (
+                        <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-xs">
+                            <CheckCircle className="h-5 w-5"/>
+                            <p className="font-semibold">Estate planning - done</p>
+                        </div>
+                    ) : (
+                        <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-xs">
+                            <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
+                            <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
+                        </div>
+                    )}
+                </section>
+                )}
+            </div>
+        </div>
+
 
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
@@ -474,3 +490,4 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
