@@ -16,6 +16,7 @@ import { AssetsLiabilitiesForm } from './AssetsLiabilitiesForm';
 import { IncomeExpensesForm } from './IncomeExpensesForm';
 import { InsuranceForm } from './InsuranceForm';
 import { GoalsForm } from './GoalsForm';
+import { EstatePlanningForm } from './EstatePlanningForm';
 
 export function Planner() {
   const { toast } = useToast();
@@ -28,6 +29,7 @@ export function Planner() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [goals, setGoals] = useState<Goal[]>([{ id: Date.now().toString(), name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
   const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
+  const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
   
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -253,6 +255,10 @@ export function Planner() {
             setGoals={setGoals}
             goalsWithCalculations={goalsWithCalculations}
           />
+           <EstatePlanningForm
+            willStatus={willStatus}
+            setWillStatus={setWillStatus}
+          />
         </div>
 
         <div className="mt-12 text-center">
@@ -272,5 +278,3 @@ export function Planner() {
     </div>
   );
 }
-
-    
