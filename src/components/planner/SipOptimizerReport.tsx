@@ -58,68 +58,35 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
 
-      const originalHeight = input.style.height;
-      input.style.height = `${input.scrollHeight}px`;
-
-      html2canvas(input, {
+      const canvas = await html2canvas(input, {
         scale: 2,
         useCORS: true,
         logging: true,
-        height: input.scrollHeight,
-        windowHeight: input.scrollHeight
-      }).then(canvas => {
-        input.style.height = originalHeight;
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const canvasAspectRatio = canvasWidth / canvasHeight;
+
+      const totalPdfHeight = canvasHeight * pdfWidth / canvasWidth;
+
+      const customPdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: 'a4',
-        });
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const canvasAspectRatio = canvasWidth / canvasHeight;
-        const pdfAspectRatio = pdfWidth / pdfHeight;
-
-        let renderWidth = pdfWidth;
-        let renderHeight = pdfWidth / canvasAspectRatio;
-
-        const totalPdfHeight = canvasHeight * pdfWidth / canvasWidth;
-        let y = 0;
-        let position = 0;
-        const pageHeight = pdf.internal.pageSize.height;
-        
-        while (position < canvasHeight) {
-          const remainingHeight = canvasHeight - position;
-          const imgHeightOnPage = Math.min(remainingHeight, canvas.width * pageHeight / canvas.width);
-          
-          pdf.addImage(
-            imgData,
-            'PNG',
-            0,
-            -position * (pdfWidth / canvasWidth),
-            pdfWidth,
-            totalPdfHeight
-          );
-
-          position += imgHeightOnPage;
-
-          if (position < canvasHeight) {
-            pdf.addPage();
-          }
-        }
-
-        const customPdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: [pdfWidth, totalPdfHeight]
-        });
-
-        customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, totalPdfHeight);
-        customPdf.save('sip-optimizer-report.pdf');
+          format: [pdfWidth, totalPdfHeight]
       });
+
+      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, totalPdfHeight);
+      customPdf.save('sip-optimizer-report.pdf');
     }
   };
 
@@ -189,8 +156,6 @@ export function SipOptimizerReport({ data }: Props) {
         }
         @media print {
           body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
             background-color: white;
           }
           .no-print {
@@ -210,19 +175,18 @@ export function SipOptimizerReport({ data }: Props) {
             border: none !important;
             background: white !important;
             transform: scale(1);
-            min-height: 0;
           }
-          #report-container * {
-             font-size: 10px !important;
+           #report-container {
+             font-size: 8px !important;
              line-height: 1.2 !important;
           }
-           #report-container h1 { font-size: 16px !important; }
-           #report-container h2 { font-size: 14px !important; }
-           #report-container h3 { font-size: 12px !important; }
-           #report-container h4 { font-size: 11px !important; }
+           #report-container h1 { font-size: 14px !important; }
+           #report-container h2 { font-size: 12px !important; }
+           #report-container h3 { font-size: 10px !important; }
+           #report-container h4 { font-size: 9px !important; }
            #report-container section {
              margin-top: 0.5rem !important;
-             padding-top: 0 !important;
+             padding: 0 !important;
              break-inside: avoid;
            }
            .print-avoid-break {
