@@ -158,6 +158,7 @@ export function Planner() {
             email: 'contact@financialfriend.in',
           },
           insuranceAnalysis: insuranceAnalysis,
+          assets: assets,
       };
       
       // Detailed Wellness Report Data

@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
@@ -159,6 +159,18 @@ export function SipOptimizerReport({ data }: Props) {
           </div>
       </div>
   )
+
+  const assetOrder = ["Bank", "Stocks", "Mutual Fund", "Gold", "Property", "Other"];
+
+  const getNumericAmount = (amount: number | '') => typeof amount === 'number' ? amount : 0;
+
+  const sortedAssets = (data.assets || [])
+    .filter(a => a.type && a.amount)
+    .sort((a, b) => assetOrder.indexOf(a.type) - assetOrder.indexOf(b.type));
+  
+  const totalLiquidAssets = sortedAssets
+    .filter(asset => asset.type !== 'Property')
+    .reduce((sum, asset) => sum + getNumericAmount(asset.amount), 0);
 
 
   return (
@@ -413,6 +425,41 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
+        {/* Asset Allocation */}
+        {sortedAssets.length > 0 && (
+          <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">Asset Name</th>
+                    {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="p-2 border font-semibold">Amount</td>
+                    {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="p-2 border font-semibold">Allocation %</td>
+                    {sortedAssets.map(asset => {
+                      const amount = getNumericAmount(asset.amount);
+                      const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
+                      return (
+                        <td key={asset.id} className="p-2 border text-center roboto">
+                          {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
                 <strong>Disclaimer:</strong> The calculators are based on past returns and are meant for illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
@@ -422,5 +469,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    

@@ -161,4 +161,5 @@ export interface SipOptimizerReportData {
     email: string;
   };
   insuranceAnalysis: InsuranceAnalysisData;
+  assets: Asset[];
 }
