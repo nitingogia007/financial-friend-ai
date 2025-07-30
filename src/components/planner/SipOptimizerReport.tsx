@@ -58,13 +58,18 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
 
+      // Temporarily expand the container to its full scroll height to ensure all content is rendered for capture.
+      const originalHeight = input.style.height;
+      input.style.height = `${input.scrollHeight}px`;
+      
       html2canvas(input, {
-        scale: 2, // Higher scale for better quality
+        scale: 2,
         useCORS: true,
         logging: true,
-        height: input.scrollHeight,
-        windowHeight: input.scrollHeight,
       }).then(canvas => {
+        // Restore original height after capture
+        input.style.height = originalHeight;
+        
         const imgData = canvas.toDataURL('image/png');
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
