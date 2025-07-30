@@ -59,9 +59,11 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: jsPDF } = await import('jspdf');
 
       html2canvas(input, {
-        scale: 2, // Higher scale for better quality
-        useCORS: true, 
+        scale: 2,
+        useCORS: true,
         logging: true,
+        windowWidth: input.scrollWidth,
+        windowHeight: input.scrollHeight,
       }).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF({
@@ -72,13 +74,14 @@ export function SipOptimizerReport({ data }: Props) {
 
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
-        const ratio = canvasWidth / pdfWidth;
         
+        const ratio = canvasWidth / pdfWidth;
         const imgHeight = canvasHeight / ratio;
+        
         let heightLeft = imgHeight;
-
         let position = 0;
 
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
@@ -375,3 +378,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
