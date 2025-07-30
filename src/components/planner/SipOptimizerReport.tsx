@@ -76,16 +76,40 @@ export function SipOptimizerReport({ data }: Props) {
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
       const canvasAspectRatio = canvasWidth / canvasHeight;
+      const pdfAspectRatio = pdfWidth / pdfHeight;
 
-      const totalPdfHeight = canvasHeight * pdfWidth / canvasWidth;
+      let finalCanvasHeight = canvasHeight;
+      let finalCanvasWidth = canvasWidth;
+
+      if (canvasAspectRatio > pdfAspectRatio) {
+        finalCanvasHeight = canvasWidth / pdfAspectRatio;
+      } else {
+        finalCanvasWidth = canvasHeight * pdfAspectRatio;
+      }
+
+      const totalPages = Math.ceil(canvasHeight / (finalCanvasHeight * (pdfWidth/finalCanvasWidth)));
 
       const customPdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
-          format: [pdfWidth, totalPdfHeight]
+          format: 'a4'
       });
 
-      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, totalPdfHeight);
+      const pageHeight = customPdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        customPdf.addPage();
+        customPdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       customPdf.save('sip-optimizer-report.pdf');
     }
   };
@@ -157,6 +181,8 @@ export function SipOptimizerReport({ data }: Props) {
         @media print {
           body {
             background-color: white;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           .no-print {
             display: none !important;
@@ -168,17 +194,15 @@ export function SipOptimizerReport({ data }: Props) {
           }
           #report-container {
             width: 100%;
-            height: auto;
+            min-height: 0;
             margin: 0;
             padding: 1cm;
             box-shadow: none !important;
             border: none !important;
-            background: white !important;
+            background: linear-gradient(to bottom, #FEE7E7, #FFFFFF 60%, #FFFFFF 40%, #FFFFFF 10%) !important;
             transform: scale(1);
-          }
-           #report-container {
-             font-size: 8px !important;
-             line-height: 1.2 !important;
+            font-size: 8px !important;
+            line-height: 1.2 !important;
           }
            #report-container h1 { font-size: 14px !important; }
            #report-container h2 { font-size: 12px !important; }
@@ -214,7 +238,15 @@ export function SipOptimizerReport({ data }: Props) {
         background: "linear-gradient(to bottom, #FEE7E7, #FFFFFF 60%, #FFFFFF 40%, #FFFFFF 10%)"
       }}>
         {/* Header */}
-        <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break">
+        <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center">
+            <div className="relative h-12 w-48">
+              <Image 
+                src="/financial-friend-logo.png" 
+                alt="Financial Friend Logo" 
+                layout="fill"
+                objectFit="contain"
+              />
+            </div>
             <div className="text-center text-xs">
                 <p><strong>RM name:</strong> Gunjan Kataria</p>
                 <p><strong>Mobile no:</strong> 9460825477</p>
@@ -390,3 +422,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
