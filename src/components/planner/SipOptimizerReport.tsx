@@ -58,7 +58,6 @@ export function SipOptimizerReport({ data }: Props) {
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
 
-      // Temporarily expand the container to its full scroll height to ensure all content is rendered for capture.
       const originalHeight = input.style.height;
       input.style.height = `${input.scrollHeight}px`;
       
@@ -66,16 +65,14 @@ export function SipOptimizerReport({ data }: Props) {
         scale: 2,
         useCORS: true,
         logging: true,
+        height: input.scrollHeight,
+        windowHeight: input.scrollHeight
       }).then(canvas => {
-        // Restore original height after capture
         input.style.height = originalHeight;
         
         const imgData = canvas.toDataURL('image/png');
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        
         const pdfWidth = 210; // A4 width in mm
-        const pdfHeight = (canvasHeight * pdfWidth) / canvasWidth;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
         const pdf = new jsPDF({
           orientation: 'portrait',
@@ -141,6 +138,14 @@ export function SipOptimizerReport({ data }: Props) {
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
+        
+        #report-container * {
+            font-family: 'Comic Sans MS', 'Roboto', sans-serif !important;
+        }
+        .roboto {
+            font-family: 'Roboto', sans-serif !important;
+        }
+
         @page {
           size: A4;
           margin: 0;
@@ -149,28 +154,29 @@ export function SipOptimizerReport({ data }: Props) {
           body {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            background-color: white;
           }
           .no-print {
             display: none !important;
           }
-          #report-container {
-            width: 210mm;
-            min-height: 297mm;
-            margin: 0;
+          #report-section {
             padding: 0;
-            box-shadow: none;
-            border: none;
-            background: white;
+            margin: 0;
+            background: none;
+          }
+          #report-container {
+            width: 100%;
+            min-height: auto;
+            margin: 0;
+            padding: 1cm;
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+            transform: scale(1);
           }
            .print-avoid-break {
             break-inside: avoid;
           }
-        }
-        #report-container * {
-            font-family: 'Comic Sans MS', 'Roboto', sans-serif;
-        }
-        .roboto {
-            font-family: 'Roboto', sans-serif;
         }
       `}</style>
       
@@ -369,3 +375,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
