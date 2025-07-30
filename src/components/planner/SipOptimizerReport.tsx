@@ -180,7 +180,7 @@ export function SipOptimizerReport({ data }: Props) {
         @media print {
           html, body {
             width: 210mm;
-            min-height: 297mm;
+            min-height: 0;
             height: auto;
             margin: 0;
             padding: 0;
@@ -240,7 +240,7 @@ export function SipOptimizerReport({ data }: Props) {
         </Button>
       </div>
 
-      <div id="report-container" className="w-[210mm] min-h-[297mm] mx-auto p-6 shadow-2xl border flex flex-col" style={{
+      <div id="report-container" className="w-[210mm] min-h-fit mx-auto p-6 shadow-2xl border flex flex-col" style={{
         background: "linear-gradient(to bottom, #FEE7E7, #FFFFFF 60%, #FFFFFF 40%, #FFFFFF 10%)"
       }}>
         {/* Header */}
@@ -249,8 +249,8 @@ export function SipOptimizerReport({ data }: Props) {
               <Image 
                 src="/financial-friend-logo.png" 
                 alt="Financial Friend Logo" 
-                layout="fill"
-                objectFit="contain"
+                fill
+                style={{objectFit: 'contain'}}
               />
             </div>
             <div className="text-center text-xs">
