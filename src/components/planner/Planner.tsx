@@ -130,7 +130,7 @@ export function Planner() {
               timeline: {
                   current: timelines.timelineWithCurrentSip,
                   required: timelines.timelineWithRequiredSip,
-                  potential: timelines.timelineWithPotentialSip,
+                  potential: timelines.timelineWithRequiredSip, // Correction: Use required timeline for "can invest"
               },
               investmentStatus: {
                   currentInvestment: getNumericValue(goal.currentSip),
@@ -140,11 +140,11 @@ export function Planner() {
               },
           };
       });
-
+      
       const surplusAfterGoals = investibleSurplus - totalAllocatedSip;
 
       if (surplusAfterGoals > 0) {
-          const defaultRate = goals.length > 0 ? (getNumericValue(goals[0]?.rate) || 12) : 12;
+          const defaultRate = goals.length > 0 ? (goals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / goals.length) : 12;
           wealthCreationGoal = calculateWealthCreation(surplusAfterGoals, defaultRate);
       }
 
@@ -314,5 +314,3 @@ export function Planner() {
     </div>
   );
 }
-
-    
