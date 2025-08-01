@@ -1,5 +1,5 @@
 
-import type { Goal, GoalWithCalculations } from './types';
+import type { Goal, GoalWithCalculations, WealthCreationGoal } from './types';
 
 export function calculateSip(goal: Goal): number {
     const getNum = (val: number | '') => (typeof val === 'number' && !isNaN(val) ? val : 0);
@@ -76,7 +76,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   // 6. SIP required for the shortfall
   let newSipRequired = 0;
   if (shortfall > 0) {
-    if (monthlyRate > 0) {
+    if (monthlyRate > 0 && months > 0) {
        newSipRequired = shortfall / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
     } else if (months > 0) {
       newSipRequired = shortfall / months;
@@ -89,7 +89,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
     futureValueOfCurrentSave: futureValueOfCurrentSave,
     futureValueOfSip: futureValueOfSip,
     totalFutureValue: totalFutureValue,
-    shortfall: shortfall,
+    shortfall: futureValueOfGoal - totalFutureValue, // Corrected shortfall
     newSipRequired: newSipRequired,
   };
 }
@@ -101,37 +101,49 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
     const rate = getNum(goal.rate) / 100;
     const currentSip = getNum(goal.currentSip);
     const requiredSip = goal.newSipRequired;
+    const futureValueOfCurrentSave = goal.futureValueOfCurrentSave;
+
     
     const calculateYears = (monthlySip: number) => {
-        if (monthlySip <= 0 || rate <= 0 || futureValueGoal <= 0) return Infinity;
+        if (monthlySip <= 0) return Infinity;
+        if (rate <= 0) return futureValueGoal / (monthlySip * 12);
+        
         const monthlyRate = rate / 12;
-        // Using the NPER formula from logs
-        const numerator = Math.log((monthlySip / monthlyRate) + (goal.futureValueOfCurrentSave || 0));
-        const denominator = Math.log(1 + monthlyRate);
-        const fvNper = Math.log((futureValueGoal * monthlyRate + monthlySip) / (monthlySip));
-        const finalNper = fvNper / Math.log(1+monthlyRate);
+        const target = futureValueGoal - futureValueOfCurrentSave;
 
-        let nper = Math.log(1 + (futureValueGoal * monthlyRate) / monthlySip) / Math.log(1 + monthlyRate);
-        if (goal.futureValueOfCurrentSave > 0) {
-            const fvOfSavings = goal.futureValueOfCurrentSave;
-            const remainingFv = futureValueGoal - fvOfSavings;
-            if (remainingFv <= 0) return 0; // Already reached
-            nper = Math.log(1 + (remainingFv * monthlyRate) / monthlySip) / Math.log(1 + monthlyRate);
-        }
-        
-        let years = nper / 12;
-        
-        // Simplified NPER when no savings
-        const simpleNper = Math.log((futureValueGoal * monthlyRate) / monthlySip + 1) / Math.log(1 + monthlyRate);
-        years = simpleNper / 12;
+        if (target <= 0) return 0; // Already achieved with current savings
 
+        // Using NPER formula for annuity due: n = log( (FV*r + Pmt*(1+r)) / (Pmt*(1+r)) ) / log(1+r)
+        // Simplified for our purpose:
+        const nper = Math.log((target * monthlyRate) / (monthlySip * (1 + monthlyRate)) + 1) / Math.log(1 + monthlyRate);
 
-        return isFinite(years) ? Math.ceil(years) : Infinity;
+        const years = nper / 12;
+        return isFinite(years) ? years : Infinity;
     };
 
     return {
         timelineWithCurrentSip: calculateYears(currentSip),
         timelineWithRequiredSip: calculateYears(requiredSip),
         timelineWithPotentialSip: calculateYears(potentialSip),
+    };
+}
+
+
+export function calculateWealthCreation(sip: number, rate: number): WealthCreationGoal {
+    const years = 20; // Fixed 20-year horizon
+    const monthlyRate = rate / 100 / 12;
+    const months = years * 12;
+
+    let projectedCorpus = 0;
+    if (monthlyRate > 0) {
+        projectedCorpus = sip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+    } else {
+        projectedCorpus = sip * months;
+    }
+
+    return {
+        sip,
+        years,
+        projectedCorpus,
     };
 }

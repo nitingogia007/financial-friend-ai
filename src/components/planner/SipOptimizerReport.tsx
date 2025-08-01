@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase, PieChart, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase, PieChart, FileText, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -11,7 +11,7 @@ import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import Image from 'next/image';
 
 // Base64 encoded logo to ensure it always loads
-const logoDataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAgVBMVEX///8BAQIAAAD8/PwEBAT29vYAAADp6elPT086OjpJSUlxcXFra2tCQkLd3d1bW1uLi4vj4+NGRkbz8/NnZ2eurq53d3eHh4ePj49ISEgXFxdgYGC7u7tOTk4sLCxubm5/f3+fn58vLy9dXV0zMzOQkJCZmZkgICCEhIQbGxuUlJQVFRW2fATsAAAIkUlEQVR4nO2d63aqPBCGAwJ2V1XqWo/t1q3Wbfv+D3gBBOyKpSyBG2fO/8/MhMybL5MhBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPD/WklRjuN0SknzN30sDMM4jiRJwtA0D/P9KYqia+pPsixLkiTDMGYe5vsbRVHuZ36kadrS5k/StLdt/hTNMk3TtG3tT9O0bdsfDMNIkoR5mb/TNE2aphRFCZZlGUXxXds/mqZtaZqmWZZezt/0zI/0TM/StFnb1iJ6nkYBGgVoFKBRAUaFGAUuFE0Lru9v+H4URf1I0vT9z/Jd33/lI2/a/gmZt/8n0jT/J2nabdsfpmnyvH3tI+mJgqUuS18yA/UoQKMAjQI0CtAoQKMCNArQqAAvmKbpS0lSluWBFkVRlmVZlmVZlm3b9vYnvu/bPCwD87zM8zzv+35Y9/3Asizbtm3btu/7/vbniqLwPI+iaNpm5ucLnu/DPMs0TdM0TVmWZVmWZVmWpWlelnkaBmgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUa"
+const logoDataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAgVBMVEX///8BAQIAAAD8/PwEBAT29vYAAADp6elPT086OjpJSUlxcXFra2tCQkLd3d1bW1uLi4vj4+NGRkbz8/NnZ2eurq53d3eHh4ePj49ISEgXFxdgYGC7u7tOTk4sLCxubm5/f3+fn58vLy9dXV0zMzOQkJCZmZkgICCEhIQbGxuUlJQVFRW2fATsAAAIkUlEQVR4nO2d63aqPBCGAwJ2V1XqWo/t1q3Wbfv+D3gBBOyKpSyBG2fO/8/MhMybL5MhBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPD/WklRjuN0SknzN30sDMM4jiRJwtA0D/P9KYqia+pPsixLkiTDMGYe5vsbRVHuZ36kadrS5k/StLdt/hTNMk3TtG3tT9O0bdsfDMNIkoR5mb/TNE2aphRFCZZlGUXxXds/mqZtaZqmWZZezt/0zI/0TM/StFnb1iJ6nkYBGgVoFKBRAUaFGAUuFE0Lru9v+H4URf1I0vT9z/Jd33/lI2/a/gmZt/8n0jT/J2nabdsfpmnyvH3tI+mJgqUuS18yA/UoQKMAjQI0CtAoQKMCNArQqAAvmKbpS0lSluWBFkVRlmVZlmVZlm3b9vYnvu/bPCwD87zM8zzv+35Y9/3Asizbtm3btu/7/vbniqLwPI+iaNpm5ucLnu/DPMs0TdM0TVmWZVmWZVmWpWlelnkaBmgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUaFWgUoFEBRgUa-";
 
 interface Props {
   data: SipOptimizerReportData;
@@ -314,13 +314,30 @@ export function SipOptimizerReport({ data }: Props) {
         <section className="mt-4 print-avoid-break">
              <div className="text-red-600 font-semibold flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5"/>
-                <h3>Underinvesting</h3>
+                <h3>
+                {
+                    data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment
+                    ? "Investment Status"
+                    : "Underinvesting"
+                }
+                </h3>
             </div>
-            <p className="text-sm mt-1">
-                You are currently underinvesting and need an additional SIP of 
-                <span className="font-bold text-red-600 bg-red-100 rounded-md px-1.5 py-0.5 mx-1">{formatCurrency(additionalSipRequired)}</span>
-                 per month to stay on track and achieve your goals.
-            </p>
+
+            {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment ? (
+                <p className="text-sm mt-1">
+                    Your investable surplus is sufficient to meet your required investments.
+                    <span className="font-bold text-green-600 bg-green-100 rounded-md px-1.5 py-0.5 mx-1">
+                        I must invest / month = I can invest / month
+                    </span>
+                </p>
+            ) : (
+                <p className="text-sm mt-1">
+                    You are currently underinvesting and need an additional SIP of 
+                    <span className="font-bold text-red-600 bg-red-100 rounded-md px-1.5 py-0.5 mx-1">{formatCurrency(additionalSipRequired)}</span>
+                    per month to stay on track and achieve your goals.
+                </p>
+            )}
+
             <div className="grid grid-cols-3 gap-3 mt-3 text-center text-xs">
                 <div className="border border-red-200 bg-red-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I am investing</p>
@@ -334,7 +351,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
                 <div className="border border-green-200 bg-green-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I can invest</p>
-                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.totalInvestmentStatus.potentialInvestment)}</p>
+                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.cashflow.investibleSurplus)}</p>
                     <p className="text-gray-500">Monthly</p>
                 </div>
             </div>
@@ -384,7 +401,7 @@ export function SipOptimizerReport({ data }: Props) {
                              <div className="p-2 rounded-lg border border-green-200 bg-green-50">
                                 <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
                                 <div className="flex flex-col items-center text-center space-y-1">
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Potential SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.potentialInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.allocatedInvestment)}</span></div>
                                     <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
                                     <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
                                 </div>
@@ -394,6 +411,31 @@ export function SipOptimizerReport({ data }: Props) {
                 ))}
             </div>
         </section>
+
+        {/* Wealth Creation Section */}
+        {data.wealthCreationGoal && (
+          <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gray-500"/>Wealth Creation</h2>
+            <div className="p-4 rounded-lg border border-teal-200 bg-teal-50">
+                <p className="text-center text-sm text-teal-800 mb-3">Your surplus cashflow after funding all goals has been allocated to wealth creation.</p>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p className="text-xs text-gray-600">Monthly SIP</p>
+                        <p className="font-bold text-teal-700 roboto text-lg mt-1">{formatCurrency(data.wealthCreationGoal.sip)}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-600">Time Horizon</p>
+                        <p className="font-bold text-teal-700 roboto text-lg mt-1">{data.wealthCreationGoal.years} Years</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-600">Projected Wealth</p>
+                        <p className="font-bold text-teal-700 roboto text-lg mt-1">{formatCurrency(data.wealthCreationGoal.projectedCorpus)}</p>
+                    </div>
+                </div>
+            </div>
+          </section>
+        )}
+
 
         {/* Insurance Analysis */}
         {data.insuranceAnalysis && (
@@ -492,5 +534,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    

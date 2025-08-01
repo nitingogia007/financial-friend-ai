@@ -1,12 +1,11 @@
 
-
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip } from '@/lib/calculations';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -21,13 +20,18 @@ import { EstatePlanningForm } from './EstatePlanningForm';
 export function Planner() {
   const { toast } = useToast();
   const router = useRouter();
+  
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' });
   const [assets, setAssets] = useState<Asset[]>([]);
   const [liabilities, setLiabilities] = useState<Liability[]>([]);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([{ id: Date.now().toString(), name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
+  const [goals, setGoals] = useState<Goal[]>([{ id: 'initial-1', name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
   const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
   const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
   
@@ -56,7 +60,7 @@ export function Planner() {
       });
       return;
     }
-     if (goals.length === 0) {
+     if (goals.length === 0 || goals.every(g => !g.name)) {
       toast({
         title: "No Goals",
         description: "Please add at least one financial goal.",
@@ -94,11 +98,27 @@ export function Planner() {
       assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0) - assetAllocation.total.monthly;
 
       // SIP Optimizer Logic
-      const totalGoalsCorpus = goalsWithCalculations.reduce((sum, goal) => sum + getNumericValue(goal.corpus), 0);
+      const totalRequiredSip = goalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
 
-      const optimizerGoals: SipOptimizerGoal[] = goalsWithCalculations.map(goal => {
-          const goalWeight = totalGoalsCorpus > 0 ? getNumericValue(goal.corpus) / totalGoalsCorpus : 1;
-          const potentialInvestment = investibleSurplus * goalWeight;
+      let remainingSurplus = investibleSurplus;
+      let wealthCreationGoal: WealthCreationGoal | null = null;
+      
+      const sortedGoals = [...goalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
+
+      const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
+          let allocatedInvestment = 0;
+          if (investibleSurplus >= totalRequiredSip) {
+              // Scenario 1: Surplus is sufficient
+              allocatedInvestment = goal.newSipRequired;
+              remainingSurplus -= allocatedInvestment;
+          } else {
+              // Scenario 2: Surplus is insufficient, allocate based on priority (already sorted)
+              const allocation = Math.min(goal.newSipRequired, remainingSurplus);
+              allocatedInvestment = allocation;
+              remainingSurplus -= allocation;
+          }
+          
+          const potentialInvestment = allocatedInvestment;
           const timelines = calculateTimelines(goal, potentialInvestment);
 
           return {
@@ -115,9 +135,17 @@ export function Planner() {
                   currentInvestment: getNumericValue(goal.currentSip),
                   requiredInvestment: goal.newSipRequired,
                   potentialInvestment: potentialInvestment,
+                  allocatedInvestment: allocatedInvestment,
               },
           };
       });
+
+      if (investibleSurplus > totalRequiredSip) {
+          const wealthCreationSip = investibleSurplus - totalRequiredSip;
+          if (wealthCreationSip > 0) {
+            wealthCreationGoal = calculateWealthCreation(wealthCreationSip, getNumericValue(goals[0]?.rate) || 12);
+          }
+      }
 
        const totalInvestmentStatus = {
           currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
@@ -143,6 +171,7 @@ export function Planner() {
               investibleSurplus: investibleSurplus,
           },
           goals: optimizerGoals,
+          wealthCreationGoal: wealthCreationGoal,
           totalInvestmentStatus,
           detailedTables: {
               incomeExpenses: {
@@ -221,6 +250,10 @@ export function Planner() {
       setIsGenerating(false);
     }
   };
+
+  if (!isMounted) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="bg-background">

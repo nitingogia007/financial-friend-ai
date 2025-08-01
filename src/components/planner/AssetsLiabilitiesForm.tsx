@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -19,6 +20,8 @@ interface Props {
 const assetTypes = ["Bank", "Property", "Stocks", "Mutual Fund", "Gold", "Other"];
 const liabilityTypes = ["Home Loan", "Car Loan", "Credit Card", "Other"];
 
+let nextId = 0;
+
 export function AssetsLiabilitiesForm({ assets, setAssets, liabilities, setLiabilities, netWorth }: Props) {
   
   const handleUpdate = <T extends Asset | Liability>(
@@ -32,11 +35,10 @@ export function AssetsLiabilitiesForm({ assets, setAssets, liabilities, setLiabi
   };
 
   const handleAdd = <T extends Asset | Liability>(
-    items: T[],
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
-    newItem: T
+    newItem: Omit<T, 'id'>
   ) => {
-    setItems([...items, newItem]);
+    setItems(prevItems => [...prevItems, { ...newItem, id: `new-${nextId++}` } as T]);
   };
   
   const handleRemove = <T extends Asset | Liability>(
@@ -81,7 +83,7 @@ export function AssetsLiabilitiesForm({ assets, setAssets, liabilities, setLiabi
               </div>
             ))}
           </div>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(assets, setAssets, { id: Date.now().toString(), type: '', amount: '' })}>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(setAssets, { type: '', amount: '' })}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Asset
           </Button>
         </div>
@@ -113,7 +115,7 @@ export function AssetsLiabilitiesForm({ assets, setAssets, liabilities, setLiabi
               </div>
             ))}
           </div>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(liabilities, setLiabilities, { id: Date.now().toString(), type: '', amount: '' })}>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(setLiabilities, { type: '', amount: '' })}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Liability
           </Button>
         </div>

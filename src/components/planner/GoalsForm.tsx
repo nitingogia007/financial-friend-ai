@@ -18,6 +18,8 @@ interface Props {
 
 const goalTypes = ["Retirement", "Child Education", "Marriage", "House", "Other"];
 
+let nextId = 0;
+
 export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
   
   const handleUpdate = (id: string, field: keyof Goal, value: string | number) => {
@@ -25,7 +27,8 @@ export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
   };
   
   const handleAdd = () => {
-    setGoals([...goals, { id: Date.now().toString(), name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
+    const newGoal = { id: `new-${nextId++}`, name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' };
+    setGoals(prevGoals => [...prevGoals, newGoal]);
   };
   
   const handleRemove = (id: string) => {

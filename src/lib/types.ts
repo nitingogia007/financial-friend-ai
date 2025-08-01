@@ -99,7 +99,14 @@ export interface SipOptimizerGoal {
         currentInvestment: number;
         requiredInvestment: number;
         potentialInvestment: number;
+        allocatedInvestment: number;
     };
+}
+
+export interface WealthCreationGoal {
+    sip: number;
+    years: number;
+    projectedCorpus: number;
 }
 
 export interface InsuranceAnalysisData {
@@ -133,6 +140,7 @@ export interface SipOptimizerReportData {
     investibleSurplus: number;
   };
   goals: SipOptimizerGoal[];
+  wealthCreationGoal: WealthCreationGoal | null;
   totalInvestmentStatus: {
       currentInvestment: number;
       requiredInvestment: number;

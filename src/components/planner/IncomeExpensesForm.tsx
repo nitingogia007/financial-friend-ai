@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Income, Expense } from '@/lib/types';
@@ -19,6 +20,8 @@ interface Props {
 const incomeSources = ["Salary", "Business", "Rental Income", "Investments", "Other"];
 const expenseTypes = ["Rent", "Groceries", "Education", "Insurance Premium", "Utilities", "Other"];
 
+let nextId = 0;
+
 export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses, yearlyCashflow }: Props) {
   
   const handleUpdate = <T extends Income | Expense>(
@@ -32,11 +35,10 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
   };
 
   const handleAdd = <T extends Income | Expense>(
-    items: T[],
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
-    newItem: T
+    newItem: Omit<T, 'id'>
   ) => {
-    setItems([...items, newItem]);
+     setItems(prevItems => [...prevItems, { ...newItem, id: `new-${nextId++}` } as T]);
   };
   
   const handleRemove = <T extends Income | Expense>(
@@ -81,7 +83,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
               </div>
             ))}
           </div>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(incomes, setIncomes, { id: Date.now().toString(), source: '', amount: '' } as Income)}>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(setIncomes, { source: '', amount: '' })}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Income
           </Button>
         </div>
@@ -113,7 +115,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
               </div>
             ))}
           </div>
-          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(expenses, setExpenses, { id: Date.now().toString(), type: '', amount: '' } as Expense)}>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => handleAdd(setExpenses, { type: '', amount: '' })}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
           </Button>
         </div>
