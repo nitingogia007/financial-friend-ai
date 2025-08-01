@@ -136,3 +136,5 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
     </FormSection>
   );
 }
+
+    

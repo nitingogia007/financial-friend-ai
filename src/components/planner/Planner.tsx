@@ -108,11 +108,10 @@ export function Planner() {
       const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
           let allocatedInvestment = 0;
           if (investibleSurplus >= totalRequiredSip) {
-              // Scenario 1: Surplus is sufficient
+              // Scenario 1: Surplus is sufficient (CIM >= MIM)
               allocatedInvestment = goal.newSipRequired;
-              remainingSurplus -= allocatedInvestment;
           } else {
-              // Scenario 2: Surplus is insufficient, allocate based on priority (already sorted)
+              // Scenario 2: Surplus is insufficient (CIM < MIM), allocate based on priority (already sorted)
               const allocation = Math.min(goal.newSipRequired, remainingSurplus);
               allocatedInvestment = allocation;
               remainingSurplus -= allocation;
@@ -150,7 +149,7 @@ export function Planner() {
        const totalInvestmentStatus = {
           currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
           requiredInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.requiredInvestment, 0),
-          potentialInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.potentialInvestment, 0),
+          potentialInvestment: investibleSurplus, // Potential is the total surplus
       };
 
       // SIP Optimizer Report Data
@@ -312,3 +311,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
