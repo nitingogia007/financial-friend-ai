@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { NetWorthBreakdown } from '../charts/NetWorthBreakdown';
 import { ExpenseBreakdown } from '../charts/ExpenseBreakdown';
 import { Button } from '../ui/button';
-import { Download, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot } from 'lucide-react';
+import { Download, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface Props {
   data: ReportData;
@@ -134,6 +134,35 @@ export function Report({ data }: Props) {
                         </Table>
                     </CardContent>
                 </Card>
+                 <Card className="shadow-md">
+                    <CardHeader>
+                        <CardTitle>Estate Planning</CardTitle>
+                        <CardDescription>Status of your will.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {data.willStatus === 'yes' ? (
+                            <div className="flex items-center gap-3 text-green-700 dark:text-green-300">
+                                <CheckCircle className="h-6 w-6" />
+                                <div>
+                                    <p className="font-semibold">Will prepared.</p>
+                                    <p className="text-sm">Your estate planning is in order.</p>
+                                </div>
+                            </div>
+                        ) : data.willStatus === 'no' ? (
+                             <div className="flex items-start gap-3 text-orange-700 dark:text-orange-300">
+                                <AlertTriangle className="h-6 w-6 mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="font-semibold">Estate planning is pending.</p>
+                                    <p className="text-sm">We recommend creating a will to ensure your assets are distributed as you wish.</p>
+                                </div>
+                            </div>
+                        ) : (
+                             <div className="flex items-center gap-3 text-muted-foreground">
+                                <p>No information provided on estate planning.</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
@@ -153,5 +182,3 @@ export function Report({ data }: Props) {
     </div>
   );
 }
-
-    

@@ -102,23 +102,25 @@ export function Planner() {
 
       let remainingSurplus = investibleSurplus;
       let wealthCreationGoal: WealthCreationGoal | null = null;
+      let totalAllocatedSip = 0;
       
       const sortedGoals = [...goalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
 
       const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
           let allocatedInvestment = 0;
+          
           if (investibleSurplus >= totalRequiredSip) {
               // Scenario 1: Surplus is sufficient (CIM >= MIM)
               allocatedInvestment = goal.newSipRequired;
           } else {
-              // Scenario 2: Surplus is insufficient (CIM < MIM), allocate based on priority (already sorted)
+              // Scenario 2: Surplus is insufficient (CIM < MIM), allocate based on priority (already sorted by years)
               const allocation = Math.min(goal.newSipRequired, remainingSurplus);
               allocatedInvestment = allocation;
               remainingSurplus -= allocation;
           }
+          totalAllocatedSip += allocatedInvestment;
           
-          const potentialInvestment = allocatedInvestment;
-          const timelines = calculateTimelines(goal, potentialInvestment);
+          const timelines = calculateTimelines(goal, allocatedInvestment);
 
           return {
               id: goal.id,
@@ -133,17 +135,17 @@ export function Planner() {
               investmentStatus: {
                   currentInvestment: getNumericValue(goal.currentSip),
                   requiredInvestment: goal.newSipRequired,
-                  potentialInvestment: potentialInvestment,
+                  potentialInvestment: allocatedInvestment, // This is the allocated SIP for "can invest"
                   allocatedInvestment: allocatedInvestment,
               },
           };
       });
 
-      if (investibleSurplus > totalRequiredSip) {
-          const wealthCreationSip = investibleSurplus - totalRequiredSip;
-          if (wealthCreationSip > 0) {
-            wealthCreationGoal = calculateWealthCreation(wealthCreationSip, getNumericValue(goals[0]?.rate) || 12);
-          }
+      const surplusAfterGoals = investibleSurplus - totalAllocatedSip;
+
+      if (surplusAfterGoals > 0) {
+          const defaultRate = goals.length > 0 ? (getNumericValue(goals[0]?.rate) || 12) : 12;
+          wealthCreationGoal = calculateWealthCreation(surplusAfterGoals, defaultRate);
       }
 
        const totalInvestmentStatus = {
@@ -230,6 +232,7 @@ export function Planner() {
         totalAnnualExpenses: totalAnnualExpenses,
         expenses: expenses,
         aiSummary: summary,
+        willStatus: willStatus,
       };
 
       // Store data in sessionStorage to pass to the next pages

@@ -80,6 +80,7 @@ export interface ReportData {
   totalAnnualExpenses: number;
   expenses: Expense[];
   aiSummary: string;
+  willStatus: 'yes' | 'no' | null;
 }
 
 
