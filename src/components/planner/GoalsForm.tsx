@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, PlusCircle, Target } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Label } from '../ui/label';
 
 interface Props {
   goals: Goal[];
@@ -27,7 +28,7 @@ export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
   };
   
   const handleAdd = () => {
-    const newGoal = { id: `new-${nextId++}`, name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' };
+    const newGoal: Goal = { id: `new-${nextId++}`, name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' };
     setGoals(prevGoals => [...prevGoals, newGoal]);
   };
   
@@ -69,6 +70,17 @@ export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
+                 {goal.name === 'Other' && (
+                  <div className="space-y-1.5 animate-in fade-in-50">
+                    <Label htmlFor={`goal-other-${goal.id}`}>Please specify</Label>
+                    <Input
+                      id={`goal-other-${goal.id}`}
+                      placeholder="e.g., World Tour"
+                      value={goal.otherType || ''}
+                      onChange={(e) => handleUpdate(goal.id, 'otherType', e.target.value)}
+                    />
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Target Corpus (Today's Value)</label>
                   <Input
@@ -161,5 +173,3 @@ export function GoalsForm({ goals, setGoals, goalsWithCalculations }: Props) {
     </FormSection>
   );
 }
-
-    

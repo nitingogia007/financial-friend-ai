@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, PlusCircle, HandCoins, PiggyBank } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import { Label } from '../ui/label';
 
 interface Props {
   incomes: Income[];
@@ -28,7 +29,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
     items: T[], 
     setItems: React.Dispatch<React.SetStateAction<T[]>>, 
     id: string, 
-    field: 'source' | 'type' | 'amount', 
+    field: keyof T, 
     value: string | number
   ) => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
@@ -36,7 +37,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
 
   const handleAdd = <T extends Income | Expense>(
     setItems: React.Dispatch<React.SetStateAction<T[]>>,
-    newItem: Omit<T, 'id'>
+    newItem: Omit<T, 'id' | 'otherType'>
   ) => {
      setItems(prevItems => [...prevItems, { ...newItem, id: `new-${nextId++}` } as T]);
   };
@@ -61,25 +62,38 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
           <h3 className="font-semibold text-lg mb-2 text-green-600">Annual Income</h3>
           <div className="space-y-3">
             {incomes.map((income) => (
-              <div key={income.id} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                <Select
-                  value={income.source}
-                  onValueChange={(value) => handleUpdate(incomes, setIncomes, income.id, 'source', value)}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select income source" /></SelectTrigger>
-                  <SelectContent>
-                    {incomeSources.map(source => <SelectItem key={source} value={source}>{source}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  placeholder="Amount (₹)"
-                  value={income.amount}
-                  onChange={(e) => handleUpdate(incomes, setIncomes, income.id, 'amount', e.target.value === '' ? '' : Number(e.target.value))}
-                />
-                <Button variant="ghost" size="icon" onClick={() => handleRemove(incomes, setIncomes, income.id)} className="text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div key={income.id} className="p-3 border rounded-md space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <Select
+                    value={income.source}
+                    onValueChange={(value) => handleUpdate(incomes, setIncomes, income.id, 'source', value)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select income source" /></SelectTrigger>
+                    <SelectContent>
+                      {incomeSources.map(source => <SelectItem key={source} value={source}>{source}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    placeholder="Amount (₹)"
+                    value={income.amount}
+                    onChange={(e) => handleUpdate(incomes, setIncomes, income.id, 'amount', e.target.value === '' ? '' : Number(e.target.value))}
+                  />
+                  <Button variant="ghost" size="icon" onClick={() => handleRemove(incomes, setIncomes, income.id)} className="text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                 {income.source === 'Other' && (
+                  <div className="space-y-2 animate-in fade-in-50">
+                    <Label htmlFor={`income-other-${income.id}`}>Please specify</Label>
+                    <Input
+                      id={`income-other-${income.id}`}
+                      placeholder="e.g., Freelance"
+                      value={income.otherType || ''}
+                      onChange={(e) => handleUpdate(incomes, setIncomes, income.id, 'otherType', e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -93,25 +107,38 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
           <h3 className="font-semibold text-lg mb-2 text-red-600">Annual Expenses</h3>
           <div className="space-y-3">
             {expenses.map((expense) => (
-              <div key={expense.id} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                <Select
-                  value={expense.type}
-                  onValueChange={(value) => handleUpdate(expenses, setExpenses, expense.id, 'type', value)}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select expense type" /></SelectTrigger>
-                  <SelectContent>
-                    {expenseTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  placeholder="Amount (₹)"
-                  value={expense.amount}
-                  onChange={(e) => handleUpdate(expenses, setExpenses, expense.id, 'amount', e.target.value === '' ? '' : Number(e.target.value))}
-                />
-                 <Button variant="ghost" size="icon" onClick={() => handleRemove(expenses, setExpenses, expense.id)} className="text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div key={expense.id} className="p-3 border rounded-md space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <Select
+                    value={expense.type}
+                    onValueChange={(value) => handleUpdate(expenses, setExpenses, expense.id, 'type', value)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select expense type" /></SelectTrigger>
+                    <SelectContent>
+                      {expenseTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    placeholder="Amount (₹)"
+                    value={expense.amount}
+                    onChange={(e) => handleUpdate(expenses, setExpenses, expense.id, 'amount', e.target.value === '' ? '' : Number(e.target.value))}
+                  />
+                  <Button variant="ghost" size="icon" onClick={() => handleRemove(expenses, setExpenses, expense.id)} className="text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                {expense.type === 'Other' && (
+                  <div className="space-y-2 animate-in fade-in-50">
+                    <Label htmlFor={`expense-other-${expense.id}`}>Please specify</Label>
+                    <Input
+                      id={`expense-other-${expense.id}`}
+                      placeholder="e.g., Travel"
+                      value={expense.otherType || ''}
+                      onChange={(e) => handleUpdate(expenses, setExpenses, expense.id, 'otherType', e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -136,5 +163,3 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
     </FormSection>
   );
 }
-
-    

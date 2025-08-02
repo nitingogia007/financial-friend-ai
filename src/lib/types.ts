@@ -14,24 +14,28 @@ export interface Asset {
   id: string;
   type: string;
   amount: number | '';
+  otherType?: string;
 }
 
 export interface Liability {
   id: string;
   type: string;
   amount: number | '';
+  otherType?: string;
 }
 
 export interface Income {
   id: string;
   source: string;
   amount: number | '';
+  otherType?: string;
 }
 
 export interface Expense {
   id: string;
   type: string;
   amount: number | '';
+  otherType?: string;
 }
 
 export interface Insurance {
@@ -49,6 +53,7 @@ export interface Goal {
   rate: number | '';
   currentSave: number | '';
   currentSip: number | '';
+  otherType?: string;
 }
 
 export interface GoalWithSip extends Goal {
