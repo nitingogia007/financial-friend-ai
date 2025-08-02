@@ -8,6 +8,7 @@ import type { SipOptimizerReportData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { AppHeader } from '@/components/layout/AppHeader';
 
 export default function SipOptimizerReportPage() {
   const [reportData, setReportData] = useState<SipOptimizerReportData | null>(null);
@@ -64,6 +65,7 @@ export default function SipOptimizerReportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+        <AppHeader />
         <main>
             <SipOptimizerReport data={reportData} />
         </main>

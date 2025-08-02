@@ -9,7 +9,6 @@ import type { ReportData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { AppHeader } from '@/components/layout/AppHeader';
 
 export default function ReportPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
@@ -54,7 +53,6 @@ export default function ReportPage() {
 
   return (
     <div className="min-h-screen bg-background">
-       <AppHeader />
         <main className="container mx-auto p-4 md:p-8">
             <Report data={reportData} />
         </main>
