@@ -118,12 +118,12 @@ export interface WealthCreationGoal {
 export interface InsuranceAnalysisData {
     lifeInsurance: {
         recommendedCover: number;
-        estimatedPremium: number;
+        currentPremium: number | '';
         coverageGap: number;
     };
     healthInsurance: {
         recommendedCover: string;
-        estimatedPremium: number;
+        currentPremium: number | '';
         coverageGap: number;
     };
 }

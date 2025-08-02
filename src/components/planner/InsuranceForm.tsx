@@ -50,9 +50,6 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
     return gap; // Can be positive (gap) or negative (surplus)
   }, [hasLifeInsurance, lifeCover, recommendedLifeCover]);
 
-  const recommendedLifePremium = useMemo(() => estimatePremium(recommendedLifeCover, 0.0025), [recommendedLifeCover]);
-
-
   const recommendedHealthCoverText = useMemo(() => {
     if (!age) return 'N/A';
     if (age < 30) return '₹7 Lac - ₹10 Lac';
@@ -75,27 +72,26 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
     return gap > 0 ? gap : 0;
   }, [hasHealthInsurance, healthCover, numericRecommendedHealthCover]);
   
-  const recommendedHealthPremium = useMemo(() => estimatePremium(numericRecommendedHealthCover, 0.015), [numericRecommendedHealthCover]);
-
   const canShowRecommendations = age !== null && age > 0;
 
   useEffect(() => {
     onInsuranceDataChange({
       lifeInsurance: {
         recommendedCover: recommendedLifeCover,
-        estimatedPremium: recommendedLifePremium,
+        currentPremium: hasLifeInsurance === 'yes' ? lifePremium : '',
         coverageGap: lifeCoverGap
       },
       healthInsurance: {
         recommendedCover: recommendedHealthCoverText,
-        estimatedPremium: recommendedHealthPremium,
+        currentPremium: hasHealthInsurance === 'yes' ? healthPremium : '',
         coverageGap: healthCoverGap
       }
     });
   }, [
-    recommendedLifeCover, recommendedLifePremium, lifeCoverGap,
-    recommendedHealthCoverText, recommendedHealthPremium, healthCoverGap,
-    onInsuranceDataChange
+    recommendedLifeCover, lifeCoverGap,
+    recommendedHealthCoverText, healthCoverGap,
+    onInsuranceDataChange, lifePremium, healthPremium,
+    hasLifeInsurance, hasHealthInsurance
   ]);
 
   return (
@@ -148,8 +144,12 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-1">
                       <span className="font-medium">Ideal Life Cover:</span>
                       <span className="font-bold text-right">₹{recommendedLifeCover.toLocaleString('en-IN')}</span>
-                      <span className="font-medium">Est. Annual Premium:</span>
-                      <span className="font-bold text-right">₹{recommendedLifePremium.toLocaleString('en-IN')}</span>
+                      {hasLifeInsurance === 'no' && (
+                        <>
+                          <span className="font-medium">Est. Annual Premium:</span>
+                          <span className="font-bold text-right">₹{estimatePremium(recommendedLifeCover, 0.0025).toLocaleString('en-IN')}</span>
+                        </>
+                      )}
                   </div>
                    {hasLifeInsurance === 'yes' && lifeCover !== '' && (
                     <div className="text-xs mt-3 pt-2 border-t border-blue-500/20">
@@ -214,8 +214,12 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-1">
                       <span className="font-medium">Ideal Health Cover:</span>
                       <span className="font-bold text-right">{recommendedHealthCoverText}</span>
-                      <span className="font-medium">Est. Annual Premium:</span>
-                      <span className="font-bold text-right">₹{recommendedHealthPremium.toLocaleString('en-IN')}</span>
+                      {hasHealthInsurance === 'no' && (
+                        <>
+                          <span className="font-medium">Est. Annual Premium:</span>
+                          <span className="font-bold text-right">₹{estimatePremium(numericRecommendedHealthCover, 0.015).toLocaleString('en-IN')}</span>
+                        </>
+                      )}
                   </div>
                   {hasHealthInsurance === 'yes' && healthCover !== '' && (
                     <div className="text-xs mt-3 pt-2 border-t border-blue-500/20">
