@@ -77,20 +77,28 @@ export function Planner() {
       return;
     }
 
-
     setIsGenerating(true);
 
     try {
+      // Prepare data with user-specified "Other" values
+      const processedAssets: Asset[] = assets.map(a => ({ ...a, type: a.type === 'Other' && a.otherType ? a.otherType : a.type }));
+      const processedLiabilities: Liability[] = liabilities.map(l => ({ ...l, type: l.type === 'Other' && l.otherType ? l.otherType : l.type }));
+      const processedExpenses: Expense[] = expenses.map(e => ({ ...e, type: e.type === 'Other' && e.otherType ? e.otherType : e.type }));
+      const processedGoals: Goal[] = goals.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
+      const processedGoalsWithCalculations: GoalWithCalculations[] = goalsWithCalculations.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
+
+
       // Common data preparation
       const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
       const investibleSurplus = monthlyCashflow > 0 ? monthlyCashflow : 0;
       
+      const findAssetAmount = (type: string) => getNumericValue(processedAssets.find(a=> a.type === type)?.amount);
       const assetAllocation = {
-          mutualFunds: { corpus: getNumericValue(assets.find(a=>a.type==='Mutual Fund')?.amount), monthly: goals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
-          gold: { corpus: getNumericValue(assets.find(a=>a.type==='Gold')?.amount), monthly: 0},
-          stocks: { corpus: getNumericValue(assets.find(a=>a.type==='Stocks')?.amount), monthly: 0},
-          fixedDeposits: { corpus: getNumericValue(assets.find(a=>a.type==='Bank')?.amount), monthly: 0},
-          others: { corpus: getNumericValue(assets.find(a=>a.type==='Other')?.amount), monthly: 0},
+          mutualFunds: { corpus: findAssetAmount('Mutual Fund'), monthly: processedGoals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
+          gold: { corpus: findAssetAmount('Gold'), monthly: 0},
+          stocks: { corpus: findAssetAmount('Stocks'), monthly: 0},
+          fixedDeposits: { corpus: findAssetAmount('Bank'), monthly: 0},
+          others: { corpus: findAssetAmount('Other'), monthly: 0}, // Note: This might need adjustment if multiple 'Other' assets exist
           total: { corpus: 0, monthly: 0 }
       };
 
@@ -98,22 +106,20 @@ export function Planner() {
       assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0) - assetAllocation.total.monthly;
 
       // SIP Optimizer Logic
-      const totalRequiredSip = goalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
+      const totalRequiredSip = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
 
       let remainingSurplus = investibleSurplus;
       let wealthCreationGoal: WealthCreationGoal | null = null;
       let totalAllocatedSip = 0;
       
-      const sortedGoals = [...goalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
+      const sortedGoals = [...processedGoalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
 
       const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
           let allocatedInvestment = 0;
           
           if (investibleSurplus >= totalRequiredSip) {
-              // Scenario 1: Surplus is sufficient (CIM >= MIM)
               allocatedInvestment = goal.newSipRequired;
           } else {
-              // Scenario 2: Surplus is insufficient (CIM < MIM), allocate based on priority (already sorted by years)
               const allocation = Math.min(goal.newSipRequired, remainingSurplus);
               allocatedInvestment = allocation;
               remainingSurplus -= allocation;
@@ -130,12 +136,12 @@ export function Planner() {
               timeline: {
                   current: timelines.timelineWithCurrentSip,
                   required: timelines.timelineWithRequiredSip,
-                  potential: timelines.timelineWithRequiredSip, // Correction: Use required timeline for "can invest"
+                  potential: timelines.timelineWithRequiredSip, // Keep timeline same as required
               },
               investmentStatus: {
                   currentInvestment: getNumericValue(goal.currentSip),
                   requiredInvestment: goal.newSipRequired,
-                  potentialInvestment: allocatedInvestment, // This is the allocated SIP for "can invest"
+                  potentialInvestment: allocatedInvestment,
                   allocatedInvestment: allocatedInvestment,
               },
           };
@@ -144,14 +150,14 @@ export function Planner() {
       const surplusAfterGoals = investibleSurplus - totalAllocatedSip;
 
       if (surplusAfterGoals > 0) {
-          const defaultRate = goals.length > 0 ? (goals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / goals.length) : 12;
+          const defaultRate = processedGoals.length > 0 ? (processedGoals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / processedGoals.length) : 12;
           wealthCreationGoal = calculateWealthCreation(surplusAfterGoals, defaultRate);
       }
 
        const totalInvestmentStatus = {
           currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
           requiredInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.requiredInvestment, 0),
-          potentialInvestment: investibleSurplus, // Potential is the total surplus
+          potentialInvestment: investibleSurplus,
       };
 
       // SIP Optimizer Report Data
@@ -177,9 +183,9 @@ export function Planner() {
           detailedTables: {
               incomeExpenses: {
                   totalMonthlyIncome: totalAnnualIncome / 12,
-                  fixedExpenses: expenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
+                  fixedExpenses: processedExpenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
                   emiExpenses: 0, // Placeholder
-                  otherExpenses: expenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
+                  otherExpenses: processedExpenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
               },
               assetAllocation: assetAllocation
           },
@@ -190,12 +196,12 @@ export function Planner() {
             email: 'contact@financialfriend.in',
           },
           insuranceAnalysis: insuranceAnalysis,
-          assets: assets,
+          assets: processedAssets,
           willStatus: willStatus,
       };
       
       // Detailed Wellness Report Data
-      const goalsWithSip: GoalWithSip[] = goals.map(g => ({
+      const goalsWithSip: GoalWithSip[] = processedGoals.map(g => ({
         ...g,
         sip: calculateSip(g)
       }));
@@ -226,11 +232,11 @@ export function Planner() {
         goals: goalsWithSip,
         totalAssets: totalAssets,
         totalLiabilities: totalLiabilities,
-        assets: assets,
-        liabilities: liabilities,
+        assets: processedAssets,
+        liabilities: processedLiabilities,
         totalAnnualIncome: totalAnnualIncome,
         totalAnnualExpenses: totalAnnualExpenses,
-        expenses: expenses,
+        expenses: processedExpenses,
         aiSummary: summary,
         willStatus: willStatus,
       };
