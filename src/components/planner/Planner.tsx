@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
 import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue } from '@/lib/calculations';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -132,13 +132,6 @@ export function Planner() {
           
           const timelines = calculateTimelines(goal, allocatedInvestment);
           
-          // Case 1: If allocated is less than required, calculate achievable corpus.
-          // Otherwise, the potential corpus is the full goal amount.
-          const potentialCorpus = allocatedInvestment < goal.newSipRequired
-              ? calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years)) + goal.futureValueOfCurrentSave
-              : goal.futureValueOfGoal;
-
-
           return {
               id: goal.id,
               name: goal.name,
@@ -154,9 +147,8 @@ export function Planner() {
                   requiredInvestment: goal.newSipRequired,
                   // potentialInvestment is the allocated amount for this specific goal
                   potentialInvestment: allocatedInvestment,
-                  allocatedInvestment: allocatedInvestment, // keeping for compatibility, same as potentialInvestment
+                  allocatedInvestment: allocatedInvestment,
               },
-              potentialCorpus: potentialCorpus,
           };
       });
       

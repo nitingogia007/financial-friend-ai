@@ -107,7 +107,6 @@ export interface SipOptimizerGoal {
         potentialInvestment: number;
         allocatedInvestment: number;
     };
-    potentialCorpus: number;
 }
 
 export interface WealthCreationGoal {

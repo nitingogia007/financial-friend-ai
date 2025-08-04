@@ -96,19 +96,6 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
 }
 
 
-export function calculateFutureValue(sip: number, rate: number, years: number): number {
-    const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
-    const monthlyRate = getNum(rate) / 100 / 12;
-    const months = getNum(years) * 12;
-
-    if (months <= 0 || sip <= 0) return 0;
-    if (monthlyRate === 0) return sip * months;
-    
-    // FV of annuity due
-    return sip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
-}
-
-
 export function calculateTimelines(goal: GoalWithCalculations, potentialSip: number) {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
 
@@ -121,18 +108,25 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
     
     const calculateYears = (monthlySip: number) => {
         if (monthlySip <= 0) return Infinity;
-        if (rate <= 0) return futureValueGoal / (monthlySip * 12);
+        
+        const targetCorpus = futureValueGoal - futureValueOfCurrentSave;
+        if (targetCorpus <= 0) return 0; // Already met
+
+        if (rate <= 0) {
+            return (targetCorpus / (monthlySip * 12));
+        }
         
         const monthlyRate = rate / 12;
-        const target = futureValueGoal - futureValueOfCurrentSave;
+        
+        // NPER formula for annuity due: n = log( (FV*r + Pmt*(1+r)) / (Pmt*(1+r)) ) / log(1+r)
+        const numerator = Math.log((targetCorpus * monthlyRate) / (monthlySip * (1 + monthlyRate)) + 1);
+        const denominator = Math.log(1 + monthlyRate);
+        
+        if (denominator === 0) return Infinity;
 
-        if (target <= 0) return 0; // Already achieved with current savings
-
-        // Using NPER formula for annuity due: n = log( (FV*r + Pmt*(1+r)) / (Pmt*(1+r)) ) / log(1+r)
-        // Simplified for our purpose:
-        const nper = Math.log((target * monthlyRate) / (monthlySip * (1 + monthlyRate)) + 1) / Math.log(1 + monthlyRate);
-
+        const nper = numerator / denominator;
         const years = nper / 12;
+
         return isFinite(years) ? years : Infinity;
     };
 
