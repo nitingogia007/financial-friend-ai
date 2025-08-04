@@ -110,25 +110,34 @@ export function Planner() {
 
       // SIP Optimizer Logic
       const totalRequiredSip = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
-
-      let wealthCreationGoal: WealthCreationGoal | null = null;
-      let totalAllocatedSip = 0;
+      let surplusForWealthCreation = Math.max(0, investibleSurplus - totalRequiredSip);
       
       const sortedGoals = [...processedGoalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
 
       const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
-          let allocatedInvestment = 0;
-          
-          if (totalRequiredSip > 0) {
-              const allocationPercentage = goal.newSipRequired / totalRequiredSip;
-              allocatedInvestment = Math.min(goal.newSipRequired, investibleSurplus * allocationPercentage);
+          let allocatedInvestment: number;
+
+          if (investibleSurplus >= totalRequiredSip) {
+              // Case 2 & 3: Sufficient or surplus funds
+              allocatedInvestment = goal.newSipRequired;
+          } else {
+              // Case 1: Insufficient funds, allocate proportionally
+              if (totalRequiredSip > 0) {
+                  const allocationPercentage = goal.newSipRequired / totalRequiredSip;
+                  allocatedInvestment = investibleSurplus * allocationPercentage;
+              } else {
+                  allocatedInvestment = 0;
+              }
           }
           
-          totalAllocatedSip += allocatedInvestment;
-          
           const timelines = calculateTimelines(goal, allocatedInvestment);
+          
+          // Case 1: If allocated is less than required, calculate achievable corpus.
+          // Otherwise, the potential corpus is the full goal amount.
+          const potentialCorpus = allocatedInvestment < goal.newSipRequired
+              ? calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years)) + goal.futureValueOfCurrentSave
+              : goal.futureValueOfGoal;
 
-          const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years)) + goal.futureValueOfCurrentSave;
 
           return {
               id: goal.id,
@@ -143,23 +152,23 @@ export function Planner() {
               investmentStatus: {
                   currentInvestment: getNumericValue(goal.currentSip),
                   requiredInvestment: goal.newSipRequired,
+                  // potentialInvestment is the allocated amount for this specific goal
                   potentialInvestment: allocatedInvestment,
-                  allocatedInvestment: allocatedInvestment,
+                  allocatedInvestment: allocatedInvestment, // keeping for compatibility, same as potentialInvestment
               },
               potentialCorpus: potentialCorpus,
           };
       });
       
-      const surplusAfterGoals = investibleSurplus - totalRequiredSip;
-
-      if (surplusAfterGoals > 0) {
+      let wealthCreationGoal: WealthCreationGoal | null = null;
+      if (surplusForWealthCreation > 0) {
           const defaultRate = processedGoals.length > 0 ? (processedGoals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / processedGoals.length) : 12;
-          wealthCreationGoal = calculateWealthCreation(surplusAfterGoals, defaultRate);
+          wealthCreationGoal = calculateWealthCreation(surplusForWealthCreation, defaultRate);
       }
 
        const totalInvestmentStatus = {
           currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
-          requiredInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.requiredInvestment, 0),
+          requiredInvestment: totalRequiredSip,
           potentialInvestment: investibleSurplus,
       };
 
@@ -213,8 +222,8 @@ export function Planner() {
         name: personalDetails.name || "User",
         netWorth,
         monthlyCashflow,
-        insuranceCover: 0,
-        insurancePremium: 0,
+        insuranceCover: getNumericValue(insuranceAnalysis.lifeInsurance.currentPremium) + getNumericValue(insuranceAnalysis.healthInsurance.currentPremium),
+        insurancePremium: getNumericValue(insuranceAnalysis.lifeInsurance.currentPremium) + getNumericValue(insuranceAnalysis.healthInsurance.currentPremium),
         goals: goalsWithSip.map(g => ({
           goalName: g.name,
           corpus: getNumericValue(g.corpus),
@@ -323,3 +332,5 @@ export function Planner() {
     </div>
   );
 }
+
+    

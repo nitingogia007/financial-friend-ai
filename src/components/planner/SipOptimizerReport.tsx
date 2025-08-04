@@ -352,7 +352,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
                 <div className="border border-green-200 bg-green-50 p-2 rounded-lg">
                     <p className="text-gray-600">What I can invest</p>
-                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.cashflow.investibleSurplus)}</p>
+                    <p className="font-bold text-green-700 roboto text-lg mt-1">{formatCurrency(data.totalInvestmentStatus.potentialInvestment)}</p>
                     <p className="text-gray-500">Monthly</p>
                 </div>
             </div>
@@ -380,10 +380,6 @@ export function SipOptimizerReport({ data }: Props) {
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
-                    const allocatedSip = goal.investmentStatus.allocatedInvestment;
-                    const requiredSip = goal.investmentStatus.requiredInvestment;
-                    const canInvestCorpus = allocatedSip >= requiredSip ? goal.futureValue : goal.potentialCorpus;
-
                     return (
                         <div key={goal.id} className="border-b pb-4 last:border-b-0">
                             <h3 className="font-bold text-base text-gray-800 mb-2">{goal.name}</h3>
@@ -409,7 +405,7 @@ export function SipOptimizerReport({ data }: Props) {
                                     <div className="flex flex-col items-center text-center space-y-1">
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.allocatedInvestment)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(canInvestCorpus)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.potentialCorpus)}</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -541,3 +537,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
