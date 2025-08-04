@@ -405,7 +405,7 @@ export function SipOptimizerReport({ data }: Props) {
                                     <div className="flex flex-col items-center text-center space-y-1">
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.allocatedInvestment)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.potentialCorpus)}</span></div>
                                     </div>
                                 </div>
                             </div>

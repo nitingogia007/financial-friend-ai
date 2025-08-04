@@ -156,3 +156,21 @@ export function calculateWealthCreation(sip: number, rate: number): WealthCreati
         projectedCorpus,
     };
 }
+
+export function calculateFutureValue(monthlySip: number, annualRate: number, years: number, initialInvestment: number): number {
+    const monthlyRate = annualRate / 100 / 12;
+    const months = years * 12;
+
+    const futureValueOfInitial = initialInvestment * Math.pow(1 + annualRate / 100, years);
+    
+    let futureValueOfSips = 0;
+    if (monthlyRate > 0) {
+        futureValueOfSips = monthlySip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+    } else {
+        futureValueOfSips = monthlySip * months;
+    }
+    
+    return futureValueOfInitial + futureValueOfSips;
+}
+
+    

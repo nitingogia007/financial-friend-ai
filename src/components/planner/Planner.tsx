@@ -4,8 +4,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation } from '@/lib/calculations';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -110,47 +110,67 @@ export function Planner() {
 
       // SIP Optimizer Logic
       const totalRequiredSip = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
-      let surplusForWealthCreation = Math.max(0, investibleSurplus - totalRequiredSip);
-      
-      const sortedGoals = [...processedGoalsWithCalculations].sort((a,b) => getNumericValue(a.years) - getNumericValue(b.years));
+      let surplusForWealthCreation = 0;
+      let optimizerGoals: SipOptimizerGoal[] = [];
 
-      const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
-          let allocatedInvestment: number;
+      if (investibleSurplus >= totalRequiredSip) {
+        // CASE 1 & 3: All goals are covered, potentially with surplus
+        surplusForWealthCreation = investibleSurplus - totalRequiredSip;
+        optimizerGoals = processedGoalsWithCalculations.map(goal => {
+            const timelines = calculateTimelines(goal, goal.newSipRequired);
+            return {
+                id: goal.id,
+                name: goal.name,
+                targetCorpus: getNumericValue(goal.corpus),
+                futureValue: goal.futureValueOfGoal,
+                timeline: {
+                    current: timelines.timelineWithCurrentSip,
+                    required: timelines.timelineWithRequiredSip,
+                    potential: timelines.timelineWithRequiredSip, // Same as required
+                },
+                investmentStatus: {
+                    currentInvestment: getNumericValue(goal.currentSip),
+                    requiredInvestment: goal.newSipRequired,
+                    allocatedInvestment: goal.newSipRequired,
+                },
+                potentialCorpus: goal.futureValueOfGoal, // It's achievable
+            };
+        });
+      } else {
+        // CASE 2: SIPs exceed cashflow, allocate proportionally
+        const totalFutureValueAllGoals = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.futureValueOfGoal, 0);
 
-          if (investibleSurplus >= totalRequiredSip) {
-              // Case 2 & 3: Sufficient or surplus funds
-              allocatedInvestment = goal.newSipRequired;
-          } else {
-              // Case 1: Insufficient funds, allocate proportionally
-              if (totalRequiredSip > 0) {
-                  const allocationPercentage = goal.newSipRequired / totalRequiredSip;
-                  allocatedInvestment = investibleSurplus * allocationPercentage;
-              } else {
-                  allocatedInvestment = 0;
-              }
-          }
-          
-          const timelines = calculateTimelines(goal, allocatedInvestment);
-          
-          return {
-              id: goal.id,
-              name: goal.name,
-              targetCorpus: getNumericValue(goal.corpus),
-              futureValue: goal.futureValueOfGoal,
-              timeline: {
-                  current: timelines.timelineWithCurrentSip,
-                  required: timelines.timelineWithRequiredSip,
-                  potential: timelines.timelineWithPotentialSip,
-              },
-              investmentStatus: {
-                  currentInvestment: getNumericValue(goal.currentSip),
-                  requiredInvestment: goal.newSipRequired,
-                  // potentialInvestment is the allocated amount for this specific goal
-                  potentialInvestment: allocatedInvestment,
-                  allocatedInvestment: allocatedInvestment,
-              },
-          };
-      });
+        optimizerGoals = processedGoalsWithCalculations.map(goal => {
+            let allocatedInvestment = 0;
+            if (processedGoalsWithCalculations.length === 1) {
+                allocatedInvestment = investibleSurplus;
+            } else if (totalFutureValueAllGoals > 0) {
+                const weight = goal.futureValueOfGoal / totalFutureValueAllGoals;
+                allocatedInvestment = investibleSurplus * weight;
+            }
+
+            const timelines = calculateTimelines(goal, allocatedInvestment);
+            const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), goal.futureValueOfCurrentSave);
+
+            return {
+                id: goal.id,
+                name: goal.name,
+                targetCorpus: getNumericValue(goal.corpus),
+                futureValue: goal.futureValueOfGoal,
+                timeline: {
+                    current: timelines.timelineWithCurrentSip,
+                    required: timelines.timelineWithRequiredSip,
+                    potential: timelines.timelineWithPotentialSip,
+                },
+                investmentStatus: {
+                    currentInvestment: getNumericValue(goal.currentSip),
+                    requiredInvestment: goal.newSipRequired,
+                    allocatedInvestment: allocatedInvestment,
+                },
+                potentialCorpus: potentialCorpus,
+            };
+        });
+      }
       
       let wealthCreationGoal: WealthCreationGoal | null = null;
       if (surplusForWealthCreation > 0) {
