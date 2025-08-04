@@ -147,7 +147,7 @@ export function SipOptimizerReport({ data }: Props) {
 
 
   const sortedAssets = (data.assets || [])
-    .filter(a => a.type && a.amount)
+    .filter(a => a.type && a.amount !== '')
     .sort((a, b) => assetOrder.indexOf(a.type) - assetOrder.indexOf(b.type));
   
   const totalLiquidAssets = sortedAssets
@@ -537,5 +537,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
