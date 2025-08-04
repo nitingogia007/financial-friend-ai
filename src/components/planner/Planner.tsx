@@ -126,12 +126,12 @@ export function Planner() {
                 timeline: {
                     current: timelines.timelineWithCurrentSip,
                     required: timelines.timelineWithRequiredSip,
-                    potential: timelines.timelineWithRequiredSip, // Same as required
+                    potential: timelines.timelineWithRequiredSip, // Same as required because surplus goes to wealth creation
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),
                     requiredInvestment: goal.newSipRequired,
-                    allocatedInvestment: goal.newSipRequired,
+                    allocatedInvestment: goal.newSipRequired, // Fund exactly what's required
                 },
                 potentialCorpus: goal.futureValueOfGoal, // It's achievable
             };
@@ -150,8 +150,9 @@ export function Planner() {
             }
 
             const timelines = calculateTimelines(goal, allocatedInvestment);
-            const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), goal.futureValueOfCurrentSave);
-
+            // Recalculate potential corpus based on the allocated SIP and ORIGINAL timeline
+            const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
+            
             return {
                 id: goal.id,
                 name: goal.name,
@@ -160,7 +161,7 @@ export function Planner() {
                 timeline: {
                     current: timelines.timelineWithCurrentSip,
                     required: timelines.timelineWithRequiredSip,
-                    potential: timelines.timelineWithPotentialSip,
+                    potential: getNumericValue(goal.years), // Keep original timeline
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),
@@ -345,4 +346,5 @@ export function Planner() {
   );
 }
 
+    
     
