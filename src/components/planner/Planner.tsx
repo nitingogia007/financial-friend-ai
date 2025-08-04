@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
 import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, ReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation } from '@/lib/calculations';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -85,7 +85,10 @@ export function Planner() {
       const processedLiabilities: Liability[] = liabilities.map(l => ({ ...l, type: l.type === 'Other' && l.otherType ? l.otherType : l.type }));
       const processedExpenses: Expense[] = expenses.map(e => ({ ...e, type: e.type === 'Other' && e.otherType ? e.otherType : e.type }));
       const processedGoals: Goal[] = goals.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
-      const processedGoalsWithCalculations: GoalWithCalculations[] = goalsWithCalculations.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
+      const processedGoalsWithCalculations: GoalWithCalculations[] = goalsWithCalculations.map((g, i) => ({ 
+        ...g, 
+        name: processedGoals[i].name 
+      }));
 
 
       // Common data preparation
@@ -108,7 +111,6 @@ export function Planner() {
       // SIP Optimizer Logic
       const totalRequiredSip = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
 
-      let remainingSurplus = investibleSurplus;
       let wealthCreationGoal: WealthCreationGoal | null = null;
       let totalAllocatedSip = 0;
       
@@ -117,16 +119,16 @@ export function Planner() {
       const optimizerGoals: SipOptimizerGoal[] = sortedGoals.map(goal => {
           let allocatedInvestment = 0;
           
-          if (investibleSurplus >= totalRequiredSip) {
-              allocatedInvestment = goal.newSipRequired;
-          } else {
-              const allocation = Math.min(goal.newSipRequired, remainingSurplus);
-              allocatedInvestment = allocation;
-              remainingSurplus -= allocation;
+          if (totalRequiredSip > 0) {
+              const allocationPercentage = goal.newSipRequired / totalRequiredSip;
+              allocatedInvestment = Math.min(goal.newSipRequired, investibleSurplus * allocationPercentage);
           }
+          
           totalAllocatedSip += allocatedInvestment;
           
           const timelines = calculateTimelines(goal, allocatedInvestment);
+
+          const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years)) + goal.futureValueOfCurrentSave;
 
           return {
               id: goal.id,
@@ -136,7 +138,7 @@ export function Planner() {
               timeline: {
                   current: timelines.timelineWithCurrentSip,
                   required: timelines.timelineWithRequiredSip,
-                  potential: timelines.timelineWithRequiredSip, // Keep timeline same as required
+                  potential: timelines.timelineWithPotentialSip,
               },
               investmentStatus: {
                   currentInvestment: getNumericValue(goal.currentSip),
@@ -144,10 +146,11 @@ export function Planner() {
                   potentialInvestment: allocatedInvestment,
                   allocatedInvestment: allocatedInvestment,
               },
+              potentialCorpus: potentialCorpus,
           };
       });
       
-      const surplusAfterGoals = investibleSurplus - totalAllocatedSip;
+      const surplusAfterGoals = investibleSurplus - totalRequiredSip;
 
       if (surplusAfterGoals > 0) {
           const defaultRate = processedGoals.length > 0 ? (processedGoals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / processedGoals.length) : 12;

@@ -1,4 +1,5 @@
 
+
 import type { Goal, GoalWithCalculations, WealthCreationGoal } from './types';
 
 export function calculateSip(goal: Goal): number {
@@ -93,6 +94,20 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
     newSipRequired: newSipRequired,
   };
 }
+
+
+export function calculateFutureValue(sip: number, rate: number, years: number): number {
+    const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
+    const monthlyRate = getNum(rate) / 100 / 12;
+    const months = getNum(years) * 12;
+
+    if (months <= 0 || sip <= 0) return 0;
+    if (monthlyRate === 0) return sip * months;
+    
+    // FV of annuity due
+    return sip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+}
+
 
 export function calculateTimelines(goal: GoalWithCalculations, potentialSip: number) {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
