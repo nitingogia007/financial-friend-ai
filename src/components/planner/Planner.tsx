@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -137,15 +137,13 @@ export function Planner() {
             };
         });
       } else {
-        // CASE 2: SIPs exceed cashflow, allocate proportionally
-        const totalFutureValueAllGoals = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.futureValueOfGoal, 0);
-
+        // CASE 2: SIPs exceed cashflow, allocate proportionally based on required SIP ratio
         optimizerGoals = processedGoalsWithCalculations.map(goal => {
             let allocatedInvestment = 0;
             if (processedGoalsWithCalculations.length === 1) {
                 allocatedInvestment = investibleSurplus;
-            } else if (totalFutureValueAllGoals > 0) {
-                const weight = goal.futureValueOfGoal / totalFutureValueAllGoals;
+            } else if (totalRequiredSip > 0) {
+                const weight = goal.newSipRequired / totalRequiredSip;
                 allocatedInvestment = investibleSurplus * weight;
             }
 
@@ -346,5 +344,6 @@ export function Planner() {
   );
 }
 
+    
     
     
