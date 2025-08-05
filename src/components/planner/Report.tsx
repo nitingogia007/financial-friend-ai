@@ -29,10 +29,6 @@ const StatCard = ({ title, value, icon, subValue }: { title: string; value: stri
 
 
 export function Report({ data }: Props) {
-  const handlePrint = () => {
-    window.print();
-  };
-
   const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
 
   return (
@@ -47,9 +43,6 @@ export function Report({ data }: Props) {
             A complete overview of your financial health for <span className="font-semibold text-foreground">{data.personalDetails.name}</span>.
           </p>
         </div>
-        <Button onClick={handlePrint} className="no-print">
-            <Download className="mr-2 h-4 w-4" /> Download
-        </Button>
       </div>
       
       <div className="p-6 border-2 border-dashed rounded-xl printable-area bg-card">

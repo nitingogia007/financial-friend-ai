@@ -73,49 +73,6 @@ export function SipOptimizerReport({ data }: Props) {
     fetchImage();
   }, []);
 
-  const handleDownloadPdf = async () => {
-    const input = document.getElementById('report-container');
-    if (input) {
-      // Temporarily set a fixed height to ensure full capture
-      input.style.height = `${input.scrollHeight}px`;
-
-      const { default: html2canvas } = await import('html2canvas');
-      const { default: jsPDF } = await import('jspdf');
-      
-      const canvas = await html2canvas(input, {
-          scale: 2,
-          useCORS: true,
-          logging: true,
-          windowHeight: input.scrollHeight, // Use scrollHeight
-          scrollY: -window.scrollY
-      });
-
-      // Restore original height
-      input.style.height = '';
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const imgProps= pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      const customPdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: [pdfWidth, pdfHeight]
-      });
-
-      customPdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      customPdf.save('sip-optimizer-report.pdf');
-    }
-  };
-
-
   const handlePrint = () => {
     window.print();
   };
@@ -250,10 +207,6 @@ export function SipOptimizerReport({ data }: Props) {
         <Button onClick={handleViewDetailedReport} variant="outline">
             View Detailed Report
             <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-        <Button onClick={handleDownloadPdf}>
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
         </Button>
         <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
