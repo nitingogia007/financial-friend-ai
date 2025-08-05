@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
 
@@ -51,6 +52,26 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
 
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
+  const [logoDataUri, setLogoDataUri] = useState<string>('');
+
+  useEffect(() => {
+    // Fetch the image and convert it to a data URI to embed it for PDF generation
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setLogoDataUri(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        console.error("Failed to fetch and convert logo:", error);
+        setLogoDataUri(logoUrl); // Fallback to URL if conversion fails
+      }
+    };
+    fetchImage();
+  }, []);
 
   const handleDownloadPdf = async () => {
     const input = document.getElementById('report-container');
@@ -246,14 +267,14 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center">
             <div className="relative h-12 w-48">
-              <Image 
-                  src={logoUrl} 
+              {logoDataUri && <Image 
+                  src={logoDataUri} 
                   alt="FinFriend Planner Logo" 
                   fill
                   style={{ objectFit: 'contain' }}
                   priority
                   unoptimized
-              />
+              />}
             </div>
             <div className="text-center text-xs">
                 <p><strong>RM name:</strong> Gunjan Kataria</p>
@@ -537,3 +558,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
