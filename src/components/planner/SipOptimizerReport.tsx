@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { AssetAllocationChart } from '../charts/AssetAllocationChart';
+
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
 
@@ -55,12 +57,14 @@ const AssetCard = ({
     value,
     percentage,
     colorClass,
+    isNonLiquid = false,
   }: {
     icon: React.ReactNode;
     title: string;
     value: number;
-    percentage: number;
+    percentage?: number;
     colorClass: string;
+    isNonLiquid?: boolean;
   }) => (
     <Card className={cn("border-l-4", colorClass)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -69,7 +73,11 @@ const AssetCard = ({
         </CardHeader>
         <CardContent>
             <div className="text-2xl font-bold roboto">{formatCurrency(value)}</div>
-            <p className="text-xs text-muted-foreground">{percentage.toFixed(2)}% of portfolio</p>
+            {isNonLiquid ? (
+                 <p className="text-xs text-muted-foreground">(Not in liquid portfolio)</p>
+            ) : (
+                <p className="text-xs text-muted-foreground">{percentage?.toFixed(2)}% of liquid portfolio</p>
+            )}
         </CardContent>
     </Card>
 );
@@ -99,7 +107,9 @@ export function SipOptimizerReport({ data }: Props) {
       }
     };
 
-    fetchImageAsDataUri(logoUrl);
+    if (logoUrl) {
+      fetchImageAsDataUri(logoUrl);
+    }
   }, []);
 
 
@@ -154,6 +164,8 @@ export function SipOptimizerReport({ data }: Props) {
   const liquidAssets = (data.assets || [])
     .filter(a => a.type !== 'Property' && a.type && a.amount);
   
+  const nonLiquidAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount);
+  
   const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
 
   const assetCategories = [
@@ -176,8 +188,6 @@ export function SipOptimizerReport({ data }: Props) {
     };
   }).filter(category => category.value > 0);
   
-  const propertyAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount);
-
 
   return (
     <div className="bg-gray-100 text-gray-800 font-sans">
@@ -486,69 +496,75 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        <div className="grid grid-cols-2 gap-x-4 mt-4 print-avoid-break">
-            {/* Left Column: Liquid Asset Allocation */}
-            <div className="col-span-2 flex flex-col">
-                <section className="flex-grow">
-                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
-                     <div className="border-t-2 border-gray-300 py-3 text-center">
-                        <h3 className="text-sm font-semibold text-gray-600">Total Liquid Portfolio Value</h3>
-                        <p className="text-2xl font-bold roboto text-gray-800">{formatCurrency(totalLiquidAssets)}</p>
+        {/* Asset Allocation Section */}
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation
+            </h2>
+
+            {totalLiquidAssets > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {/* Chart */}
+                    <div className="md:col-span-2 h-48 md:h-auto">
+                        <AssetAllocationChart assets={aggregatedLiquidAssets} />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-                        {aggregatedLiquidAssets.map((asset) => (
-                           <AssetCard
-                            key={asset.name}
-                            icon={asset.icon}
-                            title={asset.name}
-                            value={asset.value}
-                            percentage={asset.percentage}
-                            colorClass={asset.color}
-                           />
+                    {/* Details */}
+                    <div className="md:col-span-3 flex flex-col justify-center">
+                        <div className="border-b-2 border-gray-300 pb-2 text-center mb-3">
+                            <h3 className="text-sm font-semibold text-gray-600">Total Liquid Portfolio Value</h3>
+                            <p className="text-2xl font-bold roboto text-gray-800">{formatCurrency(totalLiquidAssets)}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                             {aggregatedLiquidAssets.map((asset) => (
+                               <div key={asset.name} className="flex items-center gap-2 text-xs p-1 rounded">
+                                   <span className={cn("h-3 w-3 rounded-full", asset.color.replace('border-', 'bg-'))}></span>
+                                   <span className="font-medium">{asset.name}:</span>
+                                   <span className="font-bold roboto ml-auto">{formatCurrency(asset.value)}</span>
+                               </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <p className="text-sm text-gray-500 text-center py-4">No liquid assets provided.</p>
+            )}
+
+            {nonLiquidAssets.length > 0 && (
+                <div className="mt-4">
+                    <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Building className="h-5 w-5 text-gray-500"/>Non-Liquid Assets</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                        {nonLiquidAssets.map(asset => (
+                             <AssetCard 
+                                key={asset.id}
+                                icon={<Building className="h-4 w-4 text-muted-foreground" />}
+                                title={asset.type === 'Other' && asset.otherType ? asset.otherType : asset.type}
+                                value={getNumericValue(asset.amount)}
+                                colorClass="border-indigo-500"
+                                isNonLiquid={true}
+                             />
                         ))}
                     </div>
-                     {propertyAssets.length > 0 && (
-                        <div className="mt-4">
-                            <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Building className="h-5 w-5 text-gray-500"/>Real Estate</h3>
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-                                {propertyAssets.map(asset => (
-                                     <Card key={asset.id} className="border-l-4 border-indigo-500">
-                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                            <CardTitle className="text-sm font-medium">Property</CardTitle>
-                                            <Building className="h-4 w-4 text-muted-foreground" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold roboto">{formatCurrency(getNumericValue(asset.amount))}</div>
-                                            <p className="text-xs text-muted-foreground">(Not included in liquid portfolio %)</p>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </section>
-            </div>
+                </div>
+            )}
+        </section>
 
-            {/* Right Column: Estate Planning */}
-            <div className="col-span-2 mt-4">
-                {data.willStatus && (
-                <section>
-                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
-                    {data.willStatus === 'yes' ? (
-                        <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-xs">
-                            <CheckCircle className="h-5 w-5"/>
-                            <p className="font-semibold">Estate planning - done</p>
-                        </div>
-                    ) : (
-                        <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-xs">
-                            <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
-                            <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
-                        </div>
-                    )}
-                </section>
-                )}
-            </div>
-        </div>
+        {/* Estate Planning Section */}
+        {data.willStatus && (
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
+            {data.willStatus === 'yes' ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm">
+                    <CheckCircle className="h-5 w-5"/>
+                    <p className="font-semibold">Estate planning - done</p>
+                </div>
+            ) : (
+                <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-sm">
+                    <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
+                    <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
+                </div>
+            )}
+        </section>
+        )}
 
 
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">

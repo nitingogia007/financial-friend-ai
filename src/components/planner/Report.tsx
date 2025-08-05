@@ -8,7 +8,9 @@ import { Separator } from '@/components/ui/separator';
 import { NetWorthBreakdown } from '../charts/NetWorthBreakdown';
 import { ExpenseBreakdown } from '../charts/ExpenseBreakdown';
 import { Button } from '../ui/button';
-import { Download, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Printer, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot, CheckCircle, AlertTriangle } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Props {
   data: ReportData;
@@ -30,10 +32,50 @@ const StatCard = ({ title, value, icon, subValue }: { title: string; value: stri
 
 export function Report({ data }: Props) {
   const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
+  
+  const handleDownload = () => {
+    const reportElement = document.getElementById('report-section');
+    if (reportElement) {
+        html2canvas(reportElement, {
+            scale: 2, // Increase scale for better quality
+            useCORS: true,
+            onclone: (document) => {
+              // You can modify the cloned document here if needed before capture
+            }
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+            const width = pdfWidth;
+            const height = width / ratio;
+
+            // Check if content height is larger than page height
+            let position = 0;
+            const pageHeight = pdf.internal.pageSize.height;
+            let remainingHeight = height;
+
+            while (remainingHeight > 0) {
+                pdf.addImage(imgData, 'PNG', 0, position, width, height);
+                remainingHeight -= pageHeight;
+                if (remainingHeight > 0) {
+                    pdf.addPage();
+                    position = -remainingHeight;
+                }
+            }
+
+            pdf.save(`${data.personalDetails.name}-financial-report.pdf`);
+        });
+    }
+  };
+
 
   return (
     <div id="report-section" className="space-y-8 animate-in fade-in-50 duration-500">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4 no-print">
         <div>
           <h2 className="text-3xl font-bold font-headline text-primary flex items-center gap-3">
             <FileText className="h-8 w-8" />
