@@ -3,13 +3,13 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, Download, ShieldCheck, Wallet, PiggyBank, Briefcase, PieChart, FileText, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
 
@@ -49,21 +49,48 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
     </div>
 );
 
+const AssetCard = ({
+    icon,
+    title,
+    value,
+    percentage,
+    colorClass,
+  }: {
+    icon: React.ReactNode;
+    title: string;
+    value: number;
+    percentage: number;
+    colorClass: string;
+  }) => (
+    <Card className={cn("border-l-4", colorClass)}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            {icon}
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold roboto">{formatCurrency(value)}</div>
+            <p className="text-xs text-muted-foreground">{percentage.toFixed(2)}% of portfolio</p>
+        </CardContent>
+    </Card>
+);
 
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
   const [logoDataUri, setLogoDataUri] = useState<string>('');
 
   useEffect(() => {
-    // Fetch the image and convert it to a data URI to embed it for PDF generation
     const fetchImage = async () => {
       try {
-        const response = await fetch(logoUrl);
+        const response = await fetch(logoUrl, { cache: 'force-cache' });
+        if (!response.ok) throw new Error('Network response was not ok');
         const blob = await response.blob();
         const reader = new FileReader();
         reader.onloadend = () => {
           setLogoDataUri(reader.result as string);
         };
+        reader.onerror = () => {
+            setLogoDataUri(logoUrl); // Fallback on reader error
+        }
         reader.readAsDataURL(blob);
       } catch (error) {
         console.error("Failed to fetch and convert logo:", error);
@@ -120,22 +147,38 @@ export function SipOptimizerReport({ data }: Props) {
       </div>
   )
 
-  const assetOrder = ["Bank", "Stocks", "Mutual Fund", "Gold", "Property", "Other"];
-
   const getNumericValue = (amount: number | ''): number => typeof amount === 'number' ? amount : 0;
-
-
-  const sortedAssets = (data.assets || [])
-    .filter(a => a.type && a.amount !== '')
-    .sort((a, b) => assetOrder.indexOf(a.type) - assetOrder.indexOf(b.type));
   
-  const totalLiquidAssets = sortedAssets
-    .filter(asset => asset.type !== 'Property')
-    .reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
+  const liquidAssets = (data.assets || [])
+    .filter(a => a.type !== 'Property' && a.type && a.amount !== '');
+  
+  const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
+
+  const assetCategories = [
+    { name: 'Mutual Fund', icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />, color: 'border-blue-500' },
+    { name: 'Stocks', icon: <CandlestickChart className="h-4 w-4 text-muted-foreground" />, color: 'border-green-500' },
+    { name: 'Bank', icon: <Banknote className="h-4 w-4 text-muted-foreground" />, color: 'border-yellow-500' },
+    { name: 'Gold', icon: <Gem className="h-4 w-4 text-muted-foreground" />, color: 'border-amber-500' },
+    { name: 'Other', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'border-gray-500' },
+  ];
+
+  const aggregatedLiquidAssets = assetCategories.map(category => {
+    const assetsInCategory = liquidAssets.filter(asset => (asset.type === 'Other' && category.name === 'Other') || asset.type === category.name);
+    const totalValue = assetsInCategory.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
+    return {
+      name: category.name,
+      value: totalValue,
+      icon: category.icon,
+      color: category.color,
+      percentage: totalLiquidAssets > 0 ? (totalValue / totalLiquidAssets) * 100 : 0,
+    };
+  }).filter(category => category.value > 0);
+  
+  const propertyAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount !== '');
 
 
   return (
-    <div id="report-section" className="bg-gray-100 text-gray-800 font-sans">
+    <div className="bg-gray-100 text-gray-800 font-sans">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
@@ -443,47 +486,49 @@ export function SipOptimizerReport({ data }: Props) {
         
         <div className="grid grid-cols-2 gap-x-4 mt-4 print-avoid-break">
             {/* Left Column: Liquid Asset Allocation */}
-            <div className="col-span-1 flex flex-col">
-                {sortedAssets.length > 0 && (
-                  <section className="flex-grow">
-                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs border-collapse">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="p-2 border">Asset Name</th>
-                              {sortedAssets.map(asset => <th key={asset.id} className="p-2 border text-center">{asset.type}</th>)}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="p-2 border font-semibold">Amount</td>
-                              {sortedAssets.map(asset => <td key={asset.id} className="p-2 border text-center roboto">{formatCurrency(asset.amount)}</td>)}
-                            </tr>
-                            <tr>
-                              <td className="p-2 border font-semibold">Allocation %</td>
-                              {sortedAssets.map(asset => {
-                                const amount = getNumericValue(asset.amount);
-                                const percentage = totalLiquidAssets > 0 && asset.type !== 'Property' ? (amount / totalLiquidAssets) * 100 : 0;
-                                return (
-                                  <td key={asset.id} className="p-2 border text-center roboto">
-                                    {asset.type === 'Property' ? 'N/A' : `${percentage.toFixed(2)}%`}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          </tbody>
-                        </table>
+            <div className="col-span-2 flex flex-col">
+                <section className="flex-grow">
+                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Briefcase className="h-5 w-5 text-gray-500"/>Asset Allocation</h2>
+                     <div className="border-t-2 border-gray-300 py-3 text-center">
+                        <h3 className="text-sm font-semibold text-gray-600">Total Liquid Portfolio Value</h3>
+                        <p className="text-2xl font-bold roboto text-gray-800">{formatCurrency(totalLiquidAssets)}</p>
                     </div>
-                    <div className="flex items-center justify-center h-48 mt-2">
-                        <AssetAllocationChart assets={data.assets} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                        {aggregatedLiquidAssets.map((asset) => (
+                           <AssetCard
+                            key={asset.name}
+                            icon={asset.icon}
+                            title={asset.name}
+                            value={asset.value}
+                            percentage={asset.percentage}
+                            colorClass={asset.color}
+                           />
+                        ))}
                     </div>
-                  </section>
-                )}
+                     {propertyAssets.length > 0 && (
+                        <div className="mt-4">
+                            <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Building className="h-5 w-5 text-gray-500"/>Real Estate</h3>
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                                {propertyAssets.map(asset => (
+                                     <Card key={asset.id} className="border-l-4 border-indigo-500">
+                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                            <CardTitle className="text-sm font-medium">Property</CardTitle>
+                                            <Building className="h-4 w-4 text-muted-foreground" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold roboto">{formatCurrency(getNumericValue(asset.amount))}</div>
+                                            <p className="text-xs text-muted-foreground">(Not included in liquid portfolio %)</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </section>
             </div>
 
             {/* Right Column: Estate Planning */}
-            <div className="col-span-1">
+            <div className="col-span-2 mt-4">
                 {data.willStatus && (
                 <section>
                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
@@ -513,7 +558,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
-
-    
