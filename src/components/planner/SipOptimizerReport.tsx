@@ -44,13 +44,30 @@ const formatYears = (years: number) => {
     return '0M';
 }
 
-const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
-    <div className="flex items-center text-sm gap-2">
-        <Icon className="h-4 w-4 text-gray-400" />
-        <span className="text-gray-600">{label}:</span>
-        <span className="font-semibold text-gray-800">{value}</span>
+const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
+    <div className="flex items-start gap-3">
+        <div className="bg-black/5 rounded-full p-1.5">
+            <Icon className="h-4 w-4 text-pink-800" />
+        </div>
+        <div>
+            <p className="text-xs text-pink-900/70 font-medium">{label}</p>
+            <p className="font-bold text-pink-950 text-sm">{value}</p>
+        </div>
     </div>
 );
+
+const DetailItemWhite = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
+    <div className="flex items-start gap-3">
+         <div className="bg-gray-100 rounded-full p-1.5">
+            <Icon className="h-4 w-4 text-gray-600" />
+        </div>
+        <div>
+            <p className="text-xs text-gray-500 font-medium">{label}</p>
+            <p className="font-bold text-gray-800 text-sm">{value}</p>
+        </div>
+    </div>
+);
+
 
 const AssetCard = ({
     icon,
@@ -165,8 +182,7 @@ export function SipOptimizerReport({ data }: Props) {
   return (
     <div className="bg-gray-100 text-gray-800 font-sans">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;700&display=swap');
         
         body {
             -webkit-print-color-adjust: exact;
@@ -174,7 +190,7 @@ export function SipOptimizerReport({ data }: Props) {
         }
 
         #report-container * {
-            font-family: 'Comic Sans MS', 'Roboto', sans-serif !important;
+            font-family: 'Poppins', 'Roboto', sans-serif !important;
         }
         .roboto {
             font-family: 'Roboto', sans-serif !important;
@@ -270,15 +286,20 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
 
         {/* Investor Details */}
-        <section className="bg-white p-4 border rounded-lg shadow-sm print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-3">Investor details</h2>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                <InfoRow icon={User} label="Name" value={data.personalDetails.name} />
-                <InfoRow icon={Target} label="Retirement age" value={data.personalDetails.retirementAge} />
-                <InfoRow icon={Calendar} label="Date of birth" value={formatDate(data.personalDetails.dob)} />
-                <InfoRow icon={Phone} label="Mobile no." value={data.personalDetails.mobile} />
-                <InfoRow icon={Users} label="Dependents" value={data.personalDetails.dependents} />
-                <InfoRow icon={Mail} label="Email Id" value={data.personalDetails.email} />
+        <section className="bg-white p-1 print-avoid-break">
+            <div className="rounded-lg shadow-sm border overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                    <div className="bg-pink-50 p-4 space-y-4">
+                       <DetailItem icon={User} label="Name" value={data.personalDetails.name} />
+                       <DetailItem icon={Calendar} label="Date of Birth" value={formatDate(data.personalDetails.dob)} />
+                       <DetailItem icon={Users} label="Dependents" value={data.personalDetails.dependents} />
+                    </div>
+                    <div className="bg-white p-4 space-y-4">
+                        <DetailItemWhite icon={Target} label="Retirement Age" value={data.personalDetails.retirementAge} />
+                        <DetailItemWhite icon={Phone} label="Mobile No." value={data.personalDetails.mobile} />
+                        <DetailItemWhite icon={Mail} label="Email ID" value={data.personalDetails.email} />
+                    </div>
+                </div>
             </div>
         </section>
         
@@ -473,7 +494,7 @@ export function SipOptimizerReport({ data }: Props) {
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Wallet className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
             <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="w-full md:w-1/2 h-64">
+                <div className="w-full md:w-1/2 h-48">
                     <AssetAllocationChart assets={aggregatedLiquidAssets} />
                 </div>
                 <div className="w-full md:w-1/2">
@@ -555,3 +576,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
