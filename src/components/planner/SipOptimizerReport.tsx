@@ -233,6 +233,10 @@ export function SipOptimizerReport({ data }: Props) {
       `}</style>
       
       <div className="container mx-auto flex justify-end p-4 gap-4 no-print">
+        <Button onClick={handlePrint} variant="default">
+            <Printer className="mr-2 h-4 w-4" />
+            Print Report
+        </Button>
         <Button onClick={handleViewDetailedReport} variant="outline">
             View Detailed Report
             <ArrowRight className="ml-2 h-4 w-4" />
