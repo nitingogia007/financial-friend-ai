@@ -162,9 +162,9 @@ export function SipOptimizerReport({ data }: Props) {
   const getNumericValue = (amount: number | ''): number => typeof amount === 'number' ? amount : 0;
   
   const liquidAssets = (data.assets || [])
-    .filter(a => a.type !== 'Property' && a.type && a.amount);
+    .filter(a => a.type !== 'Property' && a.type && typeof a.amount === 'number');
   
-  const nonLiquidAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount);
+  const nonLiquidAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && typeof a.amount === 'number');
   
   const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
 
@@ -576,3 +576,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
