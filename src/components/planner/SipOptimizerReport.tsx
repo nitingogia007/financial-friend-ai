@@ -73,6 +73,7 @@ export function SipOptimizerReport({ data }: Props) {
     fetchImage();
   }, []);
 
+
   const handlePrint = () => {
     window.print();
   };
@@ -237,7 +238,7 @@ export function SipOptimizerReport({ data }: Props) {
         </header>
 
         <section className="text-center py-4 bg-white print-avoid-break">
-            <h1 className="text-xl font-bold text-gray-800 tracking-wide">SIP Optimizer Report</h1>
+            <h1 className="text-xl font-bold text-gray-800 tracking-wide">Financial Planning Report</h1>
         </section>
 
         {/* Investor Details */}
@@ -354,6 +355,7 @@ export function SipOptimizerReport({ data }: Props) {
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
+                    const goalCorpus = goal.futureValue || goal.potentialCorpus;
                     return (
                         <div key={goal.id} className="border-b pb-4 last:border-b-0">
                             <h3 className="font-bold text-base text-gray-800 mb-2">{goal.name}</h3>
@@ -363,7 +365,7 @@ export function SipOptimizerReport({ data }: Props) {
                                     <div className="flex flex-col items-center text-center space-y-1">
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Current SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(goalCorpus)}</span></div>
                                     </div>
                                 </div>
                                 <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
@@ -423,7 +425,7 @@ export function SipOptimizerReport({ data }: Props) {
                     <h3 className="font-semibold text-blue-800 mb-2">Life Insurance</h3>
                     <div className="space-y-1 text-xs">
                         <div className="flex justify-between"><p>Ideal Life Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.recommendedCover)}</p></div>
-                        <div className="flex justify-between"><p>Current Annual Premium:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.currentPremium)}</p></div>
+                        <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.lifeInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.lifeInsurance.coverageGap)}</p></div>
                     </div>
                 </div>
@@ -431,7 +433,7 @@ export function SipOptimizerReport({ data }: Props) {
                     <h3 className="font-semibold text-green-800 mb-2">Health Insurance</h3>
                      <div className="space-y-1 text-xs">
                         <div className="flex justify-between"><p>Ideal Health Cover:</p><p className="font-bold roboto">{data.insuranceAnalysis.healthInsurance.recommendedCover}</p></div>
-                        <div className="flex justify-between"><p>Current Annual Premium:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.healthInsurance.currentPremium)}</p></div>
+                        <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.healthInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.healthInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.healthInsurance.coverageGap)}</p></div>
                     </div>
                 </div>
@@ -511,5 +513,7 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
 
     

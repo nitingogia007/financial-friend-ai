@@ -118,11 +118,13 @@ export interface WealthCreationGoal {
 export interface InsuranceAnalysisData {
     lifeInsurance: {
         recommendedCover: number;
+        currentCover: number | '';
         currentPremium: number | '';
         coverageGap: number;
     };
     healthInsurance: {
         recommendedCover: string;
+        currentCover: number | '';
         currentPremium: number | '';
         coverageGap: number;
     };
@@ -178,5 +180,7 @@ export interface SipOptimizerReportData {
   assets: Asset[];
   willStatus: 'yes' | 'no' | null;
 }
+
+    
 
     

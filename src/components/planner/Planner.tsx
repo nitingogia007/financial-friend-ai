@@ -146,10 +146,10 @@ export function Planner() {
                 const weight = goal.newSipRequired / totalRequiredSip;
                 allocatedInvestment = investibleSurplus * weight;
             }
-
-            const timelines = calculateTimelines(goal, allocatedInvestment);
+            
             // Recalculate potential corpus based on the allocated SIP and ORIGINAL timeline
             const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
+            const timelines = calculateTimelines(goal, allocatedInvestment);
             
             return {
                 id: goal.id,
@@ -233,7 +233,7 @@ export function Planner() {
         name: personalDetails.name || "User",
         netWorth,
         monthlyCashflow,
-        insuranceCover: getNumericValue(insuranceAnalysis.lifeInsurance.currentPremium) + getNumericValue(insuranceAnalysis.healthInsurance.currentPremium),
+        insuranceCover: getNumericValue(insuranceAnalysis.lifeInsurance.currentCover) + getNumericValue(insuranceAnalysis.healthInsurance.currentCover),
         insurancePremium: getNumericValue(insuranceAnalysis.lifeInsurance.currentPremium) + getNumericValue(insuranceAnalysis.healthInsurance.currentPremium),
         goals: goalsWithSip.map(g => ({
           goalName: g.name,
@@ -343,3 +343,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
