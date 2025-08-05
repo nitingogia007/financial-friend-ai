@@ -498,36 +498,9 @@ export function SipOptimizerReport({ data }: Props) {
         
         {/* Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation
-            </h2>
-
-            {totalLiquidAssets > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Chart */}
-                    <div className="md:col-span-2 h-48 md:h-auto">
-                        <AssetAllocationChart assets={aggregatedLiquidAssets} />
-                    </div>
-                    {/* Details */}
-                    <div className="md:col-span-3 flex flex-col justify-center">
-                        <div className="border-b-2 border-gray-300 pb-2 text-center mb-3">
-                            <h3 className="text-sm font-semibold text-gray-600">Total Liquid Portfolio Value</h3>
-                            <p className="text-2xl font-bold roboto text-gray-800">{formatCurrency(totalLiquidAssets)}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                             {aggregatedLiquidAssets.map((asset) => (
-                               <div key={asset.name} className="flex items-center gap-2 text-xs p-1 rounded">
-                                   <span className={cn("h-3 w-3 rounded-full", asset.color.replace('border-', 'bg-'))}></span>
-                                   <span className="font-medium">{asset.name}:</span>
-                                   <span className="font-bold roboto ml-auto">{formatCurrency(asset.value)}</span>
-                               </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <p className="text-sm text-gray-500 text-center py-4">No liquid assets provided.</p>
-            )}
+            <div className="h-80">
+                <AssetAllocationChart assets={aggregatedLiquidAssets} />
+            </div>
 
             {nonLiquidAssets.length > 0 && (
                 <div className="mt-4">
@@ -576,5 +549,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
