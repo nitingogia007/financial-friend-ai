@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
@@ -84,35 +85,7 @@ const AssetCard = ({
 
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
-  const [logoDataUri, setLogoDataUri] = useState<string>('');
-
-  useEffect(() => {
-    const fetchImageAsDataUri = async (url: string) => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setLogoDataUri(reader.result as string);
-        };
-        reader.onerror = (error) => {
-          console.error("FileReader error:", error);
-          setLogoDataUri(logoUrl); // Fallback to URL
-        };
-        reader.readAsDataURL(blob);
-      } catch (error) {
-        console.error("Failed to fetch and convert logo to data URI:", error);
-        setLogoDataUri(logoUrl); // Fallback to using the direct URL if fetch fails
-      }
-    };
-
-    if (logoUrl) {
-      fetchImageAsDataUri(logoUrl);
-    }
-  }, []);
-
-
+  
   const handlePrint = () => {
     window.print();
   };
@@ -169,11 +142,11 @@ export function SipOptimizerReport({ data }: Props) {
   const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
 
   const assetCategories = [
-    { name: 'Mutual Fund', icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />, color: 'border-blue-500' },
-    { name: 'Stocks', icon: <CandlestickChart className="h-4 w-4 text-muted-foreground" />, color: 'border-green-500' },
-    { name: 'Bank', icon: <Banknote className="h-4 w-4 text-muted-foreground" />, color: 'border-yellow-500' },
-    { name: 'Gold', icon: <Gem className="h-4 w-4 text-muted-foreground" />, color: 'border-amber-500' },
-    { name: 'Other', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'border-gray-500' },
+    { name: 'Mutual Fund', icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-1))' },
+    { name: 'Stocks', icon: <CandlestickChart className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-2))' },
+    { name: 'Bank', icon: <Banknote className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-3))' },
+    { name: 'Gold', icon: <Gem className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-4))' },
+    { name: 'Other', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-5))' },
   ];
 
   const aggregatedLiquidAssets = assetCategories.map(category => {
@@ -264,10 +237,6 @@ export function SipOptimizerReport({ data }: Props) {
             View Detailed Report
             <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
-        <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print
-        </Button>
       </div>
 
       <div id="report-container" className="w-[210mm] min-h-fit mx-auto p-6 shadow-2xl border flex flex-col" style={{
@@ -275,15 +244,15 @@ export function SipOptimizerReport({ data }: Props) {
       }}>
         {/* Header */}
         <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center">
-            <div className="relative h-12 w-48">
-              {logoDataUri && <Image 
-                  src={logoDataUri} 
+             <div className="relative h-12 w-48">
+              <Image 
+                  src={logoUrl}
                   alt="FinFriend Planner Logo" 
                   fill
                   style={{ objectFit: 'contain' }}
                   priority
                   unoptimized
-              />}
+              />
             </div>
             <div className="text-center text-xs">
                 <p><strong>RM name:</strong> Gunjan Kataria</p>
@@ -498,8 +467,41 @@ export function SipOptimizerReport({ data }: Props) {
         
         {/* Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
-            <div className="h-80">
-                <AssetAllocationChart assets={aggregatedLiquidAssets} />
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Wallet className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="w-full md:w-1/2 h-64">
+                    <AssetAllocationChart assets={aggregatedLiquidAssets} />
+                </div>
+                <div className="w-full md:w-1/2">
+                    <div className="rounded-lg border bg-white p-2 text-xs">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Asset</TableHead>
+                                    <TableHead className="text-right">Value</TableHead>
+                                    <TableHead className="text-right">%</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {aggregatedLiquidAssets.map((asset, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell className="font-medium flex items-center gap-2">
+                                            <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: asset.color }}></div>
+                                            {asset.name}
+                                        </TableCell>
+                                        <TableCell className="text-right roboto">{formatCurrency(asset.value)}</TableCell>
+                                        <TableCell className="text-right roboto">{asset.percentage.toFixed(1)}%</TableCell>
+                                    </TableRow>
+                                ))}
+                                <TableRow className="font-bold bg-gray-50">
+                                     <TableCell>Total</TableCell>
+                                     <TableCell className="text-right roboto">{formatCurrency(totalLiquidAssets)}</TableCell>
+                                     <TableCell className="text-right roboto">100%</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
             </div>
 
             {nonLiquidAssets.length > 0 && (

@@ -28,39 +28,37 @@ export function AssetAllocationChart({ assets }: AssetAllocationChartProps) {
     )
   }
   
-  const chartData = assets.map(asset => ({
+  const chartData = assets.map((asset, index) => ({
       name: asset.name,
-      value: asset.value
+      value: asset.value,
+      color: asset.color || COLORS[index % COLORS.length]
   }));
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-        <ResponsiveContainer width={300} height={300}>
-            <PieChart>
-                <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={130}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                >
-                    {chartData.map((entry, index) => (
-                        <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index % COLORS.length]} 
-                            stroke={'hsl(var(--background))'}
-                            strokeWidth={2}
-                            className="focus:outline-none" 
-                        />
-                    ))}
-                </Pie>
-            </PieChart>
-        </ResponsiveContainer>
-        <div className="mt-2 text-sm font-semibold text-muted-foreground">Liquid Asset Allocation</div>
-    </div>
+    <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+            <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius="80%"
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+            >
+                {chartData.map((entry, index) => (
+                    <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color}
+                        stroke={'hsl(var(--background))'}
+                        strokeWidth={2}
+                        className="focus:outline-none" 
+                    />
+                ))}
+            </Pie>
+        </PieChart>
+    </ResponsiveContainer>
   );
 }
