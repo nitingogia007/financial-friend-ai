@@ -79,25 +79,27 @@ export function SipOptimizerReport({ data }: Props) {
   const [logoDataUri, setLogoDataUri] = useState<string>('');
 
   useEffect(() => {
-    const fetchImage = async () => {
+    const fetchImageAsDataUri = async (url: string) => {
       try {
-        const response = await fetch(logoUrl, { cache: 'force-cache' });
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const blob = await response.blob();
         const reader = new FileReader();
         reader.onloadend = () => {
           setLogoDataUri(reader.result as string);
         };
-        reader.onerror = () => {
-            setLogoDataUri(logoUrl); // Fallback on reader error
-        }
+        reader.onerror = (error) => {
+          console.error("FileReader error:", error);
+          setLogoDataUri(logoUrl); // Fallback to URL
+        };
         reader.readAsDataURL(blob);
       } catch (error) {
-        console.error("Failed to fetch and convert logo:", error);
-        setLogoDataUri(logoUrl); // Fallback to URL if conversion fails
+        console.error("Failed to fetch and convert logo to data URI:", error);
+        setLogoDataUri(logoUrl); // Fallback to using the direct URL if fetch fails
       }
     };
-    fetchImage();
+
+    fetchImageAsDataUri(logoUrl);
   }, []);
 
 
@@ -150,7 +152,7 @@ export function SipOptimizerReport({ data }: Props) {
   const getNumericValue = (amount: number | ''): number => typeof amount === 'number' ? amount : 0;
   
   const liquidAssets = (data.assets || [])
-    .filter(a => a.type !== 'Property' && a.type && a.amount !== '');
+    .filter(a => a.type !== 'Property' && a.type && a.amount);
   
   const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
 
@@ -163,7 +165,7 @@ export function SipOptimizerReport({ data }: Props) {
   ];
 
   const aggregatedLiquidAssets = assetCategories.map(category => {
-    const assetsInCategory = liquidAssets.filter(asset => (asset.type === 'Other' && category.name === 'Other') || asset.type === category.name);
+    const assetsInCategory = liquidAssets.filter(asset => asset.type === category.name || (category.name === 'Other' && !assetCategories.slice(0, -1).map(c => c.name).includes(asset.type)));
     const totalValue = assetsInCategory.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
     return {
       name: category.name,
@@ -174,7 +176,7 @@ export function SipOptimizerReport({ data }: Props) {
     };
   }).filter(category => category.value > 0);
   
-  const propertyAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount !== '');
+  const propertyAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && a.amount);
 
 
   return (
