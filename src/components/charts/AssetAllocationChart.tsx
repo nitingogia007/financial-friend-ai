@@ -45,10 +45,11 @@ export function AssetAllocationChart({ assets }: AssetAllocationChartProps) {
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
+                paddingAngle={5}
                 label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
             >
                 {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="focus:outline-none" />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="focus:outline-none stroke-background hover:opacity-80" />
                 ))}
             </Pie>
         </PieChart>
