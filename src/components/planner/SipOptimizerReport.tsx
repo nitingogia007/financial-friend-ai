@@ -167,7 +167,12 @@ export function SipOptimizerReport({ data }: Props) {
   ];
 
   const aggregatedLiquidAssets = assetCategories.map(category => {
-    const assetsInCategory = liquidAssets.filter(asset => asset.type === category.name || (category.name === 'Other' && !assetCategories.slice(0, -1).map(c => c.name).includes(asset.type)));
+    const assetsInCategory = liquidAssets.filter(asset => {
+        if (category.name === 'Other') {
+            return !assetCategories.slice(0, -1).map(c => c.name).includes(asset.type)
+        }
+        return asset.type === category.name;
+    });
     const totalValue = assetsInCategory.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
     return {
       name: category.name,
@@ -383,21 +388,6 @@ export function SipOptimizerReport({ data }: Props) {
              <p className="text-xs text-gray-500 mt-2 text-left">The "What I can invest" indicates your maximum potential monthly SIP, enabling you to fast-track your progress toward achieving your goals.</p>
         </section>
         )}
-
-        {/* Goal Planning */}
-        <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2">Goal Planning</h2>
-            {/* Timeline Visual */}
-             {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => (
-                <div key={goal.id} className="mt-4 first:mt-0">
-                    {renderGoalTimeline(goal)}
-                </div>
-            ))}
-             <div className="mt-3 flex items-start gap-2 text-xs text-gray-500 p-2 bg-gray-50 rounded-lg">
-                <Info className="h-4 w-4 mt-0.5 shrink-0"/>
-                <p>To help you reach all your goals, your investable surplus is divided based on each goal's target amount.</p>
-            </div>
-        </section>
 
         {/* Goals Table */}
         <section className="mt-4 print-avoid-break">
