@@ -16,7 +16,9 @@ function pv(rate: number, nper: number, pmt: number, fvVal: number, type: 0 | 1 
     }
     const pow = Math.pow(1 + rate, nper);
     let pv_value = fvVal;
-    pv_value += pmt * (1 + rate * type) * ((pow - 1) / rate);
+    if (pmt !== 0) {
+        pv_value += pmt * (1 + rate * type) * ((pow - 1) / rate);
+    }
     return -pv_value / pow;
 }
 
