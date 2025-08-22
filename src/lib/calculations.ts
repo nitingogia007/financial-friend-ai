@@ -236,7 +236,7 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 1);
+    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
 
     const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
     
