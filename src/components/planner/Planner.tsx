@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, RetirementGoalReport } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -106,7 +106,7 @@ export function Planner() {
 
       // Common data preparation
       const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
-      const investibleSurplus = monthlyCashflow > 0 ? monthlyCashflow : 0;
+      let investibleSurplus = monthlyCashflow > 0 ? monthlyCashflow : 0;
       
       const findAssetAmount = (type: string) => getNumericValue(processedAssets.find(a=> a.type === type)?.amount);
       const assetAllocation = {
@@ -121,14 +121,42 @@ export function Planner() {
       assetAllocation.total.corpus = Object.values(assetAllocation).reduce((sum, val) => sum + (val.corpus || 0), 0) - assetAllocation.total.corpus;
       assetAllocation.total.monthly = Object.values(assetAllocation).reduce((sum, val) => sum + (val.monthly || 0), 0) - assetAllocation.total.monthly;
 
-      // SIP Optimizer Logic
-      const totalRequiredSip = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
+      // New Retirement Goal Logic
+      let retirementGoalReport: RetirementGoalReport | null = null;
+      const retirementRequiredSip = retirementCalculations.monthlyInvestmentNeeded;
+
+      if (retirementRequiredSip > 0) {
+          const currentRetirementSip = 0; // Assuming no dedicated retirement SIP initially
+          let allocatedRetirementSip = 0;
+
+          if (investibleSurplus >= retirementRequiredSip) {
+              allocatedRetirementSip = retirementRequiredSip;
+              investibleSurplus -= retirementRequiredSip;
+          } else {
+              allocatedRetirementSip = investibleSurplus;
+              investibleSurplus = 0;
+          }
+
+          retirementGoalReport = {
+              futureValue: retirementCalculations.requiredRetirementCorpus,
+              timeline: retirementCalculations.yearsToRetirement,
+              investmentStatus: {
+                  currentInvestment: currentRetirementSip,
+                  requiredInvestment: retirementRequiredSip,
+                  allocatedInvestment: allocatedRetirementSip,
+              },
+          };
+      }
+
+
+      // SIP Optimizer Logic for other goals
+      const totalRequiredSipForOtherGoals = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
       let surplusForWealthCreation = 0;
       let optimizerGoals: SipOptimizerGoal[] = [];
 
-      if (investibleSurplus >= totalRequiredSip) {
+      if (investibleSurplus >= totalRequiredSipForOtherGoals) {
         // CASE 1 & 3: All goals are covered, potentially with surplus
-        surplusForWealthCreation = investibleSurplus - totalRequiredSip;
+        surplusForWealthCreation = investibleSurplus - totalRequiredSipForOtherGoals;
         optimizerGoals = processedGoalsWithCalculations.map(goal => {
             const timelines = calculateTimelines(goal, goal.newSipRequired);
             return {
@@ -155,8 +183,8 @@ export function Planner() {
             let allocatedInvestment = 0;
             if (processedGoalsWithCalculations.length === 1) {
                 allocatedInvestment = investibleSurplus;
-            } else if (totalRequiredSip > 0) {
-                const weight = goal.newSipRequired / totalRequiredSip;
+            } else if (totalRequiredSipForOtherGoals > 0) {
+                const weight = goal.newSipRequired / totalRequiredSipForOtherGoals;
                 allocatedInvestment = investibleSurplus * weight;
             }
             
@@ -189,11 +217,15 @@ export function Planner() {
           const defaultRate = processedGoals.length > 0 ? (processedGoals.reduce((acc, g) => acc + getNumericValue(g.rate), 0) / processedGoals.length) : 12;
           wealthCreationGoal = calculateWealthCreation(surplusForWealthCreation, defaultRate);
       }
+      
+      const totalCurrentInvestment = optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0) + (retirementGoalReport?.investmentStatus.currentInvestment || 0);
+      const totalRequiredInvestment = totalRequiredSipForOtherGoals + (retirementGoalReport?.investmentStatus.requiredInvestment || 0);
+      const totalPotentialInvestment = (monthlyCashflow > 0 ? monthlyCashflow : 0);
 
        const totalInvestmentStatus = {
-          currentInvestment: optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0),
-          requiredInvestment: totalRequiredSip,
-          potentialInvestment: investibleSurplus,
+          currentInvestment: totalCurrentInvestment,
+          requiredInvestment: totalRequiredInvestment,
+          potentialInvestment: totalPotentialInvestment,
       };
 
       // SIP Optimizer Report Data
@@ -211,9 +243,10 @@ export function Planner() {
           cashflow: {
               totalMonthlyIncome: totalAnnualIncome / 12,
               totalMonthlyExpenses: totalAnnualExpenses / 12,
-              investibleSurplus: investibleSurplus,
+              investibleSurplus: (monthlyCashflow > 0 ? monthlyCashflow : 0),
           },
           goals: optimizerGoals,
+          retirementGoal: retirementGoalReport,
           wealthCreationGoal: wealthCreationGoal,
           totalInvestmentStatus,
           detailedTables: {
@@ -234,6 +267,7 @@ export function Planner() {
           insuranceAnalysis: insuranceAnalysis,
           assets: processedAssets,
           willStatus: willStatus,
+          retirementCalculations: retirementCalculations,
       };
       
       // Detailed Wellness Report Data
@@ -333,14 +367,14 @@ export function Planner() {
             setGoals={setGoals}
             goalsWithCalculations={goalsWithCalculations}
           />
-           <EstatePlanningForm
-            willStatus={willStatus}
-            setWillStatus={setWillStatus}
-          />
            <RetirementPlannerForm
             inputs={retirementInputs}
             setInputs={setRetirementInputs}
             calculations={retirementCalculations}
+          />
+           <EstatePlanningForm
+            willStatus={willStatus}
+            setWillStatus={setWillStatus}
           />
         </div>
 

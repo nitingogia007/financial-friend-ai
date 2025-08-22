@@ -84,7 +84,7 @@ export interface ReportData {
   totalAnnualIncome: number;
   totalAnnualExpenses: number;
   expenses: Expense[];
-aiSummary: string;
+  aiSummary: string;
   willStatus: 'yes' | 'no' | null;
 }
 
@@ -108,6 +108,17 @@ export interface SipOptimizerGoal {
     };
     potentialCorpus: number;
 }
+
+export interface RetirementGoalReport {
+    futureValue: number;
+    timeline: number;
+    investmentStatus: {
+        currentInvestment: number;
+        requiredInvestment: number;
+        allocatedInvestment: number;
+    };
+}
+
 
 export interface WealthCreationGoal {
     sip: number;
@@ -148,6 +159,7 @@ export interface SipOptimizerReportData {
     investibleSurplus: number;
   };
   goals: SipOptimizerGoal[];
+  retirementGoal: RetirementGoalReport | null;
   wealthCreationGoal: WealthCreationGoal | null;
   totalInvestmentStatus: {
       currentInvestment: number;
@@ -179,6 +191,7 @@ export interface SipOptimizerReportData {
   insuranceAnalysis: InsuranceAnalysisData;
   assets: Asset[];
   willStatus: 'yes' | 'no' | null;
+  retirementCalculations: RetirementCalculations | null;
 }
 
 export interface RetirementInputs {

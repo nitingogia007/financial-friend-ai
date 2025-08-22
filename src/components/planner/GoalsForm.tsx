@@ -17,7 +17,7 @@ interface Props {
   goalsWithCalculations: GoalWithCalculations[];
 }
 
-const goalTypes = ["Retirement", "Child Education", "Marriage", "House", "Other"];
+const goalTypes = ["Child Education", "Marriage", "House", "Other"];
 
 let nextId = 0;
 

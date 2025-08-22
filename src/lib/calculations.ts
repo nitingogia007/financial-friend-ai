@@ -1,5 +1,4 @@
 
-
 import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations } from './types';
 
 // Financial formula implementations
@@ -16,7 +15,9 @@ function pv(rate: number, nper: number, pmt: number, fvVal: number, type: 0 | 1 
         return -(fvVal + pmt * nper);
     }
     const pow = Math.pow(1 + rate, nper);
-    return -((fvVal + pmt * (1 + rate * type) * ((pow - 1) / rate)) / pow);
+    let pv_value = fvVal;
+    pv_value += pmt * (1 + rate * type) * ((pow - 1) / rate);
+    return -pv_value / pow;
 }
 
 function pmt(rate: number, nper: number, pv: number, fvVal: number, type: 0 | 1 = 0) {
@@ -230,10 +231,10 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const yearsToRetirement = desiredRetirementAge - currentAge;
     const yearsInRetirement = lifeExpectancy - desiredRetirementAge;
 
-    const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense);
+    const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
+    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 1);
 
     const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
     

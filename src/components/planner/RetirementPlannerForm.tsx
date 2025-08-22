@@ -22,10 +22,12 @@ export function RetirementPlannerForm({ inputs, setInputs, calculations }: Props
   };
 
   const formatCurrency = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) return '₹0.00';
     return `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
   
   const formatPercentage = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) return '0.00%';
     return `${value.toFixed(2)}%`;
   };
 

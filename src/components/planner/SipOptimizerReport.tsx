@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -22,6 +22,7 @@ interface Props {
 
 const formatCurrency = (value: number | '', prefix = '₹') => {
     const num = typeof value === 'number' ? value : 0;
+    if (isNaN(num)) return `${prefix}0`;
     return `${prefix}${num.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 };
 
@@ -100,6 +101,35 @@ const AssetCard = ({
     </Card>
 );
 
+const RetirementAnalysisCard = ({ calcs }: { calcs: RetirementCalculations }) => (
+    <Card className="bg-blue-50/50 border border-blue-200">
+        <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2 text-blue-800">
+                <Calculator className="h-5 w-5" />
+                Retirement Planning Analysis
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="text-xs">
+            <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell className="font-medium">Years to Retirement</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{calcs.yearsToRetirement}</TableCell>
+                    </TableRow>
+                     <TableRow>
+                        <TableCell className="font-medium">Required Corpus</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.requiredRetirementCorpus)}</TableCell>
+                    </TableRow>
+                     <TableRow>
+                        <TableCell className="font-medium">Monthly Investment Needed</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.monthlyInvestmentNeeded)}</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </CardContent>
+    </Card>
+);
+
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
   
@@ -114,40 +144,6 @@ export function SipOptimizerReport({ data }: Props) {
   const handleViewDetailedReport = () => {
     router.push('/report');
   };
-
-  const renderGoalTimeline = (goal: SipOptimizerGoal) => (
-      <div className="relative pl-8 pr-4 mt-2">
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-          
-          {/* Goal Header */}
-          <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 z-10 p-1.5 bg-white border-2 border-blue-600 rounded-full">
-                  <GoalIcon className="h-5 w-5 text-blue-600"/>
-              </div>
-              <p className="font-bold text-blue-800">{goal.name}</p>
-              <p className="ml-auto font-bold text-blue-800 roboto">{formatCurrency(goal.futureValue)}</p>
-          </div>
-
-          {/* Timelines */}
-          <div className="pl-12 mt-2 space-y-2 text-xs">
-              <div className="relative">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-red-200" style={{width: '100%'}}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 -left-1 h-2 w-2 bg-red-500 rounded-full z-10"></div>
-                  <p className="relative z-20 bg-white inline-block pr-2">Expected in <span className="font-bold">{formatYears(goal.timeline.current)}</span> with {formatCurrency(goal.investmentStatus.currentInvestment)}/month</p>
-              </div>
-              <div className="relative">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-orange-200" style={{width: '75%'}}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(75%-8px)] h-2 w-2 bg-orange-500 rounded-full z-10"></div>
-                  <p className="relative z-20 bg-white inline-block pr-2">Achievable in <span className="font-bold">{formatYears(goal.timeline.required)}</span> with {formatCurrency(goal.investmentStatus.requiredInvestment)}/month</p>
-              </div>
-               <div className="relative">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-0 h-0.5 bg-green-200" style={{width: '50%'}}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(50%-8px)] h-2 w-2 bg-green-500 rounded-full z-10"></div>
-                  <p className="relative z-20 bg-white inline-block pr-2">Achievable in <span className="font-bold">{formatYears(goal.timeline.potential)}</span> with {formatCurrency(goal.investmentStatus.allocatedInvestment)}/month</p>
-              </div>
-          </div>
-      </div>
-  )
 
   const getNumericValue = (amount: number | ''): number => typeof amount === 'number' ? amount : 0;
   
@@ -393,6 +389,37 @@ export function SipOptimizerReport({ data }: Props) {
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
+                {data.retirementGoal && (
+                    <div className="border-b pb-4 last:border-b-0">
+                        <h3 className="font-bold text-base text-gray-800 mb-2">Retirement</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="p-2 rounded-lg border border-red-200 bg-red-50">
+                                <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Current SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.currentInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
+                                </div>
+                            </div>
+                            <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
+                                <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Required SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.requiredInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
+                                </div>
+                            </div>
+                            <div className="p-2 rounded-lg border border-green-200 bg-green-50">
+                                <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
+                                <div className="flex flex-col items-center text-center space-y-1">
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.allocatedInvestment)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
                     const goalCorpus = goal.futureValue || goal.potentialCorpus;
                     return (
@@ -476,6 +503,11 @@ export function SipOptimizerReport({ data }: Props) {
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.healthInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.healthInsurance.coverageGap)}</p></div>
                     </div>
                 </div>
+                {data.retirementCalculations && (
+                    <div className="md:col-span-2">
+                        <RetirementAnalysisCard calcs={data.retirementCalculations} />
+                    </div>
+                )}
             </div>
         </section>
         )}
@@ -566,5 +598,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
