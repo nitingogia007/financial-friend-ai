@@ -1,6 +1,32 @@
 
 
-import type { Goal, GoalWithCalculations, WealthCreationGoal } from './types';
+import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations } from './types';
+
+// Financial formula implementations
+function fv(rate: number, nper: number, pmt: number, pv: number, type: 0 | 1 = 0) {
+    if (rate === 0) {
+        return -(pv + pmt * nper);
+    }
+    const pow = Math.pow(1 + rate, nper);
+    return -((pv * pow) + (pmt * (1 + rate * type) * (pow - 1) / rate));
+}
+
+function pv(rate: number, nper: number, pmt: number, fvVal: number, type: 0 | 1 = 0) {
+    if (rate === 0) {
+        return -(fvVal + pmt * nper);
+    }
+    const pow = Math.pow(1 + rate, nper);
+    return -((fvVal + pmt * (1 + rate * type) * ((pow - 1) / rate)) / pow);
+}
+
+function pmt(rate: number, nper: number, pv: number, fvVal: number, type: 0 | 1 = 0) {
+    if (rate === 0) {
+        return -(fvVal + pv) / nper;
+    }
+    const pow = Math.pow(1 + rate, nper);
+    return -((fvVal + pv * pow) / ((1 + rate * type) * (pow - 1) / rate));
+}
+
 
 export function calculateSip(goal: Goal): number {
     const getNum = (val: number | '') => (typeof val === 'number' && !isNaN(val) ? val : 0);
@@ -173,4 +199,64 @@ export function calculateFutureValue(monthlySip: number, annualRate: number, yea
     return futureValueOfInitial + futureValueOfSips;
 }
 
+export function calculateRetirementDetails(inputs: RetirementInputs): RetirementCalculations {
+    const getNum = (val: number | '') => (typeof val === 'number' && !isNaN(val) && val > 0 ? val : 0);
+
+    const currentAge = getNum(inputs.currentAge);
+    const desiredRetirementAge = getNum(inputs.desiredRetirementAge);
+    const lifeExpectancy = getNum(inputs.lifeExpectancy);
+    const currentMonthlyExpense = getNum(inputs.currentMonthlyExpense);
+    const preRetirementRoi = getNum(inputs.preRetirementRoi) / 100;
+    const postRetirementRoi = getNum(inputs.postRetirementRoi) / 100;
+    const incrementalRate = getNum(inputs.incrementalRate) / 100;
     
+    const inflationRate = 0.06;
+
+    if (!currentAge || !desiredRetirementAge || !lifeExpectancy || !currentMonthlyExpense || !preRetirementRoi || !postRetirementRoi) {
+        return {
+            expectedInflationRate: inflationRate * 100,
+            realRateOfReturn: 0,
+            yearsToRetirement: 0,
+            yearsInRetirement: 0,
+            inflatedMonthlyExpense: 0,
+            annualExpenseAtRetirement: 0,
+            requiredRetirementCorpus: 0,
+            monthlyInvestmentNeeded: 0,
+            incrementalMonthlyInvestment: 0,
+        };
+    }
+
+    const realRateOfReturn = ((1 + postRetirementRoi) / (1 + inflationRate)) - 1;
+    const yearsToRetirement = desiredRetirementAge - currentAge;
+    const yearsInRetirement = lifeExpectancy - desiredRetirementAge;
+
+    const inflatedMonthlyExpense = fv(inflationRate / 12, yearsToRetirement * 12, 0, -currentMonthlyExpense);
+    const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
+    
+    const requiredRetirementCorpus = pv(realRateOfReturn / 12, yearsInRetirement * 12, -inflatedMonthlyExpense, 0);
+
+    const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus);
+    
+    let incrementalMonthlyInvestment = 0;
+    const preRoi = preRetirementRoi;
+    const incRate = incrementalRate;
+    if (preRoi !== incRate) {
+        const numerator = requiredRetirementCorpus * (preRoi - incRate);
+        const denominator = Math.pow(1 + preRoi, yearsToRetirement) - Math.pow(1 + incRate, yearsToRetirement);
+        if (denominator !== 0) {
+           incrementalMonthlyInvestment = (numerator / denominator) / 12;
+        }
+    }
+
+    return {
+        expectedInflationRate: inflationRate * 100,
+        realRateOfReturn: realRateOfReturn * 100,
+        yearsToRetirement: yearsToRetirement > 0 ? yearsToRetirement : 0,
+        yearsInRetirement: yearsInRetirement > 0 ? yearsInRetirement : 0,
+        inflatedMonthlyExpense,
+        annualExpenseAtRetirement,
+        requiredRetirementCorpus,
+        monthlyInvestmentNeeded,
+        incrementalMonthlyInvestment
+    };
+}

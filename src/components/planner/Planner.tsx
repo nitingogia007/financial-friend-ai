@@ -4,8 +4,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue } from '@/lib/calculations';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations } from '@/lib/types';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -16,6 +16,7 @@ import { IncomeExpensesForm } from './IncomeExpensesForm';
 import { InsuranceForm } from './InsuranceForm';
 import { GoalsForm } from './GoalsForm';
 import { EstatePlanningForm } from './EstatePlanningForm';
+import { RetirementPlannerForm } from './RetirementPlannerForm';
 
 export function Planner() {
   const { toast } = useToast();
@@ -34,6 +35,16 @@ export function Planner() {
   const [goals, setGoals] = useState<Goal[]>([{ id: 'initial-1', name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
   const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
   const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
+  const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>({
+    currentAge: '',
+    desiredRetirementAge: '',
+    lifeExpectancy: '',
+    currentMonthlyExpense: '',
+    preRetirementRoi: '',
+    postRetirementRoi: '',
+    incrementalRate: '',
+  });
+
   
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -50,6 +61,8 @@ export function Planner() {
   const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
+  const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
+
 
   const handleGenerateReport = async () => {
     if (!personalDetails.name || !personalDetails.email) {
@@ -324,6 +337,11 @@ export function Planner() {
             willStatus={willStatus}
             setWillStatus={setWillStatus}
           />
+           <RetirementPlannerForm
+            inputs={retirementInputs}
+            setInputs={setRetirementInputs}
+            calculations={retirementCalculations}
+          />
         </div>
 
         <div className="mt-12 text-center">
@@ -343,5 +361,3 @@ export function Planner() {
     </div>
   );
 }
-
-    

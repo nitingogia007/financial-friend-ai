@@ -84,7 +84,7 @@ export interface ReportData {
   totalAnnualIncome: number;
   totalAnnualExpenses: number;
   expenses: Expense[];
-  aiSummary: string;
+aiSummary: string;
   willStatus: 'yes' | 'no' | null;
 }
 
@@ -119,13 +119,13 @@ export interface InsuranceAnalysisData {
     lifeInsurance: {
         recommendedCover: number;
         currentCover: number | '';
-        currentPremium: number | '';
+        currentPremium?: number | '';
         coverageGap: number;
     };
     healthInsurance: {
         recommendedCover: string;
         currentCover: number | '';
-        currentPremium: number | '';
+        currentPremium?: number | '';
         coverageGap: number;
     };
 }
@@ -181,6 +181,24 @@ export interface SipOptimizerReportData {
   willStatus: 'yes' | 'no' | null;
 }
 
-    
+export interface RetirementInputs {
+  currentAge: number | '';
+  desiredRetirementAge: number | '';
+  lifeExpectancy: number | '';
+  currentMonthlyExpense: number | '';
+  preRetirementRoi: number | '';
+  postRetirementRoi: number | '';
+  incrementalRate: number | '';
+}
 
-    
+export interface RetirementCalculations {
+  expectedInflationRate: number;
+  realRateOfReturn: number;
+  yearsToRetirement: number;
+  yearsInRetirement: number;
+  inflatedMonthlyExpense: number;
+  annualExpenseAtRetirement: number;
+  requiredRetirementCorpus: number;
+  monthlyInvestmentNeeded: number;
+  incrementalMonthlyInvestment: number;
+}
