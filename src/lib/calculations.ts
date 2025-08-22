@@ -230,12 +230,12 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const yearsToRetirement = desiredRetirementAge - currentAge;
     const yearsInRetirement = lifeExpectancy - desiredRetirementAge;
 
-    const inflatedMonthlyExpense = fv(inflationRate / 12, yearsToRetirement * 12, 0, -currentMonthlyExpense);
+    const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const requiredRetirementCorpus = pv(realRateOfReturn / 12, yearsInRetirement * 12, -inflatedMonthlyExpense, 0);
+    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
 
-    const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus);
+    const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
     
     let incrementalMonthlyInvestment = 0;
     const preRoi = preRetirementRoi;
