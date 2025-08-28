@@ -43,6 +43,8 @@ export function Planner() {
     preRetirementRoi: '',
     postRetirementRoi: '',
     incrementalRate: '',
+    currentSavings: '',
+    currentSip: '',
   });
 
   
@@ -126,7 +128,7 @@ export function Planner() {
       const retirementRequiredSip = retirementCalculations.monthlyInvestmentNeeded;
 
       if (retirementRequiredSip > 0) {
-          const currentRetirementSip = 0; // Assuming no dedicated retirement SIP initially
+          const currentRetirementSip = getNumericValue(retirementInputs.currentSip);
           let allocatedRetirementSip = 0;
 
           if (investibleSurplus >= retirementRequiredSip) {

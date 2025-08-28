@@ -202,6 +202,8 @@ export interface RetirementInputs {
   preRetirementRoi: number | '';
   postRetirementRoi: number | '';
   incrementalRate: number | '';
+  currentSavings: number | '';
+  currentSip: number | '';
 }
 
 export interface RetirementCalculations {

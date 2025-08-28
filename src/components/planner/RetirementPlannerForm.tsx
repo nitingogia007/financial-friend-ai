@@ -59,6 +59,14 @@ export function RetirementPlannerForm({ inputs, setInputs, calculations }: Props
                     <Label htmlFor="currentMonthlyExpense">Current Monthly Expense</Label>
                     <Input id="currentMonthlyExpense" name="currentMonthlyExpense" type="number" value={inputs.currentMonthlyExpense} onChange={handleChange} placeholder="e.g., 50000" />
                 </div>
+                 <div className="space-y-1.5">
+                    <Label htmlFor="currentSavings">Current Savings for Retirement</Label>
+                    <Input id="currentSavings" name="currentSavings" type="number" value={inputs.currentSavings} onChange={handleChange} placeholder="e.g., 500000" />
+                </div>
+                 <div className="space-y-1.5">
+                    <Label htmlFor="currentSip">Current Monthly SIP</Label>
+                    <Input id="currentSip" name="currentSip" type="number" value={inputs.currentSip} onChange={handleChange} placeholder="e.g., 10000" />
+                </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="preRetirementRoi">Pre-Retirement ROI (%)</Label>
                     <Input id="preRetirementRoi" name="preRetirementRoi" type="number" value={inputs.preRetirementRoi} onChange={handleChange} placeholder="e.g., 12" />

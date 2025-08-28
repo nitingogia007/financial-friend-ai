@@ -212,10 +212,12 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const preRetirementRoi = getNum(inputs.preRetirementRoi) / 100;
     const postRetirementRoi = getNum(inputs.postRetirementRoi) / 100;
     const incrementalRate = getNum(inputs.incrementalRate) / 100;
+    const currentSavings = getNum(inputs.currentSavings);
+    const currentSip = getNum(inputs.currentSip);
     
     const inflationRate = 0.06;
 
-    if (!currentAge || !desiredRetirementAge || !lifeExpectancy || !currentMonthlyExpense || !preRetirementRoi || !postRetirementRoi) {
+    if (!currentAge || !desiredRetirementAge || !lifeExpectancy || !currentMonthlyExpense || !preRetirementRoi) {
         return {
             expectedInflationRate: inflationRate * 100,
             realRateOfReturn: 0,
@@ -229,15 +231,18 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         };
     }
 
-    const realRateOfReturn = ((1 + postRetirementRoi) / (1 + inflationRate)) - 1;
+    const realRateOfReturn = postRetirementRoi > 0 ? ((1 + postRetirementRoi) / (1 + inflationRate)) - 1 : 0;
     const yearsToRetirement = desiredRetirementAge - currentAge;
     const yearsInRetirement = lifeExpectancy - desiredRetirementAge;
 
     const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const requiredRetirementCorpus = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
-
+    const corpusForExpenses = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
+    const futureValueOfCurrentInvestments = fv(preRetirementRoi, yearsToRetirement, -currentSip * 12, -currentSavings, 0);
+    
+    const requiredRetirementCorpus = corpusForExpenses - futureValueOfCurrentInvestments;
+    
     const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
     
     let incrementalMonthlyInvestment = 0;
@@ -258,8 +263,8 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         yearsInRetirement: yearsInRetirement > 0 ? yearsInRetirement : 0,
         inflatedMonthlyExpense,
         annualExpenseAtRetirement,
-        requiredRetirementCorpus,
-        monthlyInvestmentNeeded,
-        incrementalMonthlyInvestment
+        requiredRetirementCorpus: requiredRetirementCorpus > 0 ? requiredRetirementCorpus : 0,
+        monthlyInvestmentNeeded: monthlyInvestmentNeeded > 0 ? monthlyInvestmentNeeded : 0,
+        incrementalMonthlyInvestment: incrementalMonthlyInvestment > 0 ? incrementalMonthlyInvestment : 0,
     };
 }
