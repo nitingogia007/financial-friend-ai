@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, FundAllocation } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { getAssetAllocation } from '@/lib/calculations';
 
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
@@ -130,6 +131,40 @@ const RetirementAnalysisCard = ({ calcs }: { calcs: RetirementCalculations }) =>
     </Card>
 );
 
+
+const FundAllocationTable = ({ fundAllocation }: { fundAllocation: FundAllocation }) => {
+    const allocationEntries = Object.entries(fundAllocation)
+        .map(([key, value]) => ({
+            name: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+            value: typeof value === 'number' ? value : 0
+        }))
+        .filter(item => item.value > 0);
+
+    if (allocationEntries.length === 0) {
+        return <p className="text-sm text-gray-500 text-center p-4">No fund allocation data provided.</p>;
+    }
+
+    return (
+        <Table className="text-xs">
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Fund Category</TableHead>
+                    <TableHead className="text-right">Allocation</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {allocationEntries.map((item) => (
+                    <TableRow key={item.name}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="text-right font-bold roboto">{item.value}%</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+};
+
+
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
   
@@ -178,6 +213,8 @@ export function SipOptimizerReport({ data }: Props) {
       percentage: totalLiquidAssets > 0 ? (totalValue / totalLiquidAssets) * 100 : 0,
     };
   }).filter(category => category.value > 0);
+
+  const recommendedAllocation = getAssetAllocation(data.assetAllocationProfile.age, data.assetAllocationProfile.riskAppetite);
   
 
   return (
@@ -512,7 +549,43 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        {/* Asset Allocation Section */}
+        {/* Asset & Fund Allocation Section */}
+        <section className="mt-4 print-avoid-break">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation based on Risk Profile</h2>
+                     {recommendedAllocation ? (
+                        <Table className="text-xs">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Asset Category</TableHead>
+                                    <TableHead className="text-right">Allocation</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {Object.entries(recommendedAllocation).map(([key, value]) => {
+                                    if (key === 'Expected Return' || value === 0) return null;
+                                    return (
+                                    <TableRow key={key}>
+                                        <TableCell className="font-medium">{key}</TableCell>
+                                        <TableCell className="text-right roboto font-bold">{value}%</TableCell>
+                                    </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                     ) : (
+                        <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
+                     )}
+                </div>
+                 <div>
+                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChart className="h-5 w-5 text-gray-500"/>Fund Allocation</h2>
+                    <FundAllocationTable fundAllocation={data.fundAllocation} />
+                </div>
+            </div>
+        </section>
+
+        {/* Existing Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Wallet className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
             <div className="flex flex-col md:flex-row gap-4 items-center">

@@ -1,5 +1,6 @@
 
-import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations } from './types';
+
+import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations, RiskAppetite } from './types';
 
 // Financial formula implementations
 function fv(rate: number, nper: number, pmt: number, pv: number, type: 0 | 1 = 0) {
@@ -267,4 +268,50 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         monthlyInvestmentNeeded: monthlyInvestmentNeeded > 0 ? monthlyInvestmentNeeded : 0,
         incrementalMonthlyInvestment: incrementalMonthlyInvestment > 0 ? incrementalMonthlyInvestment : 0,
     };
+}
+
+
+const allocationData: Record<string, Record<string, Record<string, number>>> = {
+  '20-35': {
+    'High Aggressive': { 'Large Cap': 30, 'Mid Cap': 25, 'Small Cap': 25, 'Multi + Flexi Cap': 10, 'Sectoral': 10, 'Debt': 0, 'Hybrid': 0, 'Expected Return': 16.00 },
+    'High': { 'Large Cap': 30, 'Mid Cap': 25, 'Small Cap': 15, 'Multi + Flexi Cap': 10, 'Sectoral': 10, 'Debt': 10, 'Hybrid': 0, 'Expected Return': 15.00 },
+    'Moderate': { 'Large Cap': 25, 'Mid Cap': 20, 'Small Cap': 10, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 25, 'Hybrid': 20, 'Expected Return': 12.50 },
+    'Conservative': { 'Large Cap': 30, 'Mid Cap': 10, 'Small Cap': 0, 'Multi + Flexi Cap': 10, 'Sectoral': 0, 'Debt': 40, 'Hybrid': 10, 'Expected Return': 11.50 },
+  },
+  '35-50': {
+    'High Aggressive': { 'Large Cap': 35, 'Mid Cap': 30, 'Small Cap': 15, 'Multi + Flexi Cap': 0, 'Sectoral': 10, 'Debt': 10, 'Hybrid': 0, 'Expected Return': 15.00 },
+    'High': { 'Large Cap': 30, 'Mid Cap': 25, 'Small Cap': 25, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 0, 'Hybrid': 20, 'Expected Return': 15.70 }, // Note: Mapped from image, Hybrid seems to be 20%
+    'Moderate': { 'Large Cap': 25, 'Mid Cap': 15, 'Small Cap': 15, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 30, 'Hybrid': 15, 'Expected Return': 12.50 },
+    'Conservative': { 'Large Cap': 20, 'Mid Cap': 20, 'Small Cap': 0, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 50, 'Hybrid': 10, 'Expected Return': 11.00 },
+  },
+  '50-60': {
+    'High Aggressive': { 'Large Cap': 20, 'Mid Cap': 20, 'Small Cap': 20, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 30, 'Hybrid': 10, 'Expected Return': 13.00 },
+    'High': { 'Large Cap': 15, 'Mid Cap': 15, 'Small Cap': 10, 'Multi + Flexi Cap': 10, 'Sectoral': 0, 'Debt': 40, 'Hybrid': 10, 'Expected Return': 12.00 },
+    'Moderate': { 'Large Cap': 45, 'Mid Cap': 0, 'Small Cap': 0, 'Multi + Flexi Cap': 10, 'Sectoral': 0, 'Debt': 40, 'Hybrid': 10, 'Expected Return': 11.00 },
+    'Conservative': { 'Large Cap': 30, 'Mid Cap': 0, 'Small Cap': 0, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 60, 'Hybrid': 10, 'Expected Return': 10.00 },
+  },
+  '60+': {
+    'High Aggressive': { 'Large Cap': 20, 'Mid Cap': 10, 'Small Cap': 0, 'Multi + Flexi Cap': 10, 'Sectoral': 5, 'Debt': 40, 'Hybrid': 20, 'Expected Return': 12.00 },
+    'High': { 'Large Cap': 30, 'Mid Cap': 10, 'Small Cap': 0, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 40, 'Hybrid': 20, 'Expected Return': 11.00 },
+    'Moderate': { 'Large Cap': 10, 'Mid Cap': 10, 'Small Cap': 0, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 50, 'Hybrid': 30, 'Expected Return': 10.00 },
+    'Conservative': { 'Large Cap': 10, 'Mid Cap': 0, 'Small Cap': 0, 'Multi + Flexi Cap': 0, 'Sectoral': 0, 'Debt': 70, 'Hybrid': 20, 'Expected Return': 9.00 },
+  },
+};
+
+export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record<string, number> | null {
+  if (!age || !risk) {
+    return null;
+  }
+
+  let ageGroup = '';
+  if (age >= 20 && age <= 35) ageGroup = '20-35';
+  else if (age > 35 && age <= 50) ageGroup = '35-50';
+  else if (age > 50 && age <= 60) ageGroup = '50-60';
+  else if (age > 60) ageGroup = '60+';
+
+  if (!ageGroup || !allocationData[ageGroup] || !allocationData[ageGroup][risk]) {
+    return null;
+  }
+  
+  return allocationData[ageGroup][risk];
 }
