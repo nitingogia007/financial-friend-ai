@@ -16,7 +16,9 @@ interface Props {
 export function FundAllocationForm({ allocation, setAllocation }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setAllocation(prev => ({ ...prev, [name]: value === '' ? '' : Number(value) }));
+    // Allow text input, but store as number | '' in state
+    const numericValue = value === '' ? '' : Number(value.replace(/[^0-9.]/g, ''));
+    setAllocation(prev => ({ ...prev, [name]: isNaN(numericValue as number) ? '' : numericValue }));
   };
 
   const totalAllocation = useMemo(() => {
@@ -52,7 +54,7 @@ export function FundAllocationForm({ allocation, setAllocation }: Props) {
                     <Input
                         id={category}
                         name={category}
-                        type="number"
+                        type="text"
                         placeholder="e.g., 20"
                         value={allocation[category]}
                         onChange={handleChange}
