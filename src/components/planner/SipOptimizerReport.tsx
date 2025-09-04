@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, FundAllocation } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -130,39 +130,6 @@ const RetirementAnalysisCard = ({ calcs }: { calcs: RetirementCalculations }) =>
         </CardContent>
     </Card>
 );
-
-
-const FundAllocationTable = ({ fundAllocation }: { fundAllocation: FundAllocation }) => {
-    const allocationEntries = Object.entries(fundAllocation)
-        .map(([key, value]) => ({
-            name: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-            value: typeof value === 'number' ? value : 0
-        }))
-        .filter(item => item.value > 0);
-
-    if (allocationEntries.length === 0) {
-        return <p className="text-sm text-gray-500 text-center p-4">No fund allocation data provided.</p>;
-    }
-
-    return (
-        <Table className="text-xs">
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Fund Category</TableHead>
-                    <TableHead className="text-right">Allocation</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {allocationEntries.map((item) => (
-                    <TableRow key={item.name}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right font-bold roboto">{item.value}%</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    );
-};
 
 
 export function SipOptimizerReport({ data }: Props) {
@@ -580,8 +547,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
                  <div>
                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChart className="h-5 w-5 text-gray-500"/>Fund Allocation</h2>
-                    <FundAllocationTable fundAllocation={data.fundAllocation} />
-                </div>
+                 </div>
             </div>
         </section>
 

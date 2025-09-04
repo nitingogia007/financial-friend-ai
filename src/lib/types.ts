@@ -148,16 +148,6 @@ export interface AssetAllocationProfile {
     riskAppetite: RiskAppetite;
 }
 
-export interface FundAllocation {
-    largeCap: number | '';
-    midCap: number | '';
-    smallCap: number | '';
-    multiFlexiCap: number | '';
-    sectoral: number | '';
-    debt: number | '';
-    hybrid: number | '';
-}
-
 export interface SipOptimizerReportData {
   personalDetails: {
     name: string;
@@ -209,7 +199,6 @@ export interface SipOptimizerReportData {
   willStatus: 'yes' | 'no' | null;
   retirementCalculations: RetirementCalculations;
   assetAllocationProfile: AssetAllocationProfile;
-  fundAllocation: FundAllocation;
 }
 
 export interface RetirementInputs {

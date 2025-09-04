@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, RetirementGoalReport, AssetAllocationProfile, FundAllocation } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, RetirementGoalReport, AssetAllocationProfile } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,6 @@ import { GoalsForm } from './GoalsForm';
 import { EstatePlanningForm } from './EstatePlanningForm';
 import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
-import { FundAllocationForm } from './FundAllocationForm';
 
 export function Planner() {
   const { toast } = useToast();
@@ -49,9 +48,6 @@ export function Planner() {
     currentSip: '',
   });
   const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>({ age: '', riskAppetite: '' });
-  const [fundAllocation, setFundAllocation] = useState<FundAllocation>({
-    largeCap: '', midCap: '', smallCap: '', multiFlexiCap: '', sectoral: '', debt: '', hybrid: ''
-  });
 
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -277,7 +273,6 @@ export function Planner() {
           willStatus: willStatus,
           retirementCalculations: retirementCalculations,
           assetAllocationProfile: assetAllocationProfile,
-          fundAllocation: fundAllocation,
       };
       
       // Detailed Wellness Report Data
@@ -389,10 +384,6 @@ export function Planner() {
           <AssetAllocationForm 
             profile={assetAllocationProfile}
             setProfile={setAssetAllocationProfile}
-          />
-           <FundAllocationForm
-            allocation={fundAllocation}
-            setAllocation={setFundAllocation}
           />
         </div>
 
