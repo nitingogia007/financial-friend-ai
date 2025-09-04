@@ -1,5 +1,4 @@
 
-
 import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations, RiskAppetite } from './types';
 
 // Financial formula implementations
@@ -315,3 +314,13 @@ export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record
   
   return allocationData[ageGroup][risk];
 }
+
+export const recommendedFunds = {
+  'Large Cap': 'e.g. Nippon India Large Cap Fund',
+  'Mid Cap': 'e.g. Axis Mid cap fund',
+  'Small Cap': 'e.g. Invesco India Small Cap Fund',
+  'Multi + Flexi Cap': 'e.g. Axis Multi Cap Fund',
+  'Sectoral': 'e.g. Nippon India Power & Infra Fund',
+  'Debt': 'e.g. ICICI Pru Equity & Debt Fund',
+  'Hybrid': 'e.g. Franklin India equity Hybrid Fund',
+};

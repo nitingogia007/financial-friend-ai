@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, RetirementGoalReport, AssetAllocationProfile } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,7 @@ import { GoalsForm } from './GoalsForm';
 import { EstatePlanningForm } from './EstatePlanningForm';
 import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
+import { RecommendedFunds } from './RecommendedFunds';
 
 export function Planner() {
   const { toast } = useToast();
@@ -385,6 +386,7 @@ export function Planner() {
             profile={assetAllocationProfile}
             setProfile={setAssetAllocationProfile}
           />
+          <RecommendedFunds />
         </div>
 
         <div className="mt-12 text-center">

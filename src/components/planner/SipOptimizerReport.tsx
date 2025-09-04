@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { getAssetAllocation } from '@/lib/calculations';
+import { getAssetAllocation, recommendedFunds } from '@/lib/calculations';
 
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
@@ -518,37 +518,33 @@ export function SipOptimizerReport({ data }: Props) {
         
         {/* Asset & Fund Allocation Section */}
         <section className="mt-4 print-avoid-break">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                     <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation based on Risk Profile</h2>
-                     {recommendedAllocation ? (
-                        <Table className="text-xs">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Asset Category</TableHead>
-                                    <TableHead className="text-right">Allocation</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {Object.entries(recommendedAllocation).map(([key, value]) => {
-                                    if (key === 'Expected Return' || value === 0) return null;
-                                    return (
-                                    <TableRow key={key}>
-                                        <TableCell className="font-medium">{key}</TableCell>
-                                        <TableCell className="text-right roboto font-bold">{value}%</TableCell>
-                                    </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                     ) : (
-                        <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
-                     )}
-                </div>
-                 <div>
-                    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChart className="h-5 w-5 text-gray-500"/>Fund Allocation</h2>
-                 </div>
-            </div>
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation & Recommended Funds</h2>
+            {recommendedAllocation ? (
+            <Table className="text-xs">
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Asset Category</TableHead>
+                        <TableHead className="text-right">Allocation</TableHead>
+                        <TableHead>Recommended Fund</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {Object.entries(recommendedAllocation).map(([key, value]) => {
+                        if (key === 'Expected Return' || value === 0) return null;
+                        const recommendedFund = recommendedFunds[key as keyof typeof recommendedFunds];
+                        return (
+                        <TableRow key={key}>
+                            <TableCell className="font-medium">{key}</TableCell>
+                            <TableCell className="text-right roboto font-bold">{value}%</TableCell>
+                            <TableCell>{recommendedFund}</TableCell>
+                        </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
+            ) : (
+            <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
+            )}
         </section>
 
         {/* Existing Asset Allocation Section */}
