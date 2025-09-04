@@ -199,6 +199,7 @@ export interface SipOptimizerReportData {
   willStatus: 'yes' | 'no' | null;
   retirementCalculations: RetirementCalculations;
   assetAllocationProfile: AssetAllocationProfile;
+  recommendedFunds: { [key: string]: string };
 }
 
 export interface RetirementInputs {

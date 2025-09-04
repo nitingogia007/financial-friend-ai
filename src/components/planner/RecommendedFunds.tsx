@@ -5,13 +5,25 @@ import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Lightbulb } from 'lucide-react';
-import { recommendedFunds } from '@/lib/calculations';
+import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
-export function RecommendedFunds() {
+interface Props {
+    funds: { [key: string]: string };
+    setFunds: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+}
+
+export function RecommendedFunds({ funds, setFunds }: Props) {
+  
+  const handleChange = (category: string, value: string) => {
+    setFunds(prev => ({...prev, [category]: value}));
+  }
+
   return (
     <FormSection
       title="Recommended Funds"
-      description="Example funds for each asset category based on our research."
+      description="Enter your preferred funds for each category. Examples are provided."
       icon={<Lightbulb className="h-6 w-6" />}
       className="xl:col-span-2"
     >
@@ -21,14 +33,24 @@ export function RecommendedFunds() {
             <TableHeader>
               <TableRow>
                 <TableHead>Category</TableHead>
-                <TableHead>Example Fund</TableHead>
+                <TableHead>Your Chosen Fund</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.entries(recommendedFunds).map(([key, value]) => (
+              {Object.entries(defaultRecommendedFunds).map(([key, value]) => (
                 <TableRow key={key}>
-                  <TableCell className="font-medium">{key}</TableCell>
-                  <TableCell>{value}</TableCell>
+                  <TableCell className="font-medium">
+                    <Label htmlFor={`fund-${key}`}>{key}</Label>
+                  </TableCell>
+                  <TableCell>
+                    <Input 
+                        id={`fund-${key}`}
+                        type="text"
+                        placeholder={value}
+                        value={funds[key]}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { getAssetAllocation, recommendedFunds } from '@/lib/calculations';
+import { getAssetAllocation, recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
 
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
@@ -525,18 +525,19 @@ export function SipOptimizerReport({ data }: Props) {
                     <TableRow>
                         <TableHead>Asset Category</TableHead>
                         <TableHead className="text-right">Allocation</TableHead>
-                        <TableHead>Recommended Fund</TableHead>
+                        <TableHead>Your Chosen Fund</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {Object.entries(recommendedAllocation).map(([key, value]) => {
                         if (key === 'Expected Return' || value === 0) return null;
-                        const recommendedFund = recommendedFunds[key as keyof typeof recommendedFunds];
+                        const userFund = data.recommendedFunds[key as keyof typeof defaultRecommendedFunds];
+                        const defaultFund = defaultRecommendedFunds[key as keyof typeof defaultRecommendedFunds];
                         return (
                         <TableRow key={key}>
                             <TableCell className="font-medium">{key}</TableCell>
                             <TableCell className="text-right roboto font-bold">{value}%</TableCell>
-                            <TableCell>{recommendedFund}</TableCell>
+                            <TableCell>{userFund || defaultFund}</TableCell>
                         </TableRow>
                         )
                     })}

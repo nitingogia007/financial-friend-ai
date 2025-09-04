@@ -19,6 +19,8 @@ import { EstatePlanningForm } from './EstatePlanningForm';
 import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
 import { RecommendedFunds } from './RecommendedFunds';
+import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
+
 
 export function Planner() {
   const { toast } = useToast();
@@ -49,6 +51,9 @@ export function Planner() {
     currentSip: '',
   });
   const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>({ age: '', riskAppetite: '' });
+  const [recommendedFunds, setRecommendedFunds] = useState<{[key: string]: string}>(
+    Object.keys(defaultRecommendedFunds).reduce((acc, key) => ({...acc, [key]: ''}), {})
+  );
 
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -274,6 +279,7 @@ export function Planner() {
           willStatus: willStatus,
           retirementCalculations: retirementCalculations,
           assetAllocationProfile: assetAllocationProfile,
+          recommendedFunds,
       };
       
       // Detailed Wellness Report Data
@@ -386,7 +392,10 @@ export function Planner() {
             profile={assetAllocationProfile}
             setProfile={setAssetAllocationProfile}
           />
-          <RecommendedFunds />
+          <RecommendedFunds
+            funds={recommendedFunds}
+            setFunds={setRecommendedFunds}
+           />
         </div>
 
         <div className="mt-12 text-center">
