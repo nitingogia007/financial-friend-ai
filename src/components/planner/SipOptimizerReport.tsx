@@ -534,38 +534,6 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        {/* Asset & Fund Allocation Section */}
-        <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation & Recommended Funds</h2>
-            {recommendedAllocation ? (
-            <Table className="text-xs">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Asset Category</TableHead>
-                        <TableHead className="text-right">Allocation</TableHead>
-                        <TableHead>Your Chosen Fund</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {Object.entries(recommendedAllocation).map(([key, value]) => {
-                        if (key === 'Expected Return' || value === 0) return null;
-                        const userFund = data.recommendedFunds[key as keyof typeof defaultRecommendedFunds];
-                        const defaultFund = defaultRecommendedFunds[key as keyof typeof defaultRecommendedFunds];
-                        return (
-                        <TableRow key={key}>
-                            <TableCell className="font-medium">{key}</TableCell>
-                            <TableCell className="text-right roboto font-bold">{value}%</TableCell>
-                            <TableCell>{userFund || defaultFund}</TableCell>
-                        </TableRow>
-                        )
-                    })}
-                </TableBody>
-            </Table>
-            ) : (
-            <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
-            )}
-        </section>
-
         {/* Existing Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Wallet className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
@@ -624,6 +592,38 @@ export function SipOptimizerReport({ data }: Props) {
             )}
         </section>
 
+        {/* Asset & Fund Allocation Section */}
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation &amp; Recommended Funds</h2>
+            {recommendedAllocation ? (
+            <Table className="text-xs">
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Asset Category</TableHead>
+                        <TableHead className="text-right">Allocation</TableHead>
+                        <TableHead>Your Chosen Fund</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {Object.entries(recommendedAllocation).map(([key, value]) => {
+                        if (key === 'Expected Return' || value === 0) return null;
+                        const userFund = data.recommendedFunds[key as keyof typeof defaultRecommendedFunds];
+                        const defaultFund = defaultRecommendedFunds[key as keyof typeof defaultRecommendedFunds];
+                        return (
+                        <TableRow key={key}>
+                            <TableCell className="font-medium">{key}</TableCell>
+                            <TableCell className="text-right roboto font-bold">{value}%</TableCell>
+                            <TableCell>{userFund || defaultFund}</TableCell>
+                        </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
+            ) : (
+            <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
+            )}
+        </section>
+
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
                 <strong>Disclaimer:</strong> The calculators are based on past returns and are meant for illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
@@ -633,3 +633,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
