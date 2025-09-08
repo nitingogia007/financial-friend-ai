@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -68,6 +68,67 @@ const DetailItemWhite = ({ icon: Icon, label, value }: { icon: React.ElementType
             <p className="font-bold text-gray-800 text-sm">{value}</p>
         </div>
     </div>
+);
+
+const InsuranceQuoteFeature = ({ label, value }: { label: string, value?: string | number | null }) => {
+    let displayValue: React.ReactNode = <X className="h-4 w-4 text-red-500" />;
+    let valueClass = "text-red-600";
+
+    if (value === 'Covered' || value === 'Included' || value === 'No cap' || (typeof value === 'string' && value.startsWith('('))) {
+        displayValue = <Check className="h-4 w-4 text-green-500" />;
+        valueClass = "text-green-700";
+    } else if (value) {
+        displayValue = value;
+        valueClass = "text-gray-800"
+    }
+
+    return (
+        <div className="flex justify-between items-center text-xs py-1.5 border-b last:border-b-0">
+            <p className="text-gray-600">{label}</p>
+            <p className={cn("font-semibold", valueClass)}>{displayValue}</p>
+        </div>
+    );
+};
+
+
+const LifeInsuranceQuoteCard = ({ quote }: { quote: LifeInsuranceQuote }) => (
+    <Card className="bg-white border-blue-200">
+        <CardHeader>
+            <CardTitle className="text-md text-blue-800">{quote.planName || 'Life Insurance Plan'}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-xs">
+             <div className="flex justify-between"><p>Cover Amount:</p><p className="font-bold roboto">{formatCurrency(quote.coverAmount)}</p></div>
+             <div className="flex justify-between"><p>Premium:</p><p className="font-bold roboto">{formatCurrency(quote.premiumAmount)}</p></div>
+             <div className="flex justify-between"><p>Policy Term:</p><p className="font-bold roboto">{quote.policyTerm}</p></div>
+             <div className="flex justify-between"><p>Premium Payment Term:</p><p className="font-bold roboto">{quote.premiumPaymentTerm}</p></div>
+        </CardContent>
+    </Card>
+);
+
+const HealthInsuranceQuoteCard = ({ quote }: { quote: HealthInsuranceQuote }) => (
+    <Card className="bg-white border-green-200">
+        <CardHeader>
+             <p className="text-xs text-gray-500">{quote.company || 'Health Insurance'}</p>
+            <CardTitle className="text-md text-green-800 -mt-1">{quote.planName || 'Health Insurance Plan'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+             <div className="flex justify-between items-baseline mb-3">
+                <p className="font-bold text-lg roboto">{quote.sumAssured || 'N/A'}</p>
+                <p className="text-sm">Premium: <span className="font-bold roboto">{formatCurrency(quote.premium1Y)}</span></p>
+             </div>
+             <div className="space-y-1">
+                <InsuranceQuoteFeature label="Pre-Hospitalization" value={quote.preHospitalization} />
+                <InsuranceQuoteFeature label="Post-Hospitalization" value={quote.postHospitalization} />
+                <InsuranceQuoteFeature label="Waiting Period (PED)" value={quote.waitingPeriodPED} />
+                <InsuranceQuoteFeature label="Room Rent" value={quote.roomRent} />
+                <InsuranceQuoteFeature label="Restore Benefit" value={quote.restoreBenefit} />
+                <InsuranceQuoteFeature label="Ambulance (Road)" value={quote.ambulanceRoad} />
+                <InsuranceQuoteFeature label="Ambulance (Air)" value={quote.ambulanceAir} />
+                <InsuranceQuoteFeature label="Health Check-up" value={quote.healthCheckup} />
+                <InsuranceQuoteFeature label="E-Consultation" value={quote.eConsultation} />
+             </div>
+        </CardContent>
+    </Card>
 );
 
 
@@ -489,23 +550,25 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Insurance Analysis */}
         {data.insuranceAnalysis && (
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gray-500"/>Insurance Analysis</h2>
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gray-500"/>Insurance Analysis and Quote</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="border rounded-lg p-3 bg-blue-50/50">
-                    <h3 className="font-semibold text-blue-800 mb-2">Life Insurance</h3>
+                <div className="border rounded-lg p-3 bg-blue-50/50 space-y-2">
+                    <h3 className="font-semibold text-blue-800">Life Insurance Analysis</h3>
                     <div className="space-y-1 text-xs">
                         <div className="flex justify-between"><p>Ideal Life Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.recommendedCover)}</p></div>
                         <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.lifeInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.lifeInsurance.coverageGap)}</p></div>
                     </div>
+                    {data.insuranceAnalysis.lifeInsurance.quote && <LifeInsuranceQuoteCard quote={data.insuranceAnalysis.lifeInsurance.quote} />}
                 </div>
-                <div className="border rounded-lg p-3 bg-green-50/50">
-                    <h3 className="font-semibold text-green-800 mb-2">Health Insurance</h3>
+                <div className="border rounded-lg p-3 bg-green-50/50 space-y-2">
+                    <h3 className="font-semibold text-green-800">Health Insurance Analysis</h3>
                      <div className="space-y-1 text-xs">
                         <div className="flex justify-between"><p>Ideal Health Cover:</p><p className="font-bold roboto">{data.insuranceAnalysis.healthInsurance.recommendedCover}</p></div>
                         <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.healthInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.healthInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.healthInsurance.coverageGap)}</p></div>
                     </div>
+                    {data.insuranceAnalysis.healthInsurance.quote && <HealthInsuranceQuoteCard quote={data.insuranceAnalysis.healthInsurance.quote} />}
                 </div>
                 {data.retirementCalculations && (
                     <div className="md:col-span-2">
@@ -591,7 +654,7 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
             )}
         </section>
-
+        
         {/* Asset & Fund Allocation Section */}
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation &amp; Recommended Funds</h2>
@@ -633,5 +696,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    

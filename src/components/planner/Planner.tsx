@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -228,7 +228,7 @@ export function Planner() {
           wealthCreationGoal = calculateWealthCreation(surplusForWealthCreation, defaultRate);
       }
       
-      const totalCurrentInvestment = optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0) + (retirementGoalReport?.investmentStatus.currentInvestment || 0);
+      const totalCurrentInvestment = optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0) + (retirementGoalReport?.investmentStatus.currentInvestment || 0) + getNumericValue(retirementInputs.currentSip);
       const totalRequiredInvestment = totalRequiredSipForOtherGoals + (retirementGoalReport?.investmentStatus.requiredInvestment || 0);
       const totalPotentialInvestment = (monthlyCashflow > 0 ? monthlyCashflow : 0);
 

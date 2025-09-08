@@ -126,18 +126,45 @@ export interface WealthCreationGoal {
     projectedCorpus: number;
 }
 
+export interface LifeInsuranceQuote {
+    planName: string;
+    premiumAmount: number | '';
+    premiumPaymentTerm: string;
+    policyTerm: string;
+    coverAmount: number | '';
+}
+
+export interface HealthInsuranceQuote {
+    company: string;
+    planName: string;
+    premium1Y: number | '';
+    sumAssured: string;
+    preHospitalization: 'Covered' | 'Not Covered' | '';
+    postHospitalization: 'Covered' | 'Not Covered' | '';
+    waitingPeriodPED: 'Covered' | 'Not Covered' | '';
+    roomRent: 'No cap' | 'Optional cap' | 'Private room' | 'Single private room' | 'All Types of Rooms' | '';
+    restoreBenefit: '(Full SI)' | '(Once)' | '(Unlimited)' | '(Unlimited for same/different illness)' | '';
+    ambulanceRoad: 'Included' | 'Excluded' | '';
+    ambulanceAir: 'Optional' | 'Included' | 'Excluded' | '';
+    healthCheckup: 'Covered' | 'Not Covered' | '';
+    eConsultation: 'Included' | 'Not included' | '';
+}
+
+
 export interface InsuranceAnalysisData {
     lifeInsurance: {
         recommendedCover: number;
         currentCover: number | '';
         currentPremium?: number | '';
         coverageGap: number;
+        quote?: LifeInsuranceQuote;
     };
     healthInsurance: {
         recommendedCover: string;
         currentCover: number | '';
         currentPremium?: number | '';
         coverageGap: number;
+        quote?: HealthInsuranceQuote;
     };
 }
 
