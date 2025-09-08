@@ -516,6 +516,24 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
+        {/* Estate Planning Section */}
+        {data.willStatus && (
+        <section className="mt-4 print-avoid-break">
+            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
+            {data.willStatus === 'yes' ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm">
+                    <CheckCircle className="h-5 w-5"/>
+                    <p className="font-semibold">Estate planning - done</p>
+                </div>
+            ) : (
+                <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-sm">
+                    <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
+                    <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
+                </div>
+            )}
+        </section>
+        )}
+        
         {/* Asset & Fund Allocation Section */}
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation & Recommended Funds</h2>
@@ -605,25 +623,6 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
             )}
         </section>
-
-        {/* Estate Planning Section */}
-        {data.willStatus && (
-        <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
-            {data.willStatus === 'yes' ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm">
-                    <CheckCircle className="h-5 w-5"/>
-                    <p className="font-semibold">Estate planning - done</p>
-                </div>
-            ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-sm">
-                    <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0"/>
-                    <p className="font-semibold">Estate planning is pending — we recommend initiating it to ensure smooth and secure wealth transfer.</p>
-                </div>
-            )}
-        </section>
-        )}
-
 
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
