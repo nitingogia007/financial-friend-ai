@@ -92,7 +92,7 @@ const InsuranceQuoteFeature = ({ label, value }: { label: string, value?: string
 
 
 const LifeInsuranceQuoteCard = ({ quote }: { quote: LifeInsuranceQuote }) => (
-    <Card className="bg-white border-blue-200">
+    <Card className="bg-white border-blue-200 mt-4">
         <CardHeader>
             <CardTitle className="text-md text-blue-800">{quote.planName || 'Life Insurance Plan'}</CardTitle>
         </CardHeader>
@@ -106,7 +106,7 @@ const LifeInsuranceQuoteCard = ({ quote }: { quote: LifeInsuranceQuote }) => (
 );
 
 const HealthInsuranceQuoteCard = ({ quote }: { quote: HealthInsuranceQuote }) => (
-    <Card className="bg-white border-green-200">
+    <Card className="bg-white border-green-200 mt-4">
         <CardHeader>
              <p className="text-xs text-gray-500">{quote.company || 'Health Insurance'}</p>
             <CardTitle className="text-md text-green-800 -mt-1">{quote.planName || 'Health Insurance Plan'}</CardTitle>
