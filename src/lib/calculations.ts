@@ -217,7 +217,7 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     
     const inflationRate = 0.06;
 
-    if (!currentAge || !desiredRetirementAge || !lifeExpectancy || !currentMonthlyExpense || !preRetirementRoi) {
+    if (!currentAge || !desiredRetirementAge || !lifeExpectancy || !currentMonthlyExpense) {
         return {
             expectedInflationRate: inflationRate * 100,
             realRateOfReturn: 0,
@@ -243,12 +243,15 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     
     const requiredRetirementCorpus = corpusForExpenses - futureValueOfCurrentInvestments;
     
-    const monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
+    let monthlyInvestmentNeeded = 0;
+    if (requiredRetirementCorpus > 0 && yearsToRetirement > 0) {
+        monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
+    }
     
     let incrementalMonthlyInvestment = 0;
     const preRoi = preRetirementRoi;
     const incRate = incrementalRate;
-    if (preRoi !== incRate) {
+    if (requiredRetirementCorpus > 0 && preRoi !== incRate) {
         const numerator = requiredRetirementCorpus * (preRoi - incRate);
         const denominator = Math.pow(1 + preRoi, yearsToRetirement) - Math.pow(1 + incRate, yearsToRetirement);
         if (denominator !== 0) {
