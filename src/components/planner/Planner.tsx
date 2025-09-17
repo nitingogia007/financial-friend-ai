@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
 import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport } from '@/lib/types';
-import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails } from '@/lib/calculations';
+import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -154,15 +154,38 @@ export function Planner() {
               getNumericValue(retirementInputs.currentSavings)
           );
 
+          const targetCorpusForTimeline = retirementCalculations.requiredRetirementCorpus;
+          const preRetirementRoiForTimeline = getNumericValue(retirementInputs.preRetirementRoi);
+          const currentSavingsForTimeline = getNumericValue(retirementInputs.currentSavings);
+
+          const potentialTimeline = calculateNper(
+              targetCorpusForTimeline,
+              preRetirementRoiForTimeline,
+              allocatedRetirementSip,
+              currentSavingsForTimeline
+          );
+
+          const currentTimeline = calculateNper(
+              targetCorpusForTimeline,
+              preRetirementRoiForTimeline,
+              currentRetirementSip,
+              currentSavingsForTimeline
+          );
+
+
           retirementGoalReport = {
               futureValue: retirementCalculations.requiredRetirementCorpus,
-              timeline: retirementCalculations.yearsToRetirement,
+              timeline: {
+                current: currentTimeline,
+                required: retirementCalculations.yearsToRetirement,
+                potential: potentialTimeline,
+              },
               investmentStatus: {
                   currentInvestment: currentRetirementSip,
                   requiredInvestment: retirementRequiredSip,
                   allocatedInvestment: allocatedRetirementSip,
               },
-              potentialCorpus: potentialRetirementCorpus,
+              potentialCorpus: potentialRetirementCorpus, // This remains for potential other uses, but timeline is key now
           };
       }
 
@@ -218,14 +241,14 @@ export function Planner() {
                 timeline: {
                     current: timelines.timelineWithCurrentSip,
                     required: timelines.timelineWithRequiredSip,
-                    potential: getNumericValue(goal.years), // Keep original timeline
+                    potential: timelines.timelineWithPotentialSip, // Use recalculated timeline
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),
                     requiredInvestment: goal.newSipRequired,
                     allocatedInvestment: allocatedInvestment,
                 },
-                potentialCorpus: potentialCorpus,
+                potentialCorpus: goal.futureValueOfGoal, // Keep the target corpus constant
             };
         });
       }

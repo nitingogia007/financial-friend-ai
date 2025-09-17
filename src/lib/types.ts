@@ -111,7 +111,11 @@ export interface SipOptimizerGoal {
 
 export interface RetirementGoalReport {
     futureValue: number;
-    timeline: number;
+    timeline: {
+        current: number;
+        required: number;
+        potential: number;
+    };
     investmentStatus: {
         currentInvestment: number;
         requiredInvestment: number;

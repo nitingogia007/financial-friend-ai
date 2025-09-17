@@ -124,45 +124,47 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   };
 }
 
+export function calculateNper(fv: number, annualRate: number, pmt: number, pv: number): number {
+    if (annualRate <= 0) {
+        if (pmt <= 0 && pv >= fv) return 0;
+        if (pmt <= 0) return Infinity;
+        return (fv - pv) / pmt / 12;
+    }
+    const monthlyRate = annualRate / 100 / 12;
+    const monthlyPmt = pmt;
+
+    if (monthlyPmt <= 0) {
+        if (pv >= fv) return 0;
+        if (pv <= 0) return Infinity; // Cannot grow without payments
+        return Math.log(fv / pv) / Math.log(1 + monthlyRate) / 12;
+    }
+
+    const futureValueOfPv = pv * Math.pow(1 + monthlyRate, 1); // Start with PV
+    const target = fv + futureValueOfPv;
+
+    const numerator = Math.log(((target * monthlyRate) / (monthlyPmt * (1 + monthlyRate))) + 1);
+    const denominator = Math.log(1 + monthlyRate);
+
+    if (denominator === 0) return Infinity;
+
+    const nperMonths = numerator / denominator;
+    return nperMonths / 12;
+}
+
 
 export function calculateTimelines(goal: GoalWithCalculations, potentialSip: number) {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' && !isNaN(val) ? val : 0);
 
     const futureValueGoal = goal.futureValueOfGoal;
-    const rate = getNum(goal.rate) / 100;
+    const rate = getNum(goal.rate);
     const currentSip = getNum(goal.currentSip);
     const requiredSip = goal.newSipRequired;
-    const futureValueOfCurrentSave = goal.futureValueOfCurrentSave;
-
+    const currentSave = getNum(goal.currentSave);
     
-    const calculateYears = (monthlySip: number) => {
-        if (monthlySip <= 0) return Infinity;
-        
-        const targetCorpus = futureValueGoal - futureValueOfCurrentSave;
-        if (targetCorpus <= 0) return 0; // Already met
-
-        if (rate <= 0) {
-            return (targetCorpus / (monthlySip * 12));
-        }
-        
-        const monthlyRate = rate / 12;
-        
-        // NPER formula for annuity due: n = log( (FV*r + Pmt*(1+r)) / (Pmt*(1+r)) ) / log(1+r)
-        const numerator = Math.log((targetCorpus * monthlyRate) / (monthlySip * (1 + monthlyRate)) + 1);
-        const denominator = Math.log(1 + monthlyRate);
-        
-        if (denominator === 0) return Infinity;
-
-        const nper = numerator / denominator;
-        const years = nper / 12;
-
-        return isFinite(years) ? years : Infinity;
-    };
-
     return {
-        timelineWithCurrentSip: calculateYears(currentSip),
-        timelineWithRequiredSip: calculateYears(requiredSip),
-        timelineWithPotentialSip: calculateYears(potentialSip),
+        timelineWithCurrentSip: calculateNper(futureValueGoal, rate, currentSip, currentSave),
+        timelineWithRequiredSip: calculateNper(futureValueGoal, rate, requiredSip, currentSave),
+        timelineWithPotentialSip: calculateNper(futureValueGoal, rate, potentialSip, currentSave),
     };
 }
 
@@ -238,10 +240,13 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const corpusForExpenses = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 0);
+    const corpusForExpenses = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 1);
     const futureValueOfCurrentInvestments = fv(preRetirementRoi, yearsToRetirement, -currentSip * 12, -currentSavings, 0);
     
-    const requiredRetirementCorpus = corpusForExpenses - futureValueOfCurrentInvestments;
+    let requiredRetirementCorpus = corpusForExpenses;
+    if (futureValueOfCurrentInvestments > 0) {
+        requiredRetirementCorpus -= futureValueOfCurrentInvestments;
+    }
     
     let monthlyInvestmentNeeded = 0;
     if (requiredRetirementCorpus > 0 && yearsToRetirement > 0) {
@@ -266,7 +271,7 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         yearsInRetirement: yearsInRetirement > 0 ? yearsInRetirement : 0,
         inflatedMonthlyExpense,
         annualExpenseAtRetirement,
-        requiredRetirementCorpus: requiredRetirementCorpus > 0 ? requiredRetirementCorpus : 0,
+        requiredRetirementCorpus: corpusForExpenses,
         monthlyInvestmentNeeded: monthlyInvestmentNeeded > 0 ? monthlyInvestmentNeeded : 0,
         incrementalMonthlyInvestment: incrementalMonthlyInvestment > 0 ? incrementalMonthlyInvestment : 0,
     };
