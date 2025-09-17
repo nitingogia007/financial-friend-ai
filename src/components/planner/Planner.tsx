@@ -156,13 +156,14 @@ export function Planner() {
 
           const targetCorpusForTimeline = retirementCalculations.requiredRetirementCorpus;
           const preRetirementRoiForTimeline = getNumericValue(retirementInputs.preRetirementRoi);
-          const currentSavingsForTimeline = getNumericValue(retirementInputs.currentSavings) + calculateFutureValue(getNumericValue(retirementInputs.currentSip), getNumericValue(retirementInputs.preRetirementRoi), retirementCalculations.yearsToRetirement, 0);
+          
+          const totalCurrentRetirementSavingsAndSipFv = getNumericValue(retirementInputs.currentSavings) + calculateFutureValue(getNumericValue(retirementInputs.currentSip), getNumericValue(retirementInputs.preRetirementRoi), retirementCalculations.yearsToRetirement, 0);
 
           const potentialTimeline = calculateNper(
               targetCorpusForTimeline,
               preRetirementRoiForTimeline,
               allocatedRetirementSip,
-              getNumericValue(retirementInputs.currentSavings)
+              totalCurrentRetirementSavingsAndSipFv
           );
 
           const currentTimeline = calculateNper(
@@ -446,3 +447,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
