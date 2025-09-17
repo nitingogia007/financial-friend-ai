@@ -147,6 +147,13 @@ export function Planner() {
               investibleSurplus = 0;
           }
 
+          const potentialRetirementCorpus = calculateFutureValue(
+              allocatedRetirementSip,
+              getNumericValue(retirementInputs.preRetirementRoi),
+              retirementCalculations.yearsToRetirement,
+              getNumericValue(retirementInputs.currentSavings)
+          );
+
           retirementGoalReport = {
               futureValue: retirementCalculations.requiredRetirementCorpus,
               timeline: retirementCalculations.yearsToRetirement,
@@ -155,6 +162,7 @@ export function Planner() {
                   requiredInvestment: retirementRequiredSip,
                   allocatedInvestment: allocatedRetirementSip,
               },
+              potentialCorpus: potentialRetirementCorpus,
           };
       }
 

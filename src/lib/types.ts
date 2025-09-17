@@ -117,6 +117,7 @@ export interface RetirementGoalReport {
         requiredInvestment: number;
         allocatedInvestment: number;
     };
+    potentialCorpus: number;
 }
 
 
