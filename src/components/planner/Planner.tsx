@@ -120,10 +120,14 @@ export function Planner() {
       
       const findAssetAmount = (type: string) => getNumericValue(processedAssets.find(a=> a.type === type)?.amount);
       const assetAllocation = {
-          mutualFunds: { corpus: findAssetAmount('Mutual Fund'), monthly: processedGoals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
-          gold: { corpus: findAssetAmount('Gold'), monthly: 0},
-          stocks: { corpus: findAssetAmount('Stocks'), monthly: 0},
-          fixedDeposits: { corpus: findAssetAmount('Bank'), monthly: 0},
+          equity: { corpus: findAssetAmount('Indian Equity shares'), monthly: processedGoals.reduce((sum, g) => sum + getNumericValue(g.currentSip), 0) },
+          fixedIncome: { corpus: findAssetAmount('Fixed Income instruments'), monthly: 0},
+          ppf: { corpus: findAssetAmount('PPF'), monthly: 0},
+          epf: { corpus: findAssetAmount('EPF'), monthly: 0},
+          nps: { corpus: findAssetAmount('NPS'), monthly: 0},
+          gold: { corpus: findAssetAmount('Gold/Gold Bond/ETF/Fund'), monthly: 0},
+          insurance: { corpus: findAssetAmount('Insurance'), monthly: 0},
+          realEstate: { corpus: findAssetAmount('Real Estate'), monthly: 0},
           others: { corpus: findAssetAmount('Other'), monthly: 0}, // Note: This might need adjustment if multiple 'Other' assets exist
           total: { corpus: 0, monthly: 0 }
       };
@@ -167,7 +171,7 @@ export function Planner() {
                   targetCorpusForTimeline,
                   preRetirementRoiForTimeline,
                   allocatedRetirementSip,
-                  totalCurrentRetirementAssets
+                  getNumericValue(retirementInputs.currentSavings) + calculateFutureValue(0, preRetirementRoiForTimeline, retirementCalculations.yearsToRetirement, getNumericValue(retirementInputs.currentSip)) // This seems off
               );
           }
           

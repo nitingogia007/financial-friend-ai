@@ -259,17 +259,20 @@ export function SipOptimizerReport({ data }: Props) {
   const getNumericValue = (amount: number | ''): number => typeof amount === 'number' ? amount : 0;
   
   const liquidAssets = (data.assets || [])
-    .filter(a => a.type !== 'Property' && a.type && typeof a.amount === 'number');
+    .filter(a => a.type !== 'Real Estate' && a.type && typeof a.amount === 'number');
   
-  const nonLiquidAssets = (data.assets || []).filter(a => a.type === 'Property' && a.type && typeof a.amount === 'number');
+  const nonLiquidAssets = (data.assets || []).filter(a => a.type === 'Real Estate' && a.type && typeof a.amount === 'number');
   
   const totalLiquidAssets = liquidAssets.reduce((sum, asset) => sum + getNumericValue(asset.amount), 0);
 
   const assetCategories = [
-    { name: 'Mutual Fund', icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-1))' },
-    { name: 'Stocks', icon: <CandlestickChart className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-2))' },
-    { name: 'Bank', icon: <Banknote className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-3))' },
-    { name: 'Gold', icon: <Gem className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-4))' },
+    { name: 'Indian Equity shares', icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-1))' },
+    { name: 'Fixed Income instruments', icon: <Banknote className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-2))' },
+    { name: 'PPF', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-3))' },
+    { name: 'EPF', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-3))' },
+    { name: 'NPS', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-3))' },
+    { name: 'Gold/Gold Bond/ETF/Fund', icon: <Gem className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-4))' },
+    { name: 'Insurance', icon: <ShieldCheck className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-5))' },
     { name: 'Other', icon: <Briefcase className="h-4 w-4 text-muted-foreground" />, color: 'hsl(var(--chart-5))' },
   ];
 
@@ -531,7 +534,7 @@ export function SipOptimizerReport({ data }: Props) {
                                 <div className="flex flex-col items-center text-center space-y-1">
                                     <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.allocatedInvestment)}</span></div>
                                     <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline.potential)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
+                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.potentialCorpus)}</span></div>
                                 </div>
                             </div>
                         </div>

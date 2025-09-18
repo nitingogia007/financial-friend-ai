@@ -18,7 +18,7 @@ interface Props {
   netWorth: number;
 }
 
-const assetTypes = ["Bank", "Property", "Stocks", "Mutual Fund", "Gold", "Other"];
+const assetTypes = ["Indian Equity shares", "Fixed Income instruments", "PPF", "EPF", "NPS", "Gold/Gold Bond/ETF/Fund", "Insurance", "Real Estate", "Other"];
 const liabilityTypes = ["Home Loan", "Car Loan", "Credit Card", "Other"];
 
 let nextId = 0;

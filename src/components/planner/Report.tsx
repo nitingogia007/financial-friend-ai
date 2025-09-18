@@ -8,9 +8,11 @@ import { Separator } from '@/components/ui/separator';
 import { NetWorthBreakdown } from '../charts/NetWorthBreakdown';
 import { ExpenseBreakdown } from '../charts/ExpenseBreakdown';
 import { Button } from '../ui/button';
-import { Printer, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Printer, FileText, Wallet, PiggyBank, ShieldCheck, TrendingUp, Bot, CheckCircle, AlertTriangle, Download, Share2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { WhatsAppWidget } from 'react-whatsapp-widget';
+import 'react-whatsapp-widget/dist/index.css';
 
 interface Props {
   data: ReportData;
@@ -33,48 +35,73 @@ const StatCard = ({ title, value, icon, subValue }: { title: string; value: stri
 export function Report({ data }: Props) {
   const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
   
-  const handleDownload = () => {
+  const generatePdf = async () => {
     const reportElement = document.getElementById('report-section');
-    if (reportElement) {
-        html2canvas(reportElement, {
-            scale: 2, // Increase scale for better quality
-            useCORS: true,
-            onclone: (document) => {
-              // You can modify the cloned document here if needed before capture
-            }
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-            const ratio = canvasWidth / canvasHeight;
-            const width = pdfWidth;
-            const height = width / ratio;
+    if (!reportElement) {
+        throw new Error("Report element not found");
+    }
+    const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const ratio = canvasWidth / canvasHeight;
+    const width = pdfWidth;
+    const height = width / ratio;
 
-            // Check if content height is larger than page height
-            let position = 0;
-            const pageHeight = pdf.internal.pageSize.height;
-            let remainingHeight = height;
+    let position = 0;
+    const pageHeight = pdf.internal.pageSize.height;
+    let remainingHeight = height;
 
-            while (remainingHeight > 0) {
-                pdf.addImage(imgData, 'PNG', 0, position, width, height);
-                remainingHeight -= pageHeight;
-                if (remainingHeight > 0) {
-                    pdf.addPage();
-                    position = -remainingHeight;
-                }
-            }
+    while (remainingHeight > 0) {
+        pdf.addImage(imgData, 'PNG', 0, position, width, height);
+        remainingHeight -= pageHeight;
+        if (remainingHeight > 0) {
+            pdf.addPage();
+            position = -remainingHeight;
+        }
+    }
+    return pdf;
+  }
 
-            pdf.save(`${data.personalDetails.name}-financial-report.pdf`);
-        });
+  const handleDownload = async () => {
+    try {
+      const pdf = await generatePdf();
+      pdf.save(`${data.personalDetails.name}-financial-report.pdf`);
+    } catch(e) {
+      console.error("Failed to download PDF", e);
+      alert("There was an error generating the PDF for download.");
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const pdf = await generatePdf();
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], `${data.personalDetails.name}-financial-report.pdf`, {
+        type: 'application/pdf',
+      });
+      
+      if (navigator.share) {
+        await navigator.share({
+          files: [pdfFile],
+          title: 'Financial Wellness Report',
+          text: `Here is the financial wellness report for ${data.personalDetails.name}.`,
+        });
+      } else {
+        alert('Web Share API is not supported in your browser. Try downloading the report instead.');
+      }
+    } catch(e) {
+       console.error("Failed to share PDF", e);
+       alert("There was an error generating the PDF for sharing.");
+    }
+  }
+
 
   return (
-    <div id="report-section" className="space-y-8 animate-in fade-in-50 duration-500">
+    <div className="space-y-8 animate-in fade-in-50 duration-500">
       <div className="flex items-center justify-between flex-wrap gap-4 no-print">
         <div>
           <h2 className="text-3xl font-bold font-headline text-primary flex items-center gap-3">
@@ -85,9 +112,13 @@ export function Report({ data }: Props) {
             A complete overview of your financial health for <span className="font-semibold text-foreground">{data.personalDetails.name}</span>.
           </p>
         </div>
+         <div className="flex gap-2">
+            <Button onClick={handleDownload} variant="outline"><Download className="mr-2 h-4 w-4"/>Download PDF</Button>
+            {navigator.share && <Button onClick={handleShare}><Share2 className="mr-2 h-4 w-4" />Share</Button>}
+        </div>
       </div>
       
-      <div className="p-6 border-2 border-dashed rounded-xl printable-area bg-card">
+      <div id="report-section" className="p-6 border-2 border-dashed rounded-xl printable-area bg-card">
 
         {/* AI Summary */}
         <Card className="mb-8 bg-primary/5 border-primary/20 shadow-lg">

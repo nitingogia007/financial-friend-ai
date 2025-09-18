@@ -212,10 +212,14 @@ export interface SipOptimizerReportData {
         otherExpenses: number;
     };
     assetAllocation: {
-        mutualFunds: { corpus: number; monthly: number };
+        equity: { corpus: number; monthly: number };
+        fixedIncome: { corpus: number; monthly: number };
+        ppf: { corpus: number; monthly: number };
+        epf: { corpus: number; monthly: number };
+        nps: { corpus: number; monthly: number };
         gold: { corpus: number; monthly: number };
-        stocks: { corpus: number; monthly: number };
-        fixedDeposits: { corpus: number; monthly: number };
+        insurance: { corpus: number; monthly: number };
+        realEstate: { corpus: number; monthly: number };
         others: { corpus: number; monthly: number };
         total: { corpus: number; monthly: number };
     };
