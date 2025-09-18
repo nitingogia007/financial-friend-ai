@@ -3,7 +3,7 @@
 
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { getAssetAllocation, recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
@@ -199,6 +201,52 @@ export function SipOptimizerReport({ data }: Props) {
   const handlePrint = () => {
     window.print();
   };
+
+  const handleDownload = async () => {
+    const reportElement = document.getElementById('report-container');
+    if (!reportElement) return;
+
+    try {
+        const canvas = await html2canvas(reportElement, { 
+            scale: 2, // Higher scale for better quality
+            useCORS: true, 
+            allowTaint: true 
+        });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        
+        const imgHeight = pdfWidth / ratio;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`${data.personalDetails.name}-financial-report.pdf`);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Could not generate PDF. Please try again.");
+    }
+};
+
   
   const additionalSipRequired = data.totalInvestmentStatus
     ? Math.max(0, data.totalInvestmentStatus.requiredInvestment - data.totalInvestmentStatus.currentInvestment)
@@ -318,6 +366,10 @@ export function SipOptimizerReport({ data }: Props) {
         <Button onClick={handlePrint} variant="default">
             <Printer className="mr-2 h-4 w-4" />
             Print Report
+        </Button>
+        <Button onClick={handleDownload} variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Download PDF
         </Button>
         <Button onClick={handleViewDetailedReport} variant="outline">
             View Detailed Report
