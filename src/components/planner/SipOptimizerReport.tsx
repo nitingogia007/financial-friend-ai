@@ -17,7 +17,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 
-const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/Artboard.png?alt=media&token=165d5717-85f6-4bc7-a76a-24d8a8a81de5";
+const logoUrl = "/financial-friend-logo.png";
 
 interface Props {
   data: SipOptimizerReportData;
@@ -386,10 +386,10 @@ export function SipOptimizerReport({ data }: Props) {
               <Image 
                   src={logoUrl}
                   alt="FinFriend Planner Logo" 
-                  fill
+                  width={192}
+                  height={48}
                   style={{ objectFit: 'contain' }}
                   priority
-                  unoptimized
               />
             </div>
             <div className="text-center text-xs">
