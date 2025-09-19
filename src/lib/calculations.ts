@@ -41,7 +41,7 @@ export function calculateSip(goal: Goal): number {
         return 0;
     }
 
-    const inflationRate = goal.name === 'Child Education' ? 0.10 : 0.06;
+    const inflationRate = goal.name === 'Child Education' ? 0.10 : (goal.name === 'Emergency Fund' ? 0 : 0.06);
     const futureValue = corpus * Math.pow(1 + inflationRate, years);
 
     const monthlyRate = rate / 100 / 12;
@@ -79,7 +79,7 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
   const currentSave = getNum(goal.currentSave);
   const currentSip = getNum(goal.currentSip);
 
-  const inflationRate = goal.name === 'Child Education' ? 0.10 : 0.06;
+  const inflationRate = goal.name === 'Child Education' ? 0.10 : (goal.name === 'Emergency Fund' ? 0 : 0.06);
   const monthlyRate = rate / 100 / 12;
   const months = years * 12;
 
