@@ -8,7 +8,8 @@ import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWith
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Download } from 'lucide-react';
+import { generateCsv } from '@/lib/csv';
 
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AssetsLiabilitiesForm } from './AssetsLiabilitiesForm';
@@ -72,6 +73,25 @@ export function Planner() {
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
   const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
+
+  const handleDownloadCsv = () => {
+    const allData = {
+        personalDetails,
+        assets,
+        liabilities,
+        incomes,
+        expenses,
+        goals,
+        insuranceAnalysis,
+        willStatus,
+        retirementInputs,
+        assetAllocationProfile,
+        recommendedFunds,
+        netWorth,
+        yearlyCashflow
+    };
+    generateCsv(allData);
+  };
 
 
   const handleGenerateReport = async () => {
@@ -439,13 +459,16 @@ export function Planner() {
            />
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center flex justify-center items-center gap-4">
           <Button onClick={handleGenerateReport} disabled={isGenerating} size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Reports...
               </>
             ) : "Generate Financial Reports"}
+          </Button>
+           <Button onClick={handleDownloadCsv} variant="outline" size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
+              <Download className="mr-2 h-5 w-5" /> Download as CSV
           </Button>
         </div>
 
