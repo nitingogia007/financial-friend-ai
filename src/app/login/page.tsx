@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -25,9 +25,18 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
   if (user) {
-    router.push('/');
-    return null;
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
 
   const handleAuthAction = async (e: React.FormEvent) => {
@@ -36,7 +45,7 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: 'Logged in successfully! Redirecting...' });
-      router.push('/');
+      // The useEffect will handle the redirect
     } catch (error: any) {
       console.error(error);
       toast({
