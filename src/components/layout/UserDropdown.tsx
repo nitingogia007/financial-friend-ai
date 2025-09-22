@@ -38,7 +38,7 @@ export function UserDropdown() {
                 {user.photoURL ? (
                     <AvatarImage src={user.photoURL} alt="User avatar" />
                 ) : (
-                    <AvatarImage src="https://placehold.co/100x100.png" alt="User avatar" data-ai-hint="profile picture" />
+                    <AvatarImage src="/newbie.jpg" alt="User avatar" />
                 )}
                 <AvatarFallback>
                   {user.email ? user.email.charAt(0).toUpperCase() : <User />}
