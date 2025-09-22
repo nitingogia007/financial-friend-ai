@@ -103,10 +103,11 @@ export function Planner() {
       });
       return;
     }
-     if (goals.length === 0 || goals.every(g => !g.name)) {
+     const nonRetirementGoals = goals.filter(g => g.name.toLowerCase() !== 'retirement');
+     if (nonRetirementGoals.length === 0 || nonRetirementGoals.every(g => !g.name)) {
       toast({
         title: "No Goals",
-        description: "Please add at least one financial goal.",
+        description: "Please add at least one financial goal (other than retirement).",
         variant: "destructive"
       });
       return;
@@ -127,6 +128,7 @@ export function Planner() {
       const processedAssets: Asset[] = assets.map(a => ({ ...a, type: a.type === 'Other' && a.otherType ? a.otherType : a.type }));
       const processedLiabilities: Liability[] = liabilities.map(l => ({ ...l, type: l.type === 'Other' && l.otherType ? l.otherType : l.type }));
       const processedExpenses: Expense[] = expenses.map(e => ({ ...e, type: e.type === 'Other' && e.otherType ? e.otherType : e.type }));
+      
       const processedGoals: Goal[] = goals.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
       const processedGoalsWithCalculations: GoalWithCalculations[] = goalsWithCalculations.map((g, i) => ({ 
         ...g, 
@@ -221,14 +223,15 @@ export function Planner() {
 
 
       // SIP Optimizer Logic for other goals
-      const totalRequiredSipForOtherGoals = processedGoalsWithCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
+      const otherGoalsCalculations = processedGoalsWithCalculations.filter(g => g.name.toLowerCase() !== 'retirement');
+      const totalRequiredSipForOtherGoals = otherGoalsCalculations.reduce((sum, goal) => sum + goal.newSipRequired, 0);
       let surplusForWealthCreation = 0;
       let optimizerGoals: SipOptimizerGoal[] = [];
 
       if (investibleSurplus >= totalRequiredSipForOtherGoals) {
         // CASE 1 & 3: All goals are covered, potentially with surplus
         surplusForWealthCreation = investibleSurplus - totalRequiredSipForOtherGoals;
-        optimizerGoals = processedGoalsWithCalculations.map(goal => {
+        optimizerGoals = otherGoalsCalculations.map(goal => {
             const timelines = calculateTimelines(goal, goal.newSipRequired);
             return {
                 id: goal.id,
@@ -250,9 +253,9 @@ export function Planner() {
         });
       } else {
         // CASE 2: SIPs exceed cashflow, allocate proportionally based on required SIP ratio
-        optimizerGoals = processedGoalsWithCalculations.map(goal => {
+        optimizerGoals = otherGoalsCalculations.map(goal => {
             let allocatedInvestment = 0;
-            if (processedGoalsWithCalculations.length === 1) {
+            if (otherGoalsCalculations.length === 1) {
                 allocatedInvestment = investibleSurplus;
             } else if (totalRequiredSipForOtherGoals > 0) {
                 const weight = goal.newSipRequired / totalRequiredSipForOtherGoals;
@@ -289,7 +292,7 @@ export function Planner() {
           wealthCreationGoal = calculateWealthCreation(surplusForWealthCreation, defaultRate);
       }
       
-      const totalCurrentInvestment = optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0) + (retirementGoalReport?.investmentStatus.currentInvestment || 0) + getNumericValue(retirementInputs.currentSip);
+      const totalCurrentInvestment = optimizerGoals.reduce((sum, g) => sum + g.investmentStatus.currentInvestment, 0) + getNumericValue(retirementInputs.currentSip);
       const totalRequiredInvestment = totalRequiredSipForOtherGoals + (retirementGoalReport?.investmentStatus.requiredInvestment || 0);
       const totalPotentialInvestment = (monthlyCashflow > 0 ? monthlyCashflow : 0);
 
