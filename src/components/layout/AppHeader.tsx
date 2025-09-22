@@ -10,10 +10,10 @@ const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.f
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-28 items-center">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-48 animate-logo-bob">
+            <div className="relative h-20 w-96 animate-logo-bob">
                 <Image 
                   src={logoUrl}
                   alt="FinFriend Planner Logo" 
