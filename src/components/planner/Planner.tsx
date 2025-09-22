@@ -85,6 +85,7 @@ export function Planner() {
   useEffect(() => {
     async function loadData() {
       if (user) {
+        setIsDataLoaded(false); // Set loading state to true when starting to fetch
         const data = await getPlannerData(user.uid);
         if (data) {
           setPersonalDetails(data.personalDetails || initialPersonalDetails);
@@ -99,7 +100,7 @@ export function Planner() {
           setAssetAllocationProfile(data.assetAllocationProfile || initialAssetAllocation);
           setRecommendedFunds(data.recommendedFunds || initialRecommendedFunds);
         }
-        setIsDataLoaded(true);
+        setIsDataLoaded(true); // Set loading state to false after fetch is complete
       }
     }
     loadData();
@@ -450,17 +451,29 @@ export function Planner() {
     }
   };
 
-  if (!isDataLoaded && !user) {
+  if (!user) {
+    // This case should be handled by the parent Home component redirect
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  if (!isDataLoaded) {
     return (
         <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-4">Loading your financial data...</span>
         </div>
     );
   }
 
   return (
     <div className="bg-background">
-      <AppHeader />
+      <header className="z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <AppHeader />
+      </header>
       <div className="container mx-auto p-4 md:p-8">
         <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold font-headline text-foreground">Plan Your Financial Future</h2>
