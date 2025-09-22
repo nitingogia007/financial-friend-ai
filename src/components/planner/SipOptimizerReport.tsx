@@ -509,37 +509,6 @@ export function SipOptimizerReport({ data }: Props) {
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
-                {data.retirementGoal && (
-                    <div className="border-b pb-4 last:border-b-0">
-                        <h3 className="font-bold text-base text-gray-800 mb-2">Retirement</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                            <div className="p-2 rounded-lg border border-red-200 bg-red-50">
-                                <h4 className="text-center font-semibold text-red-700 mb-2">What I am investing / Month</h4>
-                                <div className="flex flex-col items-center text-center space-y-1">
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Current SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.currentInvestment)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline.current)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
-                                </div>
-                            </div>
-                            <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
-                                <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
-                                <div className="flex flex-col items-center text-center space-y-1">
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Required SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.requiredInvestment)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline.required)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.futureValue)}</span></div>
-                                </div>
-                            </div>
-                            <div className="p-2 rounded-lg border border-green-200 bg-green-50">
-                                <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
-                                <div className="flex flex-col items-center text-center space-y-1">
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.investmentStatus.allocatedInvestment)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(data.retirementGoal.timeline.potential)}</span></div>
-                                    <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(data.retirementGoal.potentialCorpus)}</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
                     const goalCorpus = goal.futureValue || goal.potentialCorpus;
                     return (
@@ -751,3 +720,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
