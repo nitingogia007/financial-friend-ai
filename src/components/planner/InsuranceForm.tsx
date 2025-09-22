@@ -122,14 +122,14 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
         currentCover: hasLifeInsurance === 'yes' ? lifeCover : '',
         currentPremium: hasLifeInsurance === 'yes' ? lifePremium : '',
         coverageGap: lifeCoverGap,
-        quote: showLifeQuoteForm ? lifeQuote : undefined
+        ...(showLifeQuoteForm && { quote: lifeQuote }),
       },
       healthInsurance: {
         recommendedCover: recommendedHealthCoverText,
         currentCover: hasHealthInsurance === 'yes' ? healthCover : '',
         currentPremium: hasHealthInsurance === 'yes' ? healthPremium : '',
         coverageGap: healthCoverGap,
-        quote: showHealthQuoteForm ? healthQuote : undefined
+        ...(showHealthQuoteForm && { quote: healthQuote }),
       }
     });
   }, [
