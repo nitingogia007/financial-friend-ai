@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enablePersistence } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB6rDC1SCymOfz4_CA87L604HV7x-rpnAw",
@@ -19,7 +19,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 try {
-    enablePersistence(db);
+    enableIndexedDbPersistence(db)
 } catch (err: any) {
     if (err.code == 'failed-precondition') {
         // Multiple tabs open, persistence can only be enabled
