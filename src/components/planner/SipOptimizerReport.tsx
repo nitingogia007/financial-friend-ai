@@ -517,6 +517,13 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
 
+        {/* Retirement Analysis */}
+        {data.retirementCalculations && (
+          <section className="mt-4 print-avoid-break">
+            <RetirementAnalysisCard calcs={data.retirementCalculations} />
+          </section>
+        )}
+
         {/* Goals Table */}
         <section className="mt-4 print-avoid-break">
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
@@ -606,11 +613,6 @@ export function SipOptimizerReport({ data }: Props) {
                     </div>
                     {data.insuranceAnalysis.healthInsurance.quote && <HealthInsuranceQuoteCard quote={data.insuranceAnalysis.healthInsurance.quote} />}
                 </div>
-                {data.retirementCalculations && (
-                    <div className="md:col-span-2">
-                        <RetirementAnalysisCard calcs={data.retirementCalculations} />
-                    </div>
-                )}
             </div>
         </section>
         )}
