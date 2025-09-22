@@ -261,3 +261,17 @@ export interface RetirementCalculations {
     monthlyInvestmentNeeded: number;
     incrementalMonthlyInvestment: number;
 }
+
+export interface AllPlannerData {
+    personalDetails: PersonalDetails;
+    assets: Asset[];
+    liabilities: Liability[];
+    incomes: Income[];
+    expenses: Expense[];
+    goals: Goal[];
+    insuranceAnalysis: InsuranceAnalysisData | null;
+    willStatus: 'yes' | 'no' | null;
+    retirementInputs: RetirementInputs;
+    assetAllocationProfile: AssetAllocationProfile;
+    recommendedFunds: { [key: string]: string };
+}

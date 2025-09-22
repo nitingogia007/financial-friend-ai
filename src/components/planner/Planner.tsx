@@ -1,15 +1,18 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport, AllPlannerData } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Download } from 'lucide-react';
 import { generateCsv } from '@/lib/csv';
+import { getPlannerData, savePlannerData } from '@/services/firestore';
+import { useAuth } from '@/context/AuthContext';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AssetsLiabilitiesForm } from './AssetsLiabilitiesForm';
@@ -21,26 +24,15 @@ import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
 import { RecommendedFunds } from './RecommendedFunds';
 import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
+import { AppHeader } from '../layout/AppHeader';
 
-
-export function Planner() {
-  const { toast } = useToast();
-  const router = useRouter();
-  
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({ name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' });
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [liabilities, setLiabilities] = useState<Liability[]>([]);
-  const [incomes, setIncomes] = useState<Income[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([{ id: 'initial-1', name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }]);
-  const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
-  const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
-  const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>({
+const initialPersonalDetails: PersonalDetails = { name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' };
+const initialAssets: Asset[] = [];
+const initialLiabilities: Liability[] = [];
+const initialIncomes: Income[] = [];
+const initialExpenses: Expense[] = [];
+const initialGoals: Goal[] = [{ id: 'initial-1', name: '', corpus: '', years: '', rate: 12, currentSave: '', currentSip: '' }];
+const initialRetirementInputs: RetirementInputs = {
     currentAge: '',
     desiredRetirementAge: '',
     lifeExpectancy: '',
@@ -50,15 +42,69 @@ export function Planner() {
     incrementalRate: '',
     currentSavings: '',
     currentSip: '',
-  });
-  const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>({ age: '', riskAppetite: '' });
-  const [recommendedFunds, setRecommendedFunds] = useState<{[key: string]: string}>(
-    Object.keys(defaultRecommendedFunds).reduce((acc, key) => ({...acc, [key]: ''}), {})
-  );
+};
+const initialAssetAllocation: AssetAllocationProfile = { age: '', riskAppetite: '' };
+const initialRecommendedFunds: {[key: string]: string} = Object.keys(defaultRecommendedFunds).reduce((acc, key) => ({...acc, [key]: ''}), {});
 
+
+export function Planner() {
+  const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useAuth();
   
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>(initialPersonalDetails);
+  const [assets, setAssets] = useState<Asset[]>(initialAssets);
+  const [liabilities, setLiabilities] = useState<Liability[]>(initialLiabilities);
+  const [incomes, setIncomes] = useState<Income[]>(initialIncomes);
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [goals, setGoals] = useState<Goal[]>(initialGoals);
+  const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
+  const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
+  const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>(initialRetirementInputs);
+  const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>(initialAssetAllocation);
+  const [recommendedFunds, setRecommendedFunds] = useState<{[key: string]: string}>(initialRecommendedFunds);
+
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const debouncedSaveData = useDebouncedCallback((data: AllPlannerData) => {
+    if (user) {
+      savePlannerData(user.uid, data);
+    }
+  }, 1500);
+
+  useEffect(() => {
+    if (!user || !isDataLoaded) return;
+    const allData: AllPlannerData = {
+        personalDetails, assets, liabilities, incomes, expenses, goals, insuranceAnalysis, willStatus, retirementInputs, assetAllocationProfile, recommendedFunds
+    };
+    debouncedSaveData(allData);
+  }, [personalDetails, assets, liabilities, incomes, expenses, goals, insuranceAnalysis, willStatus, retirementInputs, assetAllocationProfile, recommendedFunds, debouncedSaveData, user, isDataLoaded]);
+
+  useEffect(() => {
+    async function loadData() {
+      if (user) {
+        const data = await getPlannerData(user.uid);
+        if (data) {
+          setPersonalDetails(data.personalDetails || initialPersonalDetails);
+          setAssets(data.assets || initialAssets);
+          setLiabilities(data.liabilities || initialLiabilities);
+          setIncomes(data.incomes || initialIncomes);
+          setExpenses(data.expenses || initialExpenses);
+          setGoals(data.goals && data.goals.length > 0 ? data.goals : initialGoals);
+          setInsuranceAnalysis(data.insuranceAnalysis || null);
+          setWillStatus(data.willStatus || null);
+          setRetirementInputs(data.retirementInputs || initialRetirementInputs);
+          setAssetAllocationProfile(data.assetAllocationProfile || initialAssetAllocation);
+          setRecommendedFunds(data.recommendedFunds || initialRecommendedFunds);
+        }
+        setIsDataLoaded(true);
+      }
+    }
+    loadData();
+  }, [user]);
+  
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
 
   const age = useMemo(() => calculateAge(personalDetails.dob), [personalDetails.dob]);
@@ -92,7 +138,6 @@ export function Planner() {
     };
     generateCsv(allData);
   };
-
 
   const handleGenerateReport = async () => {
     if (!personalDetails.name || !personalDetails.email) {
@@ -405,12 +450,17 @@ export function Planner() {
     }
   };
 
-  if (!isMounted) {
-    return null; // or a loading spinner
+  if (!isDataLoaded && !user) {
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
 
   return (
     <div className="bg-background">
+      <AppHeader />
       <div className="container mx-auto p-4 md:p-8">
         <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold font-headline text-foreground">Plan Your Financial Future</h2>
