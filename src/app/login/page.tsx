@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ const logoUrl = "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.f
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSigningUp, setIsSigningUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -35,13 +34,8 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      if (isSigningUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Account created successfully! Redirecting...' });
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Logged in successfully! Redirecting...' });
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({ title: 'Logged in successfully! Redirecting...' });
       router.push('/');
     } catch (error: any) {
       console.error(error);
@@ -69,9 +63,9 @@ export default function LoginPage() {
                 unoptimized
             />
           </div>
-          <CardTitle className="text-2xl">{isSigningUp ? 'Create an Account' : 'Welcome Back'}</CardTitle>
+          <CardTitle className="text-2xl">Welcome Back</CardTitle>
           <CardDescription>
-            {isSigningUp ? 'Enter your details to get started.' : 'Sign in to access your financial planner.'}
+            Sign in to access your financial planner.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleAuthAction}>
@@ -101,18 +95,8 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSigningUp ? 'Sign Up' : 'Sign In'}
+                Sign In
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-                {isSigningUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-                <button
-                type="button"
-                onClick={() => setIsSigningUp(!isSigningUp)}
-                className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                {isSigningUp ? 'Sign In' : 'Sign Up'}
-                </button>
-            </p>
             </CardFooter>
         </form>
       </Card>
