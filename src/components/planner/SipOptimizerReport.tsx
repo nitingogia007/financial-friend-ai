@@ -176,17 +176,29 @@ const RetirementAnalysisCard = ({ calcs }: { calcs: RetirementCalculations }) =>
         <CardContent className="text-xs">
             <Table>
                 <TableBody>
-                    <TableRow>
+                     <TableRow>
                         <TableCell className="font-medium">Years to Retirement</TableCell>
                         <TableCell className="text-right font-semibold roboto">{calcs.yearsToRetirement}</TableCell>
                     </TableRow>
-                     <TableRow>
-                        <TableCell className="font-medium">Required Corpus</TableCell>
-                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.requiredRetirementCorpus)}</TableCell>
+                    <TableRow>
+                        <TableCell className="font-medium">Inflated Monthly Expense</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.inflatedMonthlyExpense)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">Annual Expense at Retirement</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.annualExpenseAtRetirement)}</TableCell>
+                    </TableRow>
+                     <TableRow className="bg-blue-100/50">
+                        <TableCell className="font-bold">Required Retirement Corpus</TableCell>
+                        <TableCell className="text-right font-bold roboto">{formatCurrency(calcs.requiredRetirementCorpus)}</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell className="font-medium">Monthly Investment Needed</TableCell>
                         <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.monthlyInvestmentNeeded)}</TableCell>
+                    </TableRow>
+                     <TableRow>
+                        <TableCell className="font-medium">Incremental Monthly Investment</TableCell>
+                        <TableCell className="text-right font-semibold roboto">{formatCurrency(calcs.incrementalMonthlyInvestment)}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
@@ -720,5 +732,7 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
 
     
