@@ -33,8 +33,8 @@ export function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
-            <Avatar className="h-8 w-8">
+        <Button variant="outline" size="icon" className="rounded-full w-16 h-16">
+            <Avatar className="h-14 w-14">
                 {user.photoURL ? (
                     <AvatarImage src={user.photoURL} alt="User avatar" />
                 ) : (
