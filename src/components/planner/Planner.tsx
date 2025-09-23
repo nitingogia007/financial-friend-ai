@@ -85,7 +85,6 @@ export function Planner() {
   useEffect(() => {
     async function loadData() {
       if (user) {
-        setIsDataLoaded(false); // Set loading state to true when starting to fetch
         const data = await getPlannerData(user.uid);
         if (data) {
           setPersonalDetails(data.personalDetails || initialPersonalDetails);
