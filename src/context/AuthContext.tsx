@@ -26,17 +26,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  if (isLoading) {
-    return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={{ user, isLoading }}>
-      {children}
+      {isLoading ? (
+         <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Download } from 'lucide-react';
 import { generateCsv } from '@/lib/csv';
-import { getPlannerData, savePlannerData } from '@/services/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -52,8 +51,6 @@ export function Planner() {
   const router = useRouter();
   const { user } = useAuth();
   
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>(initialPersonalDetails);
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [liabilities, setLiabilities] = useState<Liability[]>(initialLiabilities);
@@ -68,43 +65,6 @@ export function Planner() {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const debouncedSaveData = useDebouncedCallback((data: AllPlannerData) => {
-    if (user) {
-      savePlannerData(user.uid, data);
-    }
-  }, 1500);
-
-  useEffect(() => {
-    if (!user || !isDataLoaded) return;
-    const allData: AllPlannerData = {
-        personalDetails, assets, liabilities, incomes, expenses, goals, insuranceAnalysis, willStatus, retirementInputs, assetAllocationProfile, recommendedFunds
-    };
-    debouncedSaveData(allData);
-  }, [personalDetails, assets, liabilities, incomes, expenses, goals, insuranceAnalysis, willStatus, retirementInputs, assetAllocationProfile, recommendedFunds, debouncedSaveData, user, isDataLoaded]);
-
-  useEffect(() => {
-    async function loadData() {
-      if (user) {
-        const data = await getPlannerData(user.uid);
-        if (data) {
-          setPersonalDetails(data.personalDetails || initialPersonalDetails);
-          setAssets(data.assets || initialAssets);
-          setLiabilities(data.liabilities || initialLiabilities);
-          setIncomes(data.incomes || initialIncomes);
-          setExpenses(data.expenses || initialExpenses);
-          setGoals(data.goals && data.goals.length > 0 ? data.goals : initialGoals);
-          setInsuranceAnalysis(data.insuranceAnalysis || null);
-          setWillStatus(data.willStatus || null);
-          setRetirementInputs(data.retirementInputs || initialRetirementInputs);
-          setAssetAllocationProfile(data.assetAllocationProfile || initialAssetAllocation);
-          setRecommendedFunds(data.recommendedFunds || initialRecommendedFunds);
-        }
-        setIsDataLoaded(true); // Set loading state to false after fetch is complete
-      }
-    }
-    loadData();
-  }, [user]);
-  
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
 
   const age = useMemo(() => calculateAge(personalDetails.dob), [personalDetails.dob]);
@@ -456,15 +416,6 @@ export function Planner() {
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    );
-  }
-  
-  if (!isDataLoaded) {
-    return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-4">Loading your financial data...</span>
-        </div>
     );
   }
 
