@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { getAssetAllocation, recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
+import { getAssetAllocation, fundData as defaultRecommendedFunds } from '@/lib/calculations';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -695,35 +695,36 @@ export function SipOptimizerReport({ data }: Props) {
         
         {/* Asset & Fund Allocation Section */}
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation &amp; Recommended Funds</h2>
-            {recommendedAllocation ? (
-            <Table className="text-xs">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Asset Category</TableHead>
-                        <TableHead className="text-right">Allocation</TableHead>
-                        <TableHead>Your Chosen Fund</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {Object.entries(recommendedAllocation).map(([key, value]) => {
-                        if (key === 'Expected Return' || value === 0) return null;
-                        const userFund = data.recommendedFunds[key as keyof typeof defaultRecommendedFunds];
-                        const defaultFund = defaultRecommendedFunds[key as keyof typeof defaultRecommendedFunds];
-                        return (
+    <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-gray-500"/>Asset Allocation &amp; Recommended Funds</h2>
+    {recommendedAllocation ? (
+        <Table className="text-xs">
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Asset Category</TableHead>
+                    <TableHead className="text-right">Allocation</TableHead>
+                    <TableHead>Your Chosen Fund</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {Object.entries(recommendedAllocation).map(([key, value]) => {
+                    if (key === 'Expected Return' || value === 0) return null;
+                    const userFundAllocation = data.fundAllocations.find(fa => fa.fundCategory === key);
+                    const defaultFund = (defaultRecommendedFunds[key as keyof typeof defaultRecommendedFunds] || [])[0]?.name;
+
+                    return (
                         <TableRow key={key}>
                             <TableCell className="font-medium">{key}</TableCell>
                             <TableCell className="text-right roboto font-bold">{value}%</TableCell>
-                            <TableCell>{userFund || defaultFund}</TableCell>
+                            <TableCell>{userFundAllocation ? userFundAllocation.fundName : defaultFund || 'N/A'}</TableCell>
                         </TableRow>
-                        )
-                    })}
-                </TableBody>
-            </Table>
-            ) : (
-            <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
-            )}
-        </section>
+                    )
+                })}
+            </TableBody>
+        </Table>
+    ) : (
+        <p className="text-sm text-gray-500 text-center p-4">Select age and risk profile to see allocation.</p>
+    )}
+</section>
 
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
@@ -738,3 +739,4 @@ export function SipOptimizerReport({ data }: Props) {
     
 
     
+
