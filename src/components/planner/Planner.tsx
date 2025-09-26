@@ -76,6 +76,10 @@ export function Planner() {
   const totalAnnualIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
   const totalAnnualExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
   const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
+  
+  const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
+  const investibleSurplus = useMemo(() => monthlyCashflow > 0 ? monthlyCashflow : 0, [monthlyCashflow]);
+
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
   const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
@@ -142,7 +146,6 @@ export function Planner() {
 
 
       // Common data preparation
-      const monthlyCashflow = (totalAnnualIncome - totalAnnualExpenses) / 12;
       let investibleSurplus = monthlyCashflow > 0 ? monthlyCashflow : 0;
       
       const findAssetAmount = (type: string) => getNumericValue(processedAssets.find(a=> a.type === type)?.amount);
@@ -155,7 +158,7 @@ export function Planner() {
           gold: { corpus: findAssetAmount('Gold/Gold Bond/ETF/Fund'), monthly: 0},
           insurance: { corpus: findAssetAmount('Insurance'), monthly: 0},
           realEstate: { corpus: findAssetAmount('Real Estate'), monthly: 0},
-          others: { corpus: findAssetAmount('Other'), monthly: 0}, // Note: This might need adjustment if multiple 'Other' assets exist
+          others: { corpus: findAssetAmount('Other'), monthly: 0 }, // Note: This might need adjustment if multiple 'Other' assets exist
           total: { corpus: 0, monthly: 0 }
       };
 
@@ -472,6 +475,7 @@ export function Planner() {
           <RecommendedFunds
             funds={recommendedFunds}
             setFunds={setRecommendedFunds}
+            investibleSurplus={investibleSurplus}
            />
         </div>
 

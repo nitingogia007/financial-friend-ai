@@ -324,11 +324,8 @@ export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record
 }
 
 export const recommendedFunds = {
-  'Large Cap': 'e.g. Nippon India Large Cap Fund',
-  'Mid Cap': 'e.g. Axis Mid cap fund',
-  'Small Cap': 'e.g. Invesco India Small Cap Fund',
-  'Multi + Flexi Cap': 'e.g. Axis Multi Cap Fund',
-  'Sectoral': 'e.g. Nippon India Power & Infra Fund',
-  'Debt': 'e.g. ICICI Pru Equity & Debt Fund',
-  'Hybrid': 'e.g. Franklin India equity Hybrid Fund',
+  'Large & Mid Cap': 'e.g. Axis Growth Opportunities Fund',
+  'Flexi Cap': 'e.g. Parag Parikh Flexi Cap Fund',
+  'Small Cap': 'e.g. Nippon India Small Cap Fund',
+  'ELSS/Tax Saver': 'e.g. IDFC Tax Advantage (ELSS) Fund',
 };
