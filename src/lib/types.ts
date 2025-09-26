@@ -183,13 +183,8 @@ export interface AssetAllocationProfile {
 export interface FundAllocation {
     id: string;
     goalId: string;
-    largeCap: string;
-    midCap: string;
-    smallCap: string;
-    multiFlexiCap: string;
-    sectoral: string;
-    debt: string;
-    hybrid: string;
+    fundCategory: string;
+    fundName: string;
 }
 
 export interface SipOptimizerReportData {
@@ -287,5 +282,3 @@ export interface AllPlannerData {
     assetAllocationProfile: AssetAllocationProfile;
     fundAllocations: FundAllocation[];
 }
-
-    

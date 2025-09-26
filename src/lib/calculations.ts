@@ -1,4 +1,5 @@
 
+
 import type { Goal, GoalWithCalculations, WealthCreationGoal, RetirementInputs, RetirementCalculations, RiskAppetite } from './types';
 
 // Financial formula implementations
@@ -323,9 +324,31 @@ export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record
   return allocationData[ageGroup][risk];
 }
 
-export const recommendedFunds = {
-  'Large & Mid Cap': 'e.g. Axis Growth Opportunities Fund',
-  'Flexi Cap': 'e.g. Parag Parikh Flexi Cap Fund',
-  'Small Cap': 'e.g. Nippon India Small Cap Fund',
-  'ELSS/Tax Saver': 'e.g. IDFC Tax Advantage (ELSS) Fund',
+export const fundData = {
+    'Large Cap': [
+        { name: 'Nippon India Large and Mid Cap Fund', returns: { '3Y': '21.10%', '5Y': '24.55%', '10Y': '13.39%' } },
+        { name: 'ICICI Prudential Large & Mid Cap Fund- Growth', returns: { '3Y': '21.85%', '5Y': '27.91%', '10Y': '16.47%' } }
+    ],
+    'Mid Cap': [
+        { name: 'Invesco India Mid Cap Fund', returns: { '3Y': '27.12%', '5Y': '27.99%', '10Y': '16.21%' } },
+        { name: 'Motilal Oswal Midcap Fund', returns: { '3Y': '24.62%', '5Y': '33.34%', '10Y': '16.21%' } }
+    ],
+    'Small Cap': [
+        { name: 'Bandhan Small Cap', returns: { '3Y': '28.97%', '5Y': '31.00%', '10Y': '16.93%' } },
+        { name: 'HDFC Small Cap', returns: { '3Y': '23.42%', '5Y': '30.74%', '10Y': '17.06%' } }
+    ],
+    'Hybrid': [
+        { name: 'Franklin India Aggressive Hybrid Fund', returns: { '3Y': '15.01%', '5Y': '18.51%', '10Y': '11.93%' } },
+        { name: 'Invesco India Aggressive Hybrid Fund', returns: { '3Y': '16.23%', '5Y': '16.20%', '10Y': 'N/A' } }
+    ],
+    'Sectoral': [
+        { name: 'SBI Banking & Financial Services Fund', returns: { '3Y': '18.57%', '5Y': '23.02%', '10Y': '16.72%' } },
+        { name: 'ICICI Prudential Bharat Consumption Fund', returns: { '3Y': '17.42%', '5Y': '21.68%', '10Y': 'N/A' } }
+    ],
+    'Debt': [
+        { name: 'SBI Magnum Income Fund', returns: { '3Y': '7.08%', '5Y': '6.46%', '10Y': '6.99%' } },
+        { name: 'ICICI Prudential Bond Fund - Growth', returns: { '3Y': '7.67%', '5Y': '6.87%', '10Y': '6.99%' } }
+    ],
+    // Multi + Flexi Cap is not in the image, so we add it as an empty array
+    'Multi + Flexi Cap': []
 };
