@@ -525,8 +525,8 @@ export function Planner() {
             funds={recommendedFunds}
             setFunds={setRecommendedFunds}
             investibleSurplus={investibleSurplus}
+            optimizedGoals={optimizedGoals}
            />
-           {optimizedGoals.length > 0 && <GoalsBreakdown optimizedGoals={optimizedGoals} />}
         </div>
 
         <div className="mt-12 text-center flex justify-center items-center gap-4">

@@ -8,14 +8,18 @@ import { Lightbulb, Wallet } from 'lucide-react';
 import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { GoalsBreakdown } from './GoalsBreakdown';
+import type { SipOptimizerGoal } from '@/lib/types';
+import { Separator } from '../ui/separator';
 
 interface Props {
     funds: { [key: string]: string };
     setFunds: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
     investibleSurplus: number;
+    optimizedGoals: SipOptimizerGoal[];
 }
 
-export function RecommendedFunds({ funds, setFunds, investibleSurplus }: Props) {
+export function RecommendedFunds({ funds, setFunds, investibleSurplus, optimizedGoals }: Props) {
   
   const handleChange = (category: string, value: string) => {
     setFunds(prev => ({...prev, [category]: value}));
@@ -23,8 +27,8 @@ export function RecommendedFunds({ funds, setFunds, investibleSurplus }: Props) 
 
   return (
     <FormSection
-      title="Recommended Funds"
-      description="Enter your preferred funds for each category. Examples are provided."
+      title="Recommended Funds & Goal Analysis"
+      description="Enter your chosen funds and see your goal breakdown based on your investible surplus."
       icon={<Lightbulb className="h-6 w-6" />}
       className="xl:col-span-2"
     >
@@ -37,39 +41,45 @@ export function RecommendedFunds({ funds, setFunds, investibleSurplus }: Props) 
             ₹{investibleSurplus.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </span>
         </div>
-      <Card className="bg-accent/5">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Category</TableHead>
-                <TableHead>Your Chosen Fund</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.entries(defaultRecommendedFunds).map(([key, value]) => (
-                <TableRow key={key}>
-                  <TableCell className="font-medium">
-                    <Label htmlFor={`fund-${key}`}>{key}</Label>
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                        id={`fund-${key}`}
-                        type="text"
-                        placeholder={value}
-                        value={funds[key] || ''}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                    />
-                  </TableCell>
+
+        {optimizedGoals.length > 0 && <GoalsBreakdown optimizedGoals={optimizedGoals} />}
+        
+        <Separator className="my-8" />
+
+        <h3 className="text-xl font-bold font-headline text-foreground mb-4">Recommended Fund Categories</h3>
+        <Card className="bg-accent/5">
+            <CardContent className="p-0">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Your Chosen Fund</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      <p className="text-xs text-muted-foreground mt-4">
-        Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions.
-      </p>
+                </TableHeader>
+                <TableBody>
+                {Object.entries(defaultRecommendedFunds).map(([key, value]) => (
+                    <TableRow key={key}>
+                    <TableCell className="font-medium">
+                        <Label htmlFor={`fund-${key}`}>{key}</Label>
+                    </TableCell>
+                    <TableCell>
+                        <Input 
+                            id={`fund-${key}`}
+                            type="text"
+                            placeholder={value}
+                            value={funds[key] || ''}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                        />
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            </CardContent>
+        </Card>
+        <p className="text-xs text-muted-foreground mt-4">
+            Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions.
+        </p>
     </FormSection>
   );
 }
