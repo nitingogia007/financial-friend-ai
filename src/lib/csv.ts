@@ -1,6 +1,6 @@
 
 import Papa from 'papaparse';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, InsuranceAnalysisData, RetirementInputs, AssetAllocationProfile } from './types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, InsuranceAnalysisData, RetirementInputs, AssetAllocationProfile, FundAllocation } from './types';
 
 // Helper function to create and download a file
 function downloadFile(filename: string, content: string, mimeType: string) {
@@ -40,7 +40,7 @@ export function generateCsv(data: {
     willStatus: 'yes' | 'no' | null,
     retirementInputs: RetirementInputs,
     assetAllocationProfile: AssetAllocationProfile,
-    recommendedFunds: { [key: string]: string },
+    fundAllocations: FundAllocation[],
     netWorth: number,
     yearlyCashflow: number
 }) {
@@ -69,10 +69,6 @@ export function generateCsv(data: {
         'Retirement - Current SIP': data.retirementInputs.currentSip,
         'Asset Allocation - Age': data.assetAllocationProfile.age,
         'Asset Allocation - Risk Appetite': data.assetAllocationProfile.riskAppetite,
-        ...Object.entries(data.recommendedFunds).reduce((acc, [key, value]) => {
-            acc[`Recommended Fund - ${key}`] = value;
-            return acc;
-        }, {} as Record<string, string>),
     };
 
     if (data.insuranceAnalysis) {
@@ -84,12 +80,13 @@ export function generateCsv(data: {
         summaryData['Insurance - Health Coverage Gap'] = data.insuranceAnalysis.healthInsurance.coverageGap;
     }
 
-    const lists = {
+    const lists: Record<string, any[]> = {
         'Asset': data.assets,
         'Liability': data.liabilities,
         'Income': data.incomes,
         'Expense': data.expenses,
         'Goal': data.goals,
+        'Fund Allocation': data.fundAllocations,
     };
 
     let combinedRows: Record<string, any>[] = [];
@@ -123,3 +120,5 @@ export function generateCsv(data: {
         alert("Could not generate CSV file.");
     }
 }
+
+    

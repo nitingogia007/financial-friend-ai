@@ -180,6 +180,18 @@ export interface AssetAllocationProfile {
     riskAppetite: RiskAppetite;
 }
 
+export interface FundAllocation {
+    id: string;
+    goalId: string;
+    largeCap: string;
+    midCap: string;
+    smallCap: string;
+    multiFlexiCap: string;
+    sectoral: string;
+    debt: string;
+    hybrid: string;
+}
+
 export interface SipOptimizerReportData {
   personalDetails: {
     name: string;
@@ -235,7 +247,7 @@ export interface SipOptimizerReportData {
   willStatus: 'yes' | 'no' | null;
   retirementCalculations: RetirementCalculations;
   assetAllocationProfile: AssetAllocationProfile;
-  recommendedFunds: { [key: string]: string };
+  fundAllocations: FundAllocation[];
 }
 
 export interface RetirementInputs {
@@ -273,5 +285,7 @@ export interface AllPlannerData {
     willStatus: 'yes' | 'no' | null;
     retirementInputs: RetirementInputs;
     assetAllocationProfile: AssetAllocationProfile;
-    recommendedFunds: { [key: string]: string };
+    fundAllocations: FundAllocation[];
 }
+
+    

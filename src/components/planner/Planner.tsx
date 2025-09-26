@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport, AllPlannerData } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, RetirementGoalReport, AllPlannerData, FundAllocation } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +44,7 @@ const initialRetirementInputs: RetirementInputs = {
     currentSip: '',
 };
 const initialAssetAllocation: AssetAllocationProfile = { age: '', riskAppetite: '' };
-const initialRecommendedFunds: {[key: string]: string} = Object.keys(defaultRecommendedFunds).reduce((acc, key) => ({...acc, [key]: ''}), {});
+const initialFundAllocations: FundAllocation[] = [];
 
 
 export function Planner() {
@@ -62,7 +62,7 @@ export function Planner() {
   const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
   const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>(initialRetirementInputs);
   const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>(initialAssetAllocation);
-  const [recommendedFunds, setRecommendedFunds] = useState<{[key: string]: string}>(initialRecommendedFunds);
+  const [fundAllocations, setFundAllocations] = useState<FundAllocation[]>(initialFundAllocations);
   
   const [optimizedGoals, setOptimizedGoals] = useState<SipOptimizerGoal[]>([]);
 
@@ -145,7 +145,7 @@ export function Planner() {
         willStatus,
         retirementInputs,
         assetAllocationProfile,
-        recommendedFunds,
+        fundAllocations,
         netWorth,
         yearlyCashflow
     };
@@ -400,7 +400,7 @@ export function Planner() {
           willStatus: willStatus,
           retirementCalculations: retirementCalculations,
           assetAllocationProfile: assetAllocationProfile,
-          recommendedFunds,
+          fundAllocations: fundAllocations,
       };
       
       // Detailed Wellness Report Data
@@ -522,10 +522,11 @@ export function Planner() {
             setProfile={setAssetAllocationProfile}
           />
           <RecommendedFunds
-            funds={recommendedFunds}
-            setFunds={setRecommendedFunds}
+            allocations={fundAllocations}
+            setAllocations={setFundAllocations}
             investibleSurplus={investibleSurplus}
             optimizedGoals={optimizedGoals}
+            goals={goals}
            />
         </div>
 
@@ -549,3 +550,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
