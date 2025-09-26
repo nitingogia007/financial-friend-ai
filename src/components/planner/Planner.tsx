@@ -22,6 +22,7 @@ import { EstatePlanningForm } from './EstatePlanningForm';
 import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
 import { RecommendedFunds } from './RecommendedFunds';
+import { GoalsBreakdown } from './GoalsBreakdown';
 import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
 import { AppHeader } from '../layout/AppHeader';
 
@@ -62,6 +63,8 @@ export function Planner() {
   const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>(initialRetirementInputs);
   const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>(initialAssetAllocation);
   const [recommendedFunds, setRecommendedFunds] = useState<{[key: string]: string}>(initialRecommendedFunds);
+  
+  const [optimizedGoals, setOptimizedGoals] = useState<SipOptimizerGoal[]>([]);
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -83,6 +86,52 @@ export function Planner() {
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
   const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
+  
+  const debouncedCalculateOptimizedGoals = useDebouncedCallback(() => {
+        let availableSurplus = investibleSurplus;
+        const otherGoals = goalsWithCalculations.filter(g => g.name.toLowerCase() !== 'retirement' && g.name !== '');
+
+        const totalRequiredSipForOtherGoals = otherGoals.reduce((sum, goal) => sum + goal.newSipRequired, 0);
+
+        const newOptimizedGoals = otherGoals.map(goal => {
+            let allocatedInvestment = 0;
+
+            if (availableSurplus >= totalRequiredSipForOtherGoals) {
+                allocatedInvestment = goal.newSipRequired;
+            } else {
+                if (totalRequiredSipForOtherGoals > 0) {
+                    const weight = goal.newSipRequired / totalRequiredSipForOtherGoals;
+                    allocatedInvestment = availableSurplus * weight;
+                }
+            }
+
+            const timelines = calculateTimelines(goal, allocatedInvestment);
+            
+            return {
+                id: goal.id,
+                name: goal.otherType ? goal.otherType : goal.name,
+                targetCorpus: getNumericValue(goal.corpus),
+                futureValue: goal.futureValueOfGoal,
+                timeline: {
+                    current: timelines.timelineWithCurrentSip,
+                    required: timelines.timelineWithRequiredSip,
+                    potential: timelines.timelineWithPotentialSip,
+                },
+                investmentStatus: {
+                    currentInvestment: getNumericValue(goal.currentSip),
+                    requiredInvestment: goal.newSipRequired,
+                    allocatedInvestment: allocatedInvestment,
+                },
+                potentialCorpus: goal.futureValueOfGoal, 
+            };
+        });
+        setOptimizedGoals(newOptimizedGoals);
+  }, 500);
+
+  useEffect(() => {
+    debouncedCalculateOptimizedGoals();
+  }, [goalsWithCalculations, investibleSurplus, debouncedCalculateOptimizedGoals]);
+
 
   const handleDownloadCsv = () => {
     const allData = {
@@ -477,6 +526,7 @@ export function Planner() {
             setFunds={setRecommendedFunds}
             investibleSurplus={investibleSurplus}
            />
+           {optimizedGoals.length > 0 && <GoalsBreakdown optimizedGoals={optimizedGoals} />}
         </div>
 
         <div className="mt-12 text-center flex justify-center items-center gap-4">
