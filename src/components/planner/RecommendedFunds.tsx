@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
 import type { SipOptimizerGoal, FundAllocation, Goal } from '@/lib/types';
@@ -97,6 +97,41 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         debt: debtTotal,
     }
   }, [allocations]);
+
+  const weightedGoalAnalysis = useMemo(() => {
+    const getNum = (val: number | '') => (typeof val === 'number' ? val : 0);
+    const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
+
+    const analysisByGoal: Record<string, { goalName: string; equitySip: number; totalSip: number }> = {};
+
+    allocations.forEach(alloc => {
+      if (!alloc.goalId) return;
+
+      if (!analysisByGoal[alloc.goalId]) {
+        const goal = availableGoals.find(g => g.id === alloc.goalId);
+        analysisByGoal[alloc.goalId] = {
+          goalName: goal?.otherType || goal?.name || 'Unknown Goal',
+          equitySip: 0,
+          totalSip: 0,
+        };
+      }
+
+      const sip = getNum(alloc.sipRequired);
+      analysisByGoal[alloc.goalId].totalSip += sip;
+
+      if (equityCategories.includes(alloc.fundCategory)) {
+        analysisByGoal[alloc.goalId].equitySip += sip;
+      } else if (alloc.fundCategory === 'Hybrid') {
+        analysisByGoal[alloc.goalId].equitySip += sip * 0.65; // Assuming 65% equity in hybrid
+      }
+    });
+
+    return Object.values(analysisByGoal).map(goal => ({
+      ...goal,
+      equityPercentage: goal.totalSip > 0 ? (goal.equitySip / goal.totalSip) * 100 : 0,
+    }));
+
+  }, [allocations, availableGoals]);
 
 
   return (
@@ -251,17 +286,47 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             <CardContent className="p-2 space-y-4">
                 <div className="flex justify-between items-center">
                     <span className="font-semibold text-base">Equity Holdings</span>
-                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.equity.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <span className="font-semibold text-base">Hybrid Holdings</span>
-                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.hybrid.toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-lg text-primary">₹{(portfolioAnalysis.equity + portfolioAnalysis.hybrid).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="font-semibold text-base">Debt Holdings</span>
                     <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.debt.toLocaleString('en-IN')}</span>
                 </div>
             </CardContent>
+        </Card>
+
+        <Separator className="my-8" />
+
+        <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            Weighted Goal Portfolio Analysis
+        </h3>
+
+        <Card>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Goal Name</TableHead>
+                        <TableHead className="text-right">Equity Allocation</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {weightedGoalAnalysis.length > 0 ? (
+                        weightedGoalAnalysis.map(goal => (
+                            <TableRow key={goal.goalName}>
+                                <TableCell className="font-medium">{goal.goalName}</TableCell>
+                                <TableCell className="text-right font-bold text-primary">{goal.equityPercentage.toFixed(2)}%</TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={2} className="text-center text-muted-foreground">
+                                No fund allocations linked to goals yet.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
         </Card>
 
         <p className="text-xs text-muted-foreground mt-4">
