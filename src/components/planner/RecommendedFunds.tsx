@@ -98,39 +98,24 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     }
   }, [allocations]);
 
-  const weightedGoalAnalysis = useMemo(() => {
+  const equityFundWeights = useMemo(() => {
     const getNum = (val: number | '') => (typeof val === 'number' ? val : 0);
     const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
+    
+    const equityAllocations = allocations.filter(a => equityCategories.includes(a.fundCategory) && getNum(a.sipRequired) > 0);
+    
+    const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    
+    if (totalEquitySip === 0) return [];
 
-    const analysisByGoal: Record<string, { goalName: string; equitySip: number; totalSip: number }> = {};
-
-    allocations.forEach(alloc => {
-      if (!alloc.goalId) return;
-
-      if (!analysisByGoal[alloc.goalId]) {
-        const goal = availableGoals.find(g => g.id === alloc.goalId);
-        analysisByGoal[alloc.goalId] = {
-          goalName: goal?.otherType || goal?.name || 'Unknown Goal',
-          equitySip: 0,
-          totalSip: 0,
-        };
-      }
-
-      const sip = getNum(alloc.sipRequired);
-      analysisByGoal[alloc.goalId].totalSip += sip;
-
-      if (equityCategories.includes(alloc.fundCategory)) {
-        analysisByGoal[alloc.goalId].equitySip += sip;
-      } else if (alloc.fundCategory === 'Hybrid') {
-        analysisByGoal[alloc.goalId].equitySip += sip * 0.65; // Assuming 65% equity in hybrid
-      }
+    return equityAllocations.map(alloc => {
+      const goal = availableGoals.find(g => g.id === alloc.goalId);
+      return {
+        ...alloc,
+        goalName: goal?.otherType || goal?.name || 'Unlinked',
+        weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
+      };
     });
-
-    return Object.values(analysisByGoal).map(goal => ({
-      ...goal,
-      equityPercentage: goal.totalSip > 0 ? (goal.equitySip / goal.totalSip) * 100 : 0,
-    }));
-
   }, [allocations, availableGoals]);
 
 
@@ -286,7 +271,11 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             <CardContent className="p-2 space-y-4">
                 <div className="flex justify-between items-center">
                     <span className="font-semibold text-base">Equity Holdings</span>
-                    <span className="font-bold text-lg text-primary">₹{(portfolioAnalysis.equity + portfolioAnalysis.hybrid).toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-lg text-primary">₹{(portfolioAnalysis.equity).toLocaleString('en-IN')}</span>
+                </div>
+                 <div className="flex justify-between items-center">
+                    <span className="font-semibold text-base">Hybrid Holdings</span>
+                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.hybrid.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="font-semibold text-base">Debt Holdings</span>
@@ -299,29 +288,31 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
         <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
             <Percent className="h-5 w-5" />
-            Weighted Goal Portfolio Analysis
+            Equity Fund Weight Analysis
         </h3>
 
         <Card>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Goal Name</TableHead>
-                        <TableHead className="text-right">Equity Allocation</TableHead>
+                        <TableHead>Fund Name</TableHead>
+                        <TableHead>Goal</TableHead>
+                        <TableHead className="text-right">Weightage</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {weightedGoalAnalysis.length > 0 ? (
-                        weightedGoalAnalysis.map(goal => (
-                            <TableRow key={goal.goalName}>
-                                <TableCell className="font-medium">{goal.goalName}</TableCell>
-                                <TableCell className="text-right font-bold text-primary">{goal.equityPercentage.toFixed(2)}%</TableCell>
+                    {equityFundWeights.length > 0 ? (
+                        equityFundWeights.map(fund => (
+                            <TableRow key={fund.id}>
+                                <TableCell className="font-medium">{fund.fundName}</TableCell>
+                                <TableCell className="text-muted-foreground">{fund.goalName}</TableCell>
+                                <TableCell className="text-right font-bold text-primary">{fund.weight.toFixed(2)}%</TableCell>
                             </TableRow>
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={2} className="text-center text-muted-foreground">
-                                No fund allocations linked to goals yet.
+                            <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                No equity fund allocations yet.
                             </TableCell>
                         </TableRow>
                     )}
@@ -335,3 +326,4 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     </FormSection>
   );
 }
+
