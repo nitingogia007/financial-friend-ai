@@ -326,28 +326,28 @@ export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record
 
 export const fundData = {
     'Large Cap': [
-        { name: 'Nippon India Large and Mid Cap Fund', returns: { '3Y': '21.10%', '5Y': '24.55%', '10Y': '13.39%' } },
-        { name: 'ICICI Prudential Large & Mid Cap Fund- Growth', returns: { '3Y': '21.85%', '5Y': '27.91%', '10Y': '16.47%' } }
+        { schemeCode: 105933, schemeName: 'Nippon India Large and Mid Cap Fund', returns: { '3Y': '21.10%', '5Y': '24.55%', '10Y': '13.39%' } },
+        { schemeCode: 100527, schemeName: 'ICICI Prudential Large & Mid Cap Fund- Growth', returns: { '3Y': '21.85%', '5Y': '27.91%', '10Y': '16.47%' } }
     ],
     'Mid Cap': [
-        { name: 'Invesco India Mid Cap Fund', returns: { '3Y': '27.12%', '5Y': '27.99%', '10Y': '16.21%' } },
-        { name: 'Motilal Oswal Midcap Fund', returns: { '3Y': '24.62%', '5Y': '33.34%', '10Y': '16.21%' } }
+        { schemeCode: 120535, schemeName: 'Invesco India Mid Cap Fund', returns: { '3Y': '27.12%', '5Y': '27.99%', '10Y': '16.21%' } },
+        { schemeCode: 128212, schemeName: 'Motilal Oswal Midcap Fund', returns: { '3Y': '24.62%', '5Y': '33.34%', '10Y': '16.21%' } }
     ],
     'Small Cap': [
-        { name: 'Bandhan Small Cap', returns: { '3Y': '28.97%', '5Y': '31.00%', '10Y': '16.93%' } },
-        { name: 'HDFC Small Cap', returns: { '3Y': '23.42%', '5Y': '30.74%', '10Y': '17.06%' } }
+        { schemeCode: 118907, schemeName: 'Bandhan Small Cap', returns: { '3Y': '28.97%', '5Y': '31.00%', '10Y': '16.93%' } },
+        { schemeCode: 119705, schemeName: 'HDFC Small Cap', returns: { '3Y': '23.42%', '5Y': '30.74%', '10Y': '17.06%' } }
     ],
     'Hybrid': [
-        { name: 'Franklin India Aggressive Hybrid Fund', returns: { '3Y': '15.01%', '5Y': '18.51%', '10Y': '11.93%' } },
-        { name: 'Invesco India Aggressive Hybrid Fund', returns: { '3Y': '16.23%', '5Y': '16.20%', '10Y': 'N/A' } }
+        { schemeCode: 102555, schemeName: 'Franklin India Aggressive Hybrid Fund', returns: { '3Y': '15.01%', '5Y': '18.51%', '10Y': '11.93%' } },
+        { schemeCode: 145942, schemeName: 'Invesco India Aggressive Hybrid Fund', returns: { '3Y': '16.23%', '5Y': '16.20%', '10Y': 'N/A' } }
     ],
     'Sectoral': [
-        { name: 'SBI Banking & Financial Services Fund', returns: { '3Y': '18.57%', '5Y': '23.02%', '10Y': '16.72%' } },
-        { name: 'ICICI Prudential Bharat Consumption Fund', returns: { '3Y': '17.42%', '5Y': '21.68%', '10Y': 'N/A' } }
+        { schemeCode: 119833, schemeName: 'SBI Banking & Financial Services Fund', returns: { '3Y': '18.57%', '5Y': '23.02%', '10Y': '16.72%' } },
+        { schemeCode: 148320, schemeName: 'ICICI Prudential Bharat Consumption Fund', returns: { '3Y': '17.42%', '5Y': '21.68%', '10Y': 'N/A' } }
     ],
     'Debt': [
-        { name: 'SBI Magnum Income Fund', returns: { '3Y': '7.08%', '5Y': '6.46%', '10Y': '6.99%' } },
-        { name: 'ICICI Prudential Bond Fund - Growth', returns: { '3Y': '7.67%', '5Y': '6.87%', '10Y': '6.99%' } }
+        { schemeCode: 100913, schemeName: 'SBI Magnum Income Fund', returns: { '3Y': '7.08%', '5Y': '6.46%', '10Y': '6.99%' } },
+        { schemeCode: 101344, schemeName: 'ICICI Prudential Bond Fund - Growth', returns: { '3Y': '7.67%', '5Y': '6.87%', '10Y': '6.99%' } }
     ],
     // Multi + Flexi Cap is not in the image, so we add it as an empty array
     'Multi + Flexi Cap': []
