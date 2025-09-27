@@ -2,9 +2,10 @@
 
 "use client";
 
+import { useMemo } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
 import type { SipOptimizerGoal, FundAllocation, Goal } from '@/lib/types';
@@ -62,9 +63,41 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
       if (!fundName || !fundCategory) return null;
       const categoryFunds = fundData[fundCategory as keyof typeof fundData];
       if (!categoryFunds) return null;
-      const fund = categoryFunds.find(f => f.name === fundName);
+      const fund = categoryFunds.find(f => f.schemeName === fundName);
       return fund?.returns || null;
   }
+  
+  const getSelectedFundSchemeCode = (fundName: string, fundCategory: string): number | null => {
+      if (!fundName || !fundCategory) return null;
+      const categoryFunds = fundData[fundCategory as keyof typeof fundData];
+      if (!categoryFunds) return null;
+      const fund = categoryFunds.find(f => f.schemeName === fundName);
+      return fund?.schemeCode || null;
+  }
+
+  const portfolioAnalysis = useMemo(() => {
+    const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
+    const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
+    
+    const equityTotal = allocations
+        .filter(a => equityCategories.includes(a.fundCategory))
+        .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+        
+    const hybridTotal = allocations
+        .filter(a => a.fundCategory === 'Hybrid')
+        .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+
+    const debtTotal = allocations
+        .filter(a => a.fundCategory === 'Debt')
+        .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+        
+    return {
+        equity: equityTotal,
+        hybrid: hybridTotal,
+        debt: debtTotal,
+    }
+  }, [allocations]);
+
 
   return (
     <FormSection
@@ -93,6 +126,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             {allocations.map((alloc) => {
                 const selectedReturns = getSelectedFundReturns(alloc.fundName, alloc.fundCategory);
                 const categoryFunds = fundData[alloc.fundCategory as keyof typeof fundData] || [];
+                const schemeCode = getSelectedFundSchemeCode(alloc.fundName, alloc.fundCategory);
 
                 return (
                     <Card key={alloc.id} className="p-4 relative">
@@ -165,8 +199,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categoryFunds.map(fund => (
-                                            <SelectItem key={fund.name} value={fund.name}>
-                                                {fund.name}
+                                            <SelectItem key={fund.schemeCode} value={fund.schemeName}>
+                                                {fund.schemeName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -206,6 +240,30 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             <PlusCircle className="mr-2 h-4 w-4" /> Add Fund Allocation
         </Button>
         
+        <Separator className="my-8" />
+        
+        <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
+            <PieChart className="h-5 w-5" />
+            Model Portfolio Analysis
+        </h3>
+
+        <Card className="p-4">
+            <CardContent className="p-2 space-y-4">
+                <div className="flex justify-between items-center">
+                    <span className="font-semibold text-base">Equity Holdings</span>
+                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.equity.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="font-semibold text-base">Hybrid Holdings</span>
+                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.hybrid.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="font-semibold text-base">Debt Holdings</span>
+                    <span className="font-bold text-lg text-primary">₹{portfolioAnalysis.debt.toLocaleString('en-IN')}</span>
+                </div>
+            </CardContent>
+        </Card>
+
         <p className="text-xs text-muted-foreground mt-4">
             Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
         </p>
