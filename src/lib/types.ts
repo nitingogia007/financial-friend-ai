@@ -183,6 +183,7 @@ export interface AssetAllocationProfile {
 export interface FundAllocation {
     id: string;
     goalId: string;
+    sipRequired: number | '';
     fundCategory: string;
     fundName: string;
 }

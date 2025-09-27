@@ -13,6 +13,7 @@ import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { fundData } from '@/lib/calculations';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Input } from '../ui/input';
 
 interface Props {
     allocations: FundAllocation[];
@@ -31,12 +32,13 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     setAllocations(prev => [...prev, {
       id: `new-${nextId++}`,
       goalId: '',
+      sipRequired: '',
       fundCategory: '',
       fundName: '',
     }]);
   };
 
-  const handleUpdateAllocation = (id: string, field: keyof FundAllocation, value: string) => {
+  const handleUpdateAllocation = (id: string, field: keyof FundAllocation, value: string | number) => {
     setAllocations(prev => prev.map(alloc => {
         if (alloc.id === id) {
             const updatedAlloc = { ...alloc, [field]: value };
@@ -122,6 +124,16 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                 </Select>
                             </div>
                             <div className="space-y-1.5">
+                                <Label htmlFor={`sipRequired-${alloc.id}`}>SIP required for fund</Label>
+                                <Input
+                                    id={`sipRequired-${alloc.id}`}
+                                    type="number"
+                                    placeholder="e.g., 5000"
+                                    value={alloc.sipRequired}
+                                    onChange={(e) => handleUpdateAllocation(alloc.id, 'sipRequired', e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
                                 <Label htmlFor={`fundCategory-${alloc.id}`}>Fund Category</Label>
                                 <Select 
                                     value={alloc.fundCategory} 
@@ -137,7 +149,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-1.5 md:col-span-2">
+                            <div className="space-y-1.5">
                                 <Label htmlFor={`fundName-${alloc.id}`}>Fund Name</Label>
                                 <Select 
                                     value={alloc.fundName} 
