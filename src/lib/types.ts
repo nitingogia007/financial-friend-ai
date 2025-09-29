@@ -283,3 +283,20 @@ export interface AllPlannerData {
     assetAllocationProfile: AssetAllocationProfile;
     fundAllocations: FundAllocation[];
 }
+
+export interface ModelPortfolioInput {
+  funds: {
+    schemeCode: number;
+    weight: number;
+  }[];
+}
+
+export interface ChartDataPoint {
+  date: string;
+  modelPortfolio?: number;
+  nifty50?: number;
+}
+
+export interface ModelPortfolioOutput {
+  chartData: ChartDataPoint[];
+}

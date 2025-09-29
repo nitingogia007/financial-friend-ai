@@ -2,19 +2,21 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent, Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import type { SipOptimizerGoal, FundAllocation, Goal } from '@/lib/types';
+import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { fundData } from '@/lib/calculations';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Input } from '../ui/input';
+import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
+import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 
 interface Props {
     allocations: FundAllocation[];
@@ -28,6 +30,8 @@ let nextId = 0;
 const fundCategories = Object.keys(fundData);
 
 export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
+  const [chartData, setChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
+  const [isChartLoading, setIsChartLoading] = useState(false);
   
   const handleAddAllocation = () => {
     setAllocations(prev => [...prev, {
@@ -110,13 +114,43 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     return equityAllocations.map(alloc => {
       const goal = availableGoals.find(g => g.id === alloc.goalId);
+      const schemeCode = getSelectedFundSchemeCode(alloc.fundName, alloc.fundCategory);
       return {
         ...alloc,
         goalName: goal?.otherType || goal?.name || 'Unlinked',
         weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
+        schemeCode,
       };
     });
   }, [allocations, availableGoals]);
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      const fundsForApi = equityFundWeights
+        .filter(f => f.schemeCode !== null && f.weight > 0)
+        .map(f => ({
+          schemeCode: f.schemeCode as number,
+          weight: f.weight,
+        }));
+
+      if (fundsForApi.length > 0) {
+        setIsChartLoading(true);
+        try {
+          const result = await getModelPortfolioData({ funds: fundsForApi });
+          setChartData(result.chartData);
+        } catch (error) {
+          console.error("Error fetching model portfolio data:", error);
+          setChartData(null);
+        } finally {
+          setIsChartLoading(false);
+        }
+      } else {
+        setChartData(null); // Clear chart if no valid funds
+      }
+    };
+
+    fetchChartData();
+  }, [equityFundWeights]);
 
 
   return (
@@ -146,7 +180,6 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             {allocations.map((alloc) => {
                 const selectedReturns = getSelectedFundReturns(alloc.fundName, alloc.fundCategory);
                 const categoryFunds = fundData[alloc.fundCategory as keyof typeof fundData] || [];
-                const schemeCode = getSelectedFundSchemeCode(alloc.fundName, alloc.fundCategory);
 
                 return (
                     <Card key={alloc.id} className="p-4 relative">
@@ -320,10 +353,20 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             </Table>
         </Card>
 
+        {isChartLoading ? (
+            <div className="flex items-center justify-center h-96 mt-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
+            </div>
+        ) : chartData && chartData.length > 0 ? (
+            <PortfolioNiftyChart data={chartData} />
+        ) : (
+            equityFundWeights.length > 0 && <div className="text-center text-muted-foreground mt-6">Could not load portfolio comparison chart.</div>
+        )}
+
         <p className="text-xs text-muted-foreground mt-4">
             Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
         </p>
     </FormSection>
   );
 }
-
