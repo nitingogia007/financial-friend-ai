@@ -286,7 +286,7 @@ export interface AllPlannerData {
 
 export interface ModelPortfolioInput {
   funds: {
-    schemeCode: number;
+    schemeName: string;
     weight: number;
   }[];
 }

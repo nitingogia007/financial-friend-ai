@@ -71,14 +71,6 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
       return fund?.returns || null;
   }
   
-  const getSelectedFundSchemeCode = (fundName: string, fundCategory: string): number | null => {
-      if (!fundName || !fundCategory) return null;
-      const categoryFunds = fundData[fundCategory as keyof typeof fundData];
-      if (!categoryFunds) return null;
-      const fund = categoryFunds.find(f => f.schemeName === fundName);
-      return fund?.schemeCode || null;
-  }
-
   const portfolioAnalysis = useMemo(() => {
     const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
     const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
@@ -114,12 +106,10 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     return equityAllocations.map(alloc => {
       const goal = availableGoals.find(g => g.id === alloc.goalId);
-      const schemeCode = getSelectedFundSchemeCode(alloc.fundName, alloc.fundCategory);
       return {
         ...alloc,
         goalName: goal?.otherType || goal?.name || 'Unlinked',
         weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
-        schemeCode,
       };
     });
   }, [allocations, availableGoals]);
@@ -127,9 +117,9 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   useEffect(() => {
     const fetchChartData = async () => {
       const fundsForApi = equityFundWeights
-        .filter(f => f.schemeCode !== null && f.weight > 0)
+        .filter(f => f.weight > 0)
         .map(f => ({
-          schemeCode: f.schemeCode as number,
+          schemeName: f.fundName,
           weight: f.weight,
         }));
 
