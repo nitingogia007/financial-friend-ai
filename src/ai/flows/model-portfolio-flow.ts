@@ -8,8 +8,7 @@
  * - ModelPortfolioOutput - The return type for the flow.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import yahooFinance from 'yahoo-finance2';
 import { subYears, format, parse } from 'date-fns';
 
@@ -69,13 +68,8 @@ async function fetchNiftyData(): Promise<{ date: Date; close: number }[]> {
   }
 }
 
-const getModelPortfolioFlow = ai.defineFlow(
-  {
-    name: 'getModelPortfolioFlow',
-    inputSchema: ModelPortfolioInputSchema,
-    outputSchema: ModelPortfolioOutputSchema,
-  },
-  async ({ funds }) => {
+export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
+    const { funds } = input;
     if (!funds || funds.length === 0) {
       return { chartData: [] };
     }
@@ -164,10 +158,4 @@ const getModelPortfolioFlow = ai.defineFlow(
     }
 
     return { chartData: [] };
-  }
-);
-
-
-export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
-    return getModelPortfolioFlow(input);
 }
