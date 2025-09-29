@@ -5,7 +5,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent, Loader2 } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent, Loader2, LineChart } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
 import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput } from '@/lib/types';
@@ -17,6 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Input } from '../ui/input';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
 import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface Props {
     allocations: FundAllocation[];
@@ -32,6 +34,7 @@ const fundCategories = Object.keys(fundData);
 export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
   const [chartData, setChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
+  const { toast } = useToast();
   
   const handleAddAllocation = () => {
     setAllocations(prev => [...prev, {
@@ -63,12 +66,11 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   
   const availableGoals = goals.filter(g => g.name && g.name !== 'Retirement');
 
-  const getSelectedFundReturns = (fundName: string, fundCategory: string) => {
+  const getSelectedFundInfo = (fundName: string, fundCategory: string) => {
       if (!fundName || !fundCategory) return null;
       const categoryFunds = fundData[fundCategory as keyof typeof fundData];
       if (!categoryFunds) return null;
-      const fund = categoryFunds.find(f => f.schemeName === fundName);
-      return fund?.returns || null;
+      return categoryFunds.find(f => f.schemeName === fundName) || null;
   }
   
   const portfolioAnalysis = useMemo(() => {
@@ -106,41 +108,58 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     return equityAllocations.map(alloc => {
       const goal = availableGoals.find(g => g.id === alloc.goalId);
+      const fundInfo = getSelectedFundInfo(alloc.fundName, alloc.fundCategory);
       return {
         ...alloc,
         goalName: goal?.otherType || goal?.name || 'Unlinked',
         weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
+        schemeCode: fundInfo?.schemeCode,
       };
     });
   }, [allocations, availableGoals]);
 
-  useEffect(() => {
-    const fetchChartData = async () => {
-      const fundsForApi = equityFundWeights
-        .filter(f => f.weight > 0)
-        .map(f => ({
-          schemeName: f.fundName,
-          weight: f.weight,
-        }));
+  const handleGenerateGraph = async () => {
+    const fundsForApi = equityFundWeights
+      .filter(f => f.weight > 0 && f.schemeCode)
+      .map(f => ({
+        schemeCode: f.schemeCode!,
+        weight: f.weight,
+      }));
 
-      if (fundsForApi.length > 0) {
-        setIsChartLoading(true);
-        try {
-          const result = await getModelPortfolioData({ funds: fundsForApi });
-          setChartData(result.chartData);
-        } catch (error) {
-          console.error("Error fetching model portfolio data:", error);
-          setChartData(null);
-        } finally {
-          setIsChartLoading(false);
-        }
+    if (fundsForApi.length === 0) {
+      toast({
+        title: "No Equity Funds Selected",
+        description: "Please allocate some SIP to equity funds to generate the comparison graph.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsChartLoading(true);
+    setChartData(null);
+    try {
+      const result = await getModelPortfolioData({ funds: fundsForApi });
+      if (result.chartData && result.chartData.length > 0) {
+        setChartData(result.chartData);
       } else {
-        setChartData(null); // Clear chart if no valid funds
+        toast({
+          title: "Could Not Fetch Data",
+          description: "Unable to retrieve historical data for the selected funds. Please try again later.",
+          variant: "destructive"
+        });
       }
-    };
-
-    fetchChartData();
-  }, [equityFundWeights]);
+    } catch (error) {
+      console.error("Error fetching model portfolio data:", error);
+      toast({
+        title: "Chart Generation Failed",
+        description: "An unexpected error occurred while generating the graph.",
+        variant: "destructive"
+      });
+      setChartData(null);
+    } finally {
+      setIsChartLoading(false);
+    }
+  };
 
 
   return (
@@ -168,7 +187,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         
         <div className="space-y-4">
             {allocations.map((alloc) => {
-                const selectedReturns = getSelectedFundReturns(alloc.fundName, alloc.fundCategory);
+                const selectedFund = getSelectedFundInfo(alloc.fundName, alloc.fundCategory);
                 const categoryFunds = fundData[alloc.fundCategory as keyof typeof fundData] || [];
 
                 return (
@@ -250,7 +269,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                 </Select>
                             </div>
                         </div>
-                        {selectedReturns && (
+                        {selectedFund?.returns && (
                             <div className="mt-4 p-3 rounded-md bg-accent/10 animate-in fade-in-50">
                                 <h4 className="font-semibold text-accent-foreground/90 mb-2 flex items-center gap-2">
                                     <TrendingUp className="h-4 w-4" />
@@ -266,9 +285,9 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                     </TableHeader>
                                     <TableBody>
                                         <TableRow>
-                                            <TableCell className="font-medium">{selectedReturns['3Y']}</TableCell>
-                                            <TableCell className="font-medium">{selectedReturns['5Y']}</TableCell>
-                                            <TableCell className="font-medium">{selectedReturns['10Y']}</TableCell>
+                                            <TableCell className="font-medium">{selectedFund.returns['3Y']}</TableCell>
+                                            <TableCell className="font-medium">{selectedFund.returns['5Y']}</TableCell>
+                                            <TableCell className="font-medium">{selectedFund.returns['10Y']}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
@@ -343,6 +362,13 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             </Table>
         </Card>
 
+        <div className="mt-6 text-center">
+            <Button onClick={handleGenerateGraph} disabled={isChartLoading}>
+                {isChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
+                Generate Graph
+            </Button>
+        </div>
+
         {isChartLoading ? (
             <div className="flex items-center justify-center h-96 mt-6">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -351,7 +377,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         ) : chartData && chartData.length > 0 ? (
             <PortfolioNiftyChart data={chartData} />
         ) : (
-            equityFundWeights.length > 0 && <div className="text-center text-muted-foreground mt-6">Could not load portfolio comparison chart.</div>
+            chartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Graph" to see the portfolio comparison.</div>
         )}
 
         <p className="text-xs text-muted-foreground mt-4">
