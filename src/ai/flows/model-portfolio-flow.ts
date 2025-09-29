@@ -121,19 +121,23 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
             const nav = fundNavMaps[index].get(date);
             if (nav) {
                 modelPortfolioNav += nav * (fund.weight / 100);
-                totalWeightForDate += (fund.weight / 100);
+                totalWeightForDate += (fund.weight);
             }
         });
 
         // Only include data point if we have data for both portfolio and nifty
         if (niftyValue && totalWeightForDate > 0) {
              // Normalize the model portfolio NAV if some funds didn't have data for that date
-            const adjustedModelNav = modelPortfolioNav / totalWeightForDate;
-            combinedData.push({
-                date,
-                modelPortfolio: adjustedModelNav,
-                nifty50: niftyValue,
-            });
+             const totalWeightPercentage = totalWeightForDate / 100;
+             const adjustedModelNav = totalWeightPercentage > 0 ? modelPortfolioNav / totalWeightPercentage : 0;
+             
+            if (adjustedModelNav > 0) {
+                combinedData.push({
+                    date,
+                    modelPortfolio: adjustedModelNav,
+                    nifty50: niftyValue,
+                });
+            }
         }
     }
     
