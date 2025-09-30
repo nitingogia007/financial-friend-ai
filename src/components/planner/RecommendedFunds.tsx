@@ -18,6 +18,7 @@ import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
 import { fetchFunds } from '@/ai/flows/fetch-funds-flow';
 import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
+import { SearchableSelect } from '../ui/searchable-select';
 
 
 interface Props {
@@ -93,6 +94,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   };
   
   const availableGoals = goals.filter(g => g.name && g.name !== 'Retirement');
+  const fundNames = useMemo(() => funds.map(f => f.fundName), [funds]);
 
   const portfolioAnalysis = useMemo(() => {
     const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
@@ -222,7 +224,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         <div className="space-y-4">
             {allocations.map((alloc) => {
                 const selectedFund = funds.find(f => f.fundName === alloc.fundName);
-                const schemes = selectedFund ? selectedFund.schemes : [];
+                const schemes = useMemo(() => selectedFund ? selectedFund.schemes.map(s => s.schemeName) : [], [selectedFund]);
 
                 return (
                     <Card key={alloc.id} className="p-4 relative">
@@ -265,39 +267,23 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor={`fundName-${alloc.id}`}>Mutual Fund</Label>
-                                <Select 
-                                    value={alloc.fundName} 
-                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'fundName', value)}
+                                <SearchableSelect
+                                    options={fundNames}
+                                    value={alloc.fundName}
+                                    onChange={(value) => handleUpdateAllocation(alloc.id, 'fundName', value)}
+                                    placeholder={isLoadingFunds ? "Loading funds..." : "Search for a fund"}
                                     disabled={isLoadingFunds}
-                                >
-                                    <SelectTrigger id={`fundName-${alloc.id}`}>
-                                        <SelectValue placeholder={isLoadingFunds ? "Loading funds..." : "Select a fund"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {funds.map(fund => (
-                                            <SelectItem key={fund.fundName} value={fund.fundName}>{fund.fundName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                />
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor={`schemeName-${alloc.id}`}>Scheme</Label>
-                                <Select 
-                                    value={alloc.schemeName} 
-                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'schemeName', value)}
+                                <SearchableSelect
+                                    options={schemes}
+                                    value={alloc.schemeName}
+                                    onChange={(value) => handleUpdateAllocation(alloc.id, 'schemeName', value)}
+                                    placeholder={!alloc.fundName ? "Select a fund first" : "Search for a scheme"}
                                     disabled={!alloc.fundName || schemes.length === 0}
-                                >
-                                    <SelectTrigger id={`schemeName-${alloc.id}`}>
-                                        <SelectValue placeholder={!alloc.fundName ? "Select a fund first" : "Select a scheme"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {schemes.map(scheme => (
-                                            <SelectItem key={scheme.schemeCode} value={scheme.schemeName}>
-                                                {scheme.schemeName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                />
                             </div>
                         </div>
                     </Card>
