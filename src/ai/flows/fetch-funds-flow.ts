@@ -5,7 +5,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import type { Fund, Scheme } from '@/lib/types';
 
 // Define the schema for the raw API response
@@ -29,45 +29,105 @@ const FundSchema = z.object({
 
 const FetchFundsOutputSchema = z.array(FundSchema);
 
-const fundNameExtractRegex = /^(.*?)\sMutual Fund/i;
+const fundHouses = [
+    "360 ONE Mutual Fund",
+    "Aditya Birla Sun Life Mutual Fund",
+    "Axis Mutual Fund",
+    "Bajaj Finserv Mutual Fund",
+    "Bandhan Mutual Fund",
+    "Bank of India Mutual Fund",
+    "Baroda BNP Paribas Mutual Fund",
+    "Canara Robeco Mutual Fund",
+    "DSP Mutual Fund",
+    "Edelweiss Mutual Fund",
+    "Franklin Templeton Mutual Fund",
+    "HDFC Mutual Fund",
+    "HSBC Mutual Fund",
+    "ICICI Prudential Mutual Fund",
+    "IDBI Mutual Fund",
+    "Invesco Mutual Fund",
+    "ITI Mutual Fund",
+    "JM Financial Mutual Fund",
+    "Kotak Mahindra Mutual Fund",
+    "LIC Mutual Fund",
+    "Mahindra Manulife Mutual Fund",
+    "Mirae Asset Mutual Fund",
+    "Motilal Oswal Mutual Fund",
+    "Navi Mutual Fund",
+    "Nippon India Mutual Fund",
+    "NJ Mutual Fund",
+    "Old Bridge Mutual Fund",
+    "PGIM India Mutual Fund",
+    "PPFAS Mutual Fund",
+    "Quant Mutual Fund",
+    "Quantum Mutual Fund",
+    "SBI Mutual Fund",
+    "Samco Mutual Fund",
+    "Shriram Mutual Fund",
+    "Sundaram Mutual Fund",
+    "Tata Mutual Fund",
+    "Taurus Mutual Fund",
+    "Trust Mutual Fund",
+    "Union Mutual Fund",
+    "UTI Mutual Fund",
+    "WhiteOak Capital Mutual Fund",
+    "Zerodha Mutual Fund",
+    "Groww Mutual Fund",
+    "Helios Mutual Fund",
+    "Unifi Mutual Fund",
+    "Angel One Mutual Fund"
+].sort();
+
 
 async function processFundData(data: z.infer<typeof MfApiResponseSchema>): Promise<Fund[]> {
     const fundsMap = new Map<string, Scheme[]>();
+    
+    // Initialize map with all known fund houses to maintain order and inclusion
+    fundHouses.forEach(house => fundsMap.set(house, []));
 
     data.forEach(item => {
-        let fundName = "Other";
-        const match = item.schemeName.match(fundNameExtractRegex);
-        
-        if (match && match[1]) {
-            fundName = `${match[1].trim()} Mutual Fund`;
-        } else {
-             // Fallback for names that don't fit the pattern
-            const words = item.schemeName.split(' ');
-            if (words.length > 1) {
-                // Heuristic: take the first word if it's a common fund name, otherwise group under 'Other'
-                const commonNames = ['Aditya', 'Axis', 'HDFC', 'ICICI', 'Kotak', 'Mirae', 'Nippon', 'SBI', 'UTI'];
-                if (commonNames.includes(words[0])) {
-                    fundName = `${words[0]} Mutual Fund`;
-                }
+        let foundHouse = false;
+        for (const house of fundHouses) {
+            // Check if scheme name starts with the fund house name (without "Mutual Fund")
+            const houseNamePattern = house.replace(" Mutual Fund", "").toLowerCase();
+            if (item.schemeName.toLowerCase().startsWith(houseNamePattern)) {
+                fundsMap.get(house)!.push({
+                    schemeCode: item.schemeCode,
+                    schemeName: item.schemeName,
+                });
+                foundHouse = true;
+                break;
             }
         }
 
-        if (!fundsMap.has(fundName)) {
-            fundsMap.set(fundName, []);
+        if (!foundHouse) {
+            if (!fundsMap.has("Other")) {
+                fundsMap.set("Other", []);
+            }
+            fundsMap.get("Other")!.push({
+                schemeCode: item.schemeCode,
+                schemeName: item.schemeName,
+            });
         }
-        fundsMap.get(fundName)!.push({
-            schemeCode: item.schemeCode,
-            schemeName: item.schemeName,
-        });
     });
 
     const fundsArray: Fund[] = [];
     fundsMap.forEach((schemes, fundName) => {
-        fundsArray.push({ fundName, schemes });
+        // Only add fund houses that have schemes
+        if (schemes.length > 0) {
+            fundsArray.push({ fundName, schemes });
+        }
     });
 
-    // Sort funds by name
-    return fundsArray.sort((a, b) => a.fundName.localeCompare(b.fundName));
+    // The array is already sorted by fund house name because we initialized the map in sorted order.
+    // If "Other" exists, move it to the end.
+    const otherIndex = fundsArray.findIndex(f => f.fundName === "Other");
+    if (otherIndex > -1) {
+        const otherFunds = fundsArray.splice(otherIndex, 1);
+        fundsArray.push(otherFunds[0]);
+    }
+
+    return fundsArray;
 }
 
 
