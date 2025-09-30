@@ -1,25 +1,21 @@
 
-
 "use client";
 
 import { useMemo, useState, useEffect } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent, Loader2, LineChart } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, LineChart, Loader2, PieChart, Percent } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund, Scheme } from '@/lib/types';
+import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Input } from '../ui/input';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
 import { fetchFunds } from '@/ai/flows/fetch-funds-flow';
 import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
-import { SearchableSelect } from '../ui/searchable-select';
-
+import { FundAllocationItem } from './FundAllocationItem';
 
 interface Props {
     allocations: FundAllocation[];
@@ -129,8 +125,6 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
   const equityFundWeights = useMemo(() => {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
-    const equityCategories = ['Equity']; // Simplified for now
-    
     const getCategory = (schemeName: string) => {
         const name = schemeName.toLowerCase();
         if (name.includes('equity') || name.includes('large cap') || name.includes('mid cap') || name.includes('small cap') || name.includes('multi cap') || name.includes('flexi cap')) return 'Equity';
@@ -222,73 +216,18 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         <h3 className="text-xl font-bold font-headline text-foreground mb-4">Fund Allocations by Goal</h3>
         
         <div className="space-y-4">
-            {allocations.map((alloc) => {
-                const selectedFund = funds.find(f => f.fundName === alloc.fundName);
-                const schemes = useMemo(() => selectedFund ? selectedFund.schemes.map(s => s.schemeName) : [], [selectedFund]);
-
-                return (
-                    <Card key={alloc.id} className="p-4 relative">
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="absolute top-2 right-2 h-7 w-7 text-destructive"
-                            onClick={() => handleRemoveAllocation(alloc.id)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                                <Label htmlFor={`goalId-${alloc.id}`}>Goal Name</Label>
-                                <Select 
-                                    value={alloc.goalId} 
-                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'goalId', value)}
-                                >
-                                    <SelectTrigger id={`goalId-${alloc.id}`}>
-                                        <SelectValue placeholder="Select a goal to link" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableGoals.map(goal => (
-                                            <SelectItem key={goal.id} value={goal.id}>
-                                                {goal.otherType || goal.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor={`sipRequired-${alloc.id}`}>SIP required for fund</Label>
-                                <Input
-                                    id={`sipRequired-${alloc.id}`}
-                                    type="number"
-                                    placeholder="e.g., 5000"
-                                    value={alloc.sipRequired}
-                                    onChange={(e) => handleUpdateAllocation(alloc.id, 'sipRequired', e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor={`fundName-${alloc.id}`}>Mutual Fund</Label>
-                                <SearchableSelect
-                                    options={fundNames}
-                                    value={alloc.fundName}
-                                    onChange={(value) => handleUpdateAllocation(alloc.id, 'fundName', value)}
-                                    placeholder={isLoadingFunds ? "Loading funds..." : "Search for a fund"}
-                                    disabled={isLoadingFunds}
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor={`schemeName-${alloc.id}`}>Scheme</Label>
-                                <SearchableSelect
-                                    options={schemes}
-                                    value={alloc.schemeName}
-                                    onChange={(value) => handleUpdateAllocation(alloc.id, 'schemeName', value)}
-                                    placeholder={!alloc.fundName ? "Select a fund first" : "Search for a scheme"}
-                                    disabled={!alloc.fundName || schemes.length === 0}
-                                />
-                            </div>
-                        </div>
-                    </Card>
-                )
-            })}
+            {allocations.map((alloc) => (
+              <FundAllocationItem
+                key={alloc.id}
+                alloc={alloc}
+                funds={funds}
+                fundNames={fundNames}
+                isLoadingFunds={isLoadingFunds}
+                availableGoals={availableGoals}
+                onUpdate={handleUpdateAllocation}
+                onRemove={handleRemoveAllocation}
+              />
+            ))}
         </div>
         
         <Button variant="outline" size="sm" className="mt-4" onClick={handleAddAllocation}>
