@@ -29,78 +29,84 @@ const FundSchema = z.object({
 
 const FetchFundsOutputSchema = z.array(FundSchema);
 
-const fundHouses = [
-    "360 ONE Mutual Fund",
-    "Aditya Birla Sun Life Mutual Fund",
-    "Axis Mutual Fund",
-    "Bajaj Finserv Mutual Fund",
-    "Bandhan Mutual Fund",
-    "Bank of India Mutual Fund",
-    "Baroda BNP Paribas Mutual Fund",
-    "Canara Robeco Mutual Fund",
-    "DSP Mutual Fund",
-    "Edelweiss Mutual Fund",
-    "Franklin Templeton Mutual Fund",
-    "HDFC Mutual Fund",
-    "HSBC Mutual Fund",
-    "ICICI Prudential Mutual Fund",
-    "IDBI Mutual Fund",
-    "Invesco Mutual Fund",
-    "ITI Mutual Fund",
-    "JM Financial Mutual Fund",
-    "Kotak Mahindra Mutual Fund",
-    "LIC Mutual Fund",
-    "Mahindra Manulife Mutual Fund",
-    "Mirae Asset Mutual Fund",
-    "Motilal Oswal Mutual Fund",
-    "Navi Mutual Fund",
-    "Nippon India Mutual Fund",
-    "NJ Mutual Fund",
-    "Old Bridge Mutual Fund",
-    "PGIM India Mutual Fund",
-    "PPFAS Mutual Fund",
-    "Quant Mutual Fund",
-    "Quantum Mutual Fund",
-    "SBI Mutual Fund",
-    "Samco Mutual Fund",
-    "Shriram Mutual Fund",
-    "Sundaram Mutual Fund",
-    "Tata Mutual Fund",
-    "Taurus Mutual Fund",
-    "Trust Mutual Fund",
-    "Union Mutual Fund",
-    "UTI Mutual Fund",
-    "WhiteOak Capital Mutual Fund",
-    "Zerodha Mutual Fund",
-    "Groww Mutual Fund",
-    "Helios Mutual Fund",
-    "Unifi Mutual Fund",
-    "Angel One Mutual Fund"
-].sort();
+const fundHousesWithKeywords: { name: string; keywords: string[] }[] = [
+    { name: "360 ONE Mutual Fund", keywords: ["360 one", "iifl"] },
+    { name: "Aditya Birla Sun Life Mutual Fund", keywords: ["aditya birla sun life", "absl", "birla sun life", "ing"] },
+    { name: "Angel One Mutual Fund", keywords: ["angel one"] },
+    { name: "Axis Mutual Fund", keywords: ["axis"] },
+    { name: "Bajaj Finserv Mutual Fund", keywords: ["bajaj finserv"] },
+    { name: "Bandhan Mutual Fund", keywords: ["bandhan", "idfc"] },
+    { name: "Bank of India Mutual Fund", keywords: ["bank of india", "boi"] },
+    { name: "Baroda BNP Paribas Mutual Fund", keywords: ["baroda bnp paribas", "baroda"] },
+    { name: "Canara Robeco Mutual Fund", keywords: ["canara robeco"] },
+    { name: "DSP Mutual Fund", keywords: ["dsp", "dsp blackrock", "dsp merrill lynch"] },
+    { name: "Edelweiss Mutual Fund", keywords: ["edelweiss"] },
+    { name
+: "Franklin Templeton Mutual Fund", keywords: ["franklin templeton", "franklin"] },
+    { name: "Groww Mutual Fund", keywords: ["groww"] },
+    { name: "HDFC Mutual Fund", keywords: ["hdfc"] },
+    { name: "HSBC Mutual Fund", keywords: ["hsbc"] },
+    { name: "Helios Mutual Fund", keywords: ["helios"] },
+    { name: "ICICI Prudential Mutual Fund", keywords: ["icici prudential", "icici pru"] },
+    { name: "IDBI Mutual Fund", keywords: ["idbi"] },
+    { name: "Invesco Mutual Fund", keywords: ["invesco"] },
+    { name: "ITI Mutual Fund", keywords: ["iti"] },
+    { name: "JM Financial Mutual Fund", keywords: ["jm financial"] },
+    { name: "Kotak Mahindra Mutual Fund", keywords: ["kotak mahindra", "kotak"] },
+    { name: "LIC Mutual Fund", keywords: ["lic"] },
+    { name: "Mahindra Manulife Mutual Fund", keywords: ["mahindra manulife"] },
+    { name: "Mirae Asset Mutual Fund", keywords: ["mirae asset"] },
+    { name: "Motilal Oswal Mutual Fund", keywords: ["motilal oswal"] },
+    { name: "NJ Mutual Fund", keywords: ["nj"] },
+    { name: "Navi Mutual Fund", keywords: ["navi"] },
+    { name: "Nippon India Mutual Fund", keywords: ["nippon india", "reliance"] },
+    { name: "Old Bridge Mutual Fund", keywords: ["old bridge"] },
+    { name: "PGIM India Mutual Fund", keywords: ["pgim india", "principal"] },
+    { name: "PPFAS Mutual Fund", keywords: ["ppfas", "parag parikh"] },
+    { name: "Quant Mutual Fund", keywords: ["quant"] },
+    { name: "Quantum Mutual Fund", keywords: ["quantum"] },
+    { name: "SBI Mutual Fund", keywords: ["sbi", "magnum"] },
+    { name: "Samco Mutual Fund", keywords: ["samco"] },
+    { name: "Shriram Mutual Fund", keywords: ["shriram"] },
+    { name: "Sundaram Mutual Fund", keywords: ["sundaram"] },
+    { name: "Tata Mutual Fund", keywords: ["tata"] },
+    { name: "Taurus Mutual Fund", keywords: ["taurus"] },
+    { name: "Trust Mutual Fund", keywords: ["trust"] },
+    { name: "UTI Mutual Fund", keywords: ["uti"] },
+    { name: "Union Mutual Fund", keywords: ["union", "union kbc"] },
+    { name: "Unifi Mutual Fund", keywords: ["unifi"] },
+    { name: "WhiteOak Capital Mutual Fund", keywords: ["whiteoak capital", "yes"] },
+    { name: "Zerodha Mutual Fund", keywords: ["zerodha"] },
+].sort((a, b) => a.name.localeCompare(b.name));
 
 
 async function processFundData(data: z.infer<typeof MfApiResponseSchema>): Promise<Fund[]> {
     const fundsMap = new Map<string, Scheme[]>();
     
     // Initialize map with all known fund houses to maintain order and inclusion
-    fundHouses.forEach(house => fundsMap.set(house, []));
+    fundHousesWithKeywords.forEach(house => fundsMap.set(house.name, []));
 
     data.forEach(item => {
-        let foundHouse = false;
-        for (const house of fundHouses) {
-            // Check if scheme name starts with the fund house name (without "Mutual Fund")
-            const houseNamePattern = house.replace(" Mutual Fund", "").toLowerCase();
-            if (item.schemeName.toLowerCase().startsWith(houseNamePattern)) {
-                fundsMap.get(house)!.push({
-                    schemeCode: item.schemeCode,
-                    schemeName: item.schemeName,
-                });
-                foundHouse = true;
-                break;
+        const schemeNameLower = item.schemeName.toLowerCase();
+        let bestMatch: { houseName: string; matchLength: number } | null = null;
+
+        for (const house of fundHousesWithKeywords) {
+            for (const keyword of house.keywords) {
+                if (schemeNameLower.includes(keyword)) {
+                    if (!bestMatch || keyword.length > bestMatch.matchLength) {
+                        bestMatch = { houseName: house.name, matchLength: keyword.length };
+                    }
+                }
             }
         }
 
-        if (!foundHouse) {
+        if (bestMatch) {
+            fundsMap.get(bestMatch.houseName)!.push({
+                schemeCode: item.schemeCode,
+                schemeName: item.schemeName,
+            });
+        } else {
+            // Fallback for unmatched schemes
             if (!fundsMap.has("Other")) {
                 fundsMap.set("Other", []);
             }
