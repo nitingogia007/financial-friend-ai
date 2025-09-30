@@ -4,7 +4,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { FormSection } from './FormSection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Wallet, PlusCircle, LineChart, Loader2, PieChart, Percent } from 'lucide-react';
+import { Lightbulb, Wallet, PlusCircle, LineChart, Loader2, PieChart, Percent, Info } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
 import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund } from '@/lib/types';
@@ -233,6 +233,11 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         <Button variant="outline" size="sm" className="mt-4" onClick={handleAddAllocation}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Fund Allocation
         </Button>
+        
+        <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3 text-sm text-blue-800 dark:text-blue-300">
+            <Info className="h-5 w-5 mt-0.5 shrink-0 text-blue-500"/>
+            <p>If no suitable fund schemes are found, consider selecting "Mutual Funds" as an "Others" option. Then, proceed to search for the respective scheme within this category.</p>
+        </div>
         
         <Separator className="my-8" />
         
