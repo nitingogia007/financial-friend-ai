@@ -184,8 +184,9 @@ export interface FundAllocation {
     id: string;
     goalId: string;
     sipRequired: number | '';
-    fundCategory: string;
     fundName: string;
+    schemeName: string;
+    schemeCode: string;
 }
 
 export interface SipOptimizerReportData {
@@ -286,7 +287,7 @@ export interface AllPlannerData {
 
 export interface ModelPortfolioInput {
   funds: {
-    schemeName: string;
+    schemeCode: number;
     weight: number;
   }[];
 }
@@ -299,4 +300,14 @@ export interface ChartDataPoint {
 
 export interface ModelPortfolioOutput {
   chartData: ChartDataPoint[];
+}
+
+export interface Scheme {
+  schemeCode: number;
+  schemeName: string;
+}
+
+export interface Fund {
+  fundName: string;
+  schemes: Scheme[];
 }

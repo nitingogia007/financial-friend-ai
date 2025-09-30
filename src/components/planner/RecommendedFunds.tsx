@@ -8,14 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Lightbulb, Wallet, PlusCircle, Trash2, TrendingUp, PieChart, Percent, Loader2, LineChart } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput } from '@/lib/types';
+import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund, Scheme } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { fundData } from '@/lib/calculations';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Input } from '../ui/input';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
+import { fetchFunds } from '@/ai/flows/fetch-funds-flow';
 import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,20 +29,41 @@ interface Props {
 }
 
 let nextId = 0;
-const fundCategories = Object.keys(fundData);
 
 export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
   const [chartData, setChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
   const { toast } = useToast();
+  const [funds, setFunds] = useState<Fund[]>([]);
+  const [isLoadingFunds, setIsLoadingFunds] = useState(true);
   
+  useEffect(() => {
+    async function loadFunds() {
+        try {
+            const fetchedFunds = await fetchFunds();
+            setFunds(fetchedFunds);
+        } catch (error) {
+            console.error("Failed to fetch funds:", error);
+            toast({
+                title: "Error",
+                description: "Could not load the list of mutual funds. Please try refreshing.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoadingFunds(false);
+        }
+    }
+    loadFunds();
+  }, [toast]);
+
   const handleAddAllocation = () => {
     setAllocations(prev => [...prev, {
       id: `new-${nextId++}`,
       goalId: '',
       sipRequired: '',
-      fundCategory: '',
       fundName: '',
+      schemeName: '',
+      schemeCode: '',
     }]);
   };
 
@@ -50,9 +71,16 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     setAllocations(prev => prev.map(alloc => {
         if (alloc.id === id) {
             const updatedAlloc = { ...alloc, [field]: value };
-            // Reset fundName if category changes
-            if (field === 'fundCategory') {
-                updatedAlloc.fundName = '';
+            if (field === 'fundName') {
+                updatedAlloc.schemeName = '';
+                updatedAlloc.schemeCode = '';
+            }
+            if (field === 'schemeName') {
+                const selectedFund = funds.find(f => f.fundName === updatedAlloc.fundName);
+                const selectedScheme = selectedFund?.schemes.find(s => s.schemeName === value);
+                if (selectedScheme) {
+                    updatedAlloc.schemeCode = selectedScheme.schemeCode.toString();
+                }
             }
             return updatedAlloc;
         }
@@ -66,27 +94,28 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   
   const availableGoals = goals.filter(g => g.name && g.name !== 'Retirement');
 
-  const getSelectedFundInfo = (fundName: string, fundCategory: string) => {
-      if (!fundName || !fundCategory) return null;
-      const categoryFunds = fundData[fundCategory as keyof typeof fundData];
-      if (!categoryFunds) return null;
-      return categoryFunds.find(f => f.schemeName === fundName) || null;
-  }
-  
   const portfolioAnalysis = useMemo(() => {
     const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
-    const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
     
+    // Simple categorization based on scheme name for demo purposes
+    const getCategory = (schemeName: string) => {
+      const name = schemeName.toLowerCase();
+      if (name.includes('equity') || name.includes('large cap') || name.includes('mid cap') || name.includes('small cap') || name.includes('multi cap') || name.includes('flexi cap')) return 'Equity';
+      if (name.includes('hybrid') || name.includes('balanced')) return 'Hybrid';
+      if (name.includes('debt') || name.includes('bond') || name.includes('gilt') || name.includes('liquid')) return 'Debt';
+      return 'Other';
+    }
+
     const equityTotal = allocations
-        .filter(a => equityCategories.includes(a.fundCategory))
+        .filter(a => getCategory(a.schemeName) === 'Equity')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
         
     const hybridTotal = allocations
-        .filter(a => a.fundCategory === 'Hybrid')
+        .filter(a => getCategory(a.schemeName) === 'Hybrid')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
 
     const debtTotal = allocations
-        .filter(a => a.fundCategory === 'Debt')
+        .filter(a => getCategory(a.schemeName) === 'Debt')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
         
     return {
@@ -97,10 +126,16 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   }, [allocations]);
 
   const equityFundWeights = useMemo(() => {
-    const getNum = (val: number | '') => (typeof val === 'number' ? val : 0);
-    const equityCategories = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi + Flexi Cap', 'Sectoral'];
+    const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
+    const equityCategories = ['Equity']; // Simplified for now
     
-    const equityAllocations = allocations.filter(a => equityCategories.includes(a.fundCategory) && getNum(a.sipRequired) > 0);
+    const getCategory = (schemeName: string) => {
+        const name = schemeName.toLowerCase();
+        if (name.includes('equity') || name.includes('large cap') || name.includes('mid cap') || name.includes('small cap') || name.includes('multi cap') || name.includes('flexi cap')) return 'Equity';
+        return 'Other';
+    }
+
+    const equityAllocations = allocations.filter(a => getCategory(a.schemeName) === 'Equity' && getNum(a.sipRequired) > 0);
     
     const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
     
@@ -108,12 +143,11 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     return equityAllocations.map(alloc => {
       const goal = availableGoals.find(g => g.id === alloc.goalId);
-      const fundInfo = getSelectedFundInfo(alloc.fundName, alloc.fundCategory);
       return {
         ...alloc,
         goalName: goal?.otherType || goal?.name || 'Unlinked',
         weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
-        schemeCode: fundInfo?.schemeCode,
+        schemeCode: Number(alloc.schemeCode),
       };
     });
   }, [allocations, availableGoals]);
@@ -187,8 +221,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         
         <div className="space-y-4">
             {allocations.map((alloc) => {
-                const selectedFund = getSelectedFundInfo(alloc.fundName, alloc.fundCategory);
-                const categoryFunds = fundData[alloc.fundCategory as keyof typeof fundData] || [];
+                const selectedFund = funds.find(f => f.fundName === alloc.fundName);
+                const schemes = selectedFund ? selectedFund.schemes : [];
 
                 return (
                     <Card key={alloc.id} className="p-4 relative">
@@ -230,69 +264,42 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor={`fundCategory-${alloc.id}`}>Fund Category</Label>
+                                <Label htmlFor={`fundName-${alloc.id}`}>Mutual Fund</Label>
                                 <Select 
-                                    value={alloc.fundCategory} 
-                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'fundCategory', value)}
+                                    value={alloc.fundName} 
+                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'fundName', value)}
+                                    disabled={isLoadingFunds}
                                 >
-                                    <SelectTrigger id={`fundCategory-${alloc.id}`}>
-                                        <SelectValue placeholder="Select a category" />
+                                    <SelectTrigger id={`fundName-${alloc.id}`}>
+                                        <SelectValue placeholder={isLoadingFunds ? "Loading funds..." : "Select a fund"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {fundCategories.map(cat => (
-                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        {funds.map(fund => (
+                                            <SelectItem key={fund.fundName} value={fund.fundName}>{fund.fundName}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor={`fundName-${alloc.id}`}>Fund Name</Label>
+                                <Label htmlFor={`schemeName-${alloc.id}`}>Scheme</Label>
                                 <Select 
-                                    value={alloc.fundName} 
-                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'fundName', value)}
-                                    disabled={!alloc.fundCategory || categoryFunds.length === 0}
+                                    value={alloc.schemeName} 
+                                    onValueChange={(value) => handleUpdateAllocation(alloc.id, 'schemeName', value)}
+                                    disabled={!alloc.fundName || schemes.length === 0}
                                 >
-                                    <SelectTrigger id={`fundName-${alloc.id}`}>
-                                        <SelectValue placeholder={
-                                            !alloc.fundCategory ? "Select a category first" :
-                                            categoryFunds.length === 0 ? "No funds in this category" :
-                                            "Select a fund"
-                                        } />
+                                    <SelectTrigger id={`schemeName-${alloc.id}`}>
+                                        <SelectValue placeholder={!alloc.fundName ? "Select a fund first" : "Select a scheme"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categoryFunds.map(fund => (
-                                            <SelectItem key={fund.schemeCode} value={fund.schemeName}>
-                                                {fund.schemeName}
+                                        {schemes.map(scheme => (
+                                            <SelectItem key={scheme.schemeCode} value={scheme.schemeName}>
+                                                {scheme.schemeName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
-                        {selectedFund?.returns && (
-                            <div className="mt-4 p-3 rounded-md bg-accent/10 animate-in fade-in-50">
-                                <h4 className="font-semibold text-accent-foreground/90 mb-2 flex items-center gap-2">
-                                    <TrendingUp className="h-4 w-4" />
-                                    Fund Returns
-                                </h4>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>3Y</TableHead>
-                                            <TableHead>5Y</TableHead>
-                                            <TableHead>10Y</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        <TableRow>
-                                            <TableCell className="font-medium">{selectedFund.returns['3Y']}</TableCell>
-                                            <TableCell className="font-medium">{selectedFund.returns['5Y']}</TableCell>
-                                            <TableCell className="font-medium">{selectedFund.returns['10Y']}</TableCell>
-                                        </TableRow>
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        )}
                     </Card>
                 )
             })}
@@ -346,7 +353,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                     {equityFundWeights.length > 0 ? (
                         equityFundWeights.map(fund => (
                             <TableRow key={fund.id}>
-                                <TableCell className="font-medium">{fund.fundName}</TableCell>
+                                <TableCell className="font-medium">{fund.schemeName}</TableCell>
                                 <TableCell className="text-muted-foreground">{fund.goalName}</TableCell>
                                 <TableCell className="text-right font-bold text-primary">{fund.weight.toFixed(2)}%</TableCell>
                             </TableRow>

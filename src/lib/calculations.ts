@@ -324,30 +324,4 @@ export function getAssetAllocation(age: number | '', risk: RiskAppetite): Record
   return allocationData[ageGroup][risk];
 }
 
-export const fundData = {
-    'Large Cap': [
-        { schemeCode: 105933, schemeName: 'Nippon India Large Cap Fund (G)', returns: { '3Y': '20.23%', '5Y': '25.22%', '10Y': '14.63%' } },
-        { schemeCode: 100527, schemeName: 'ICICI Pru Large Cap Fund Reg (G)', returns: { '3Y': '19.1%', '5Y': '22.23%', '10Y': '14.59%' } }
-    ],
-    'Mid Cap': [
-        { schemeCode: 120535, schemeName: 'Invesco India Mid Cap Fund (G)', returns: { '3Y': '27.39%', '5Y': '27.51%', '10Y': '18.02%' } },
-        { schemeCode: 128212, schemeName: 'Motilal Oswal Midcap Fund Reg (G)', returns: { '3Y': '25%', '5Y': '32.71%', '10Y': '17.32%' } }
-    ],
-    'Small Cap': [
-        { schemeCode: 118907, schemeName: 'Bandhan Small Cap Fund Reg (G)', returns: { '3Y': '29.36%', '5Y': '30.5%', '10Y': 'N/A' } },
-        { schemeCode: 119705, schemeName: 'HDFC Small Cap Fund (G)', returns: { '3Y': '23.87%', '5Y': '30.28%', '10Y': '18.62%' } }
-    ],
-    'Hybrid': [
-        { schemeCode: 102555, schemeName: 'Franklin India Aggressive Hybrid Fund', returns: { '3Y': '15.01%', '5Y': '18.51%', '10Y': '11.93%' } },
-        { schemeCode: 145942, schemeName: 'Invesco India Aggressive Hybrid Fund', returns: { '3Y': '16.23%', '5Y': '16.20%', '10Y': 'N/A' } }
-    ],
-    'Sectoral': [
-        { schemeCode: 119833, schemeName: 'SBI Banking & Financial Services Fund', returns: { '3Y': '18.57%', '5Y': '23.02%', '10Y': '16.72%' } },
-        { schemeCode: 148320, schemeName: 'ICICI Prudential Bharat Consumption Fund', returns: { '3Y': '17.42%', '5Y': '21.68%', '10Y': 'N/A' } }
-    ],
-    'Debt': [
-        { schemeCode: 100913, schemeName: 'SBI Magnum Income Fund', returns: { '3Y': '7.08%', '5Y': '6.46%', '10Y': '6.99%' } },
-        { schemeCode: 101344, schemeName: 'ICICI Prudential Bond Fund - Growth', returns: { '3Y': '7.67%', '5Y': '6.87%', '10Y': '6.99%' } }
-    ],
-    'Multi + Flexi Cap': []
-};
+export const fundData = {};
