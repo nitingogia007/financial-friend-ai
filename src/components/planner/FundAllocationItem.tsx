@@ -1,15 +1,16 @@
 
 "use client";
 
-import { useMemo } from 'react';
-import { Card } from '@/components/ui/card';
+import { useMemo, useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Trash2 } from 'lucide-react';
-import type { FundAllocation, Fund, Goal } from '@/lib/types';
+import { Trash2, Loader2, BarChart } from 'lucide-react';
+import type { FundAllocation, Fund, Goal, FundReturnsOutput } from '@/lib/types';
+import { getFundReturns } from '@/ai/flows/fund-returns-flow';
 
 interface FundAllocationItemProps {
   alloc: FundAllocation;
@@ -32,6 +33,33 @@ export function FundAllocationItem({
 }: FundAllocationItemProps) {
   const selectedFund = funds.find(f => f.fundName === alloc.fundName);
   const schemes = useMemo(() => selectedFund ? selectedFund.schemes.map(s => s.schemeName) : [], [selectedFund]);
+  
+  const [returns, setReturns] = useState<FundReturnsOutput | null>(null);
+  const [isLoadingReturns, setIsLoadingReturns] = useState(false);
+
+  useEffect(() => {
+    const fetchReturns = async () => {
+      if (alloc.schemeCode && alloc.schemeCode.length > 0) {
+        setIsLoadingReturns(true);
+        setReturns(null);
+        try {
+          const result = await getFundReturns({ schemeCode: Number(alloc.schemeCode) });
+          setReturns(result);
+        } catch (error) {
+          console.error("Failed to fetch fund returns:", error);
+          setReturns(null); // Clear returns on error
+        } finally {
+          setIsLoadingReturns(false);
+        }
+      } else {
+        setReturns(null); // Clear returns if no scheme is selected
+      }
+    };
+
+    const timeoutId = setTimeout(fetchReturns, 500); // Debounce API call
+    return () => clearTimeout(timeoutId);
+
+  }, [alloc.schemeCode]);
 
   return (
     <Card key={alloc.id} className="p-4 relative">
@@ -93,6 +121,35 @@ export function FundAllocationItem({
           />
         </div>
       </div>
+      {(isLoadingReturns || returns) && (
+        <Card className="mt-4 bg-accent/10">
+          <CardContent className="p-3">
+             <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm text-accent-foreground/90">
+                <BarChart className="h-4 w-4" /> Fund Returns (CAGR)
+             </h4>
+             {isLoadingReturns ? (
+                <div className="flex items-center justify-center h-16">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+             ) : returns ? (
+                <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                        <p className="text-xs text-muted-foreground">3-Year</p>
+                        <p className="font-bold text-base">{returns.threeYearReturn ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">5-Year</p>
+                        <p className="font-bold text-base">{returns.fiveYearReturn ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">10-Year</p>
+                        <p className="font-bold text-base">{returns.tenYearReturn ?? 'N/A'}</p>
+                    </div>
+                </div>
+             ) : null}
+          </CardContent>
+        </Card>
+      )}
     </Card>
   );
 }

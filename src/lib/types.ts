@@ -311,3 +311,14 @@ export interface Fund {
   fundName: string;
   schemes: Scheme[];
 }
+
+
+export interface FundReturnsInput {
+  schemeCode: number;
+}
+
+export interface FundReturnsOutput {
+  threeYearReturn: string | null;
+  fiveYearReturn: string | null;
+  tenYearReturn: string | null;
+}
