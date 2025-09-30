@@ -60,9 +60,9 @@ export function SearchableSelect({
         </div>
         <ScrollArea className="h-72">
             {filteredOptions.length > 0 ? (
-                filteredOptions.map((option) => (
+                filteredOptions.map((option, index) => (
                     <Button
-                        key={option}
+                        key={`${option}-${index}`}
                         variant="ghost"
                         className={cn(
                             "w-full justify-start text-left font-normal h-auto py-2 px-2 whitespace-normal",
