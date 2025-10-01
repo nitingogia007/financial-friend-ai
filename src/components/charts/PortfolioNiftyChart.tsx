@@ -13,15 +13,6 @@ interface Props {
   }[];
 }
 
-const fundColors = [
-    'hsl(var(--chart-1))',
-    'hsl(var(--chart-3))',
-    'hsl(var(--chart-4))',
-    'hsl(var(--chart-5))',
-    'hsl(25, 85%, 65%)',
-    'hsl(330, 74%, 66%)'
-];
-
 export function PortfolioNiftyChart({ data }: Props) {
   const { theme } = useTheme();
   
