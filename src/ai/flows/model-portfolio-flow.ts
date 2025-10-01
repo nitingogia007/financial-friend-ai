@@ -2,9 +2,9 @@
 'use server';
 
 /**
- * @fileOverview Reads historical NAV data from APIs and compares multiple funds against the NIFTY 50 index.
+ * @fileOverview Reads historical NAV data from APIs, calculates a weighted model portfolio, and compares it against the NIFTY 50 index.
  *
- * - getModelPortfolioData - Fetches and processes data for a multi-fund vs Nifty 50 comparison.
+ * - getModelPortfolioData - Fetches and processes data for a weighted multi-fund vs Nifty 50 comparison.
  * - ModelPortfolioInput - The input type for the flow.
  * - ModelPortfolioOutput - The return type for the flow.
  */
@@ -12,27 +12,8 @@
 import { z } from 'zod';
 import { format, subYears, isValid } from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
+import type { ModelPortfolioInput, ModelPortfolioOutput, ChartDataPoint } from '@/lib/types';
 
-const ModelPortfolioInputSchema = z.object({
-  funds: z.array(z.object({
-    schemeCode: z.number(),
-    schemeName: z.string(),
-  })).describe('An array of funds with their scheme codes and names.'),
-});
-export type ModelPortfolioInput = z.infer<typeof ModelPortfolioInputSchema>;
-
-const ChartDataPointSchema = z.record(z.string(), z.union([z.string(), z.number()])).and(z.object({
-  date: z.string(),
-  nifty50: z.number().optional(),
-}));
-export type ChartDataPoint = z.infer<typeof ChartDataPointSchema>;
-
-
-const ModelPortfolioOutputSchema = z.object({
-  chartData: z.array(ChartDataPointSchema),
-  fundNames: z.record(z.string(), z.string())
-});
-export type ModelPortfolioOutput = z.infer<typeof ModelPortfolioOutputSchema>;
 
 // Helper to fetch NAV data for a single fund
 async function getFundNavData(schemeCode: number, startDate: string, endDate: string): Promise<{ date: string; nav: number }[]> {
@@ -77,7 +58,7 @@ async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: str
 export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
   const { funds } = input;
   if (!funds || funds.length === 0) {
-    return { chartData: [], fundNames: {} };
+    return { chartData: [] };
   }
 
   const endDate = new Date();
@@ -138,32 +119,41 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
       const firstPoint = combinedData[0];
       const rebasedData = combinedData.map(d => {
         const rebasedPoint: ChartDataPoint = { date: d.date };
+        
+        let weightedPortfolioValue = 0;
+        let totalWeightForPoint = 0;
+
         if (d.nifty50 && firstPoint.nifty50 && firstPoint.nifty50 > 0) {
           rebasedPoint.nifty50 = (d.nifty50 / firstPoint.nifty50) * 100;
         }
+
         funds.forEach(fund => {
           const key = `fund_${fund.schemeCode}`;
           const value = d[key];
           const firstValue = firstPoint[key];
+          
           if (typeof value === 'number' && typeof firstValue === 'number' && firstValue > 0) {
-            rebasedPoint[key] = (value / firstValue) * 100;
+            const rebasedValue = (value / firstValue) * 100;
+            weightedPortfolioValue += rebasedValue * (fund.weight / 100);
+            totalWeightForPoint += fund.weight;
           }
         });
+
+        if (totalWeightForPoint > 0) {
+            // Normalize in case some funds didn't have data for that day
+            rebasedPoint.modelPortfolio = (weightedPortfolioValue / totalWeightForPoint) * 100;
+        }
+
         return rebasedPoint;
       });
 
-      const fundNamesMap = funds.reduce((acc, fund) => {
-        acc[`fund_${fund.schemeCode}`] = fund.schemeName;
-        return acc;
-      }, {} as Record<string, string>);
-
-      return { chartData: rebasedData, fundNames: fundNamesMap };
+      return { chartData: rebasedData.filter(d => d.modelPortfolio !== undefined) };
     }
 
-    return { chartData: [], fundNames: {} };
+    return { chartData: [] };
 
   } catch (error) {
     console.error("Error processing model portfolio data:", error);
-    return { chartData: [], fundNames: {} };
+    return { chartData: [] };
   }
 }

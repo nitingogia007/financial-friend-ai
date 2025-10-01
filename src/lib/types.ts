@@ -292,19 +292,20 @@ export interface ModelPortfolioInput {
   funds: {
     schemeCode: number;
     schemeName: string;
+    weight: number;
   }[];
 }
 
 export type ChartDataPoint = {
   date: string;
   nifty50?: number;
+  modelPortfolio?: number;
 } & {
   [key: `fund_${string}`]: number | string | undefined;
 };
 
 export interface ModelPortfolioOutput {
   chartData: ChartDataPoint[];
-  fundNames: Record<string, string>;
 }
 
 export interface Scheme {

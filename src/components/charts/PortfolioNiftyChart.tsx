@@ -9,9 +9,8 @@ interface Props {
   data: {
     date: string;
     nifty50?: number;
-    [key: `fund_${string}`]: number | string | undefined;
+    modelPortfolio?: number;
   }[];
-  fundNames: Record<string, string>;
 }
 
 const fundColors = [
@@ -23,7 +22,7 @@ const fundColors = [
     'hsl(330, 74%, 66%)'
 ];
 
-export function PortfolioNiftyChart({ data, fundNames }: Props) {
+export function PortfolioNiftyChart({ data }: Props) {
   const { theme } = useTheme();
   
   if (!data || data.length === 0) {
@@ -33,27 +32,25 @@ export function PortfolioNiftyChart({ data, fundNames }: Props) {
       </div>
     );
   }
-  
-  const fundKeys = Object.keys(fundNames);
 
   // Calculate Y-axis domain dynamically
   const allValues = data.flatMap(d => [
-      d.nifty50 || null, 
-      ...fundKeys.map(key => (d[key] as number) || null)
-  ]).filter(v => v !== null) as number[];
+      d.nifty50,
+      d.modelPortfolio
+  ]).filter(v => v !== null && v !== undefined) as number[];
 
-  const yDomain = [
-      Math.min(...allValues),
-      Math.max(...allValues),
-  ];
+
+  const yDomain = allValues.length > 0 
+      ? [Math.min(...allValues), Math.max(...allValues)] 
+      : [90, 110];
   
-  const yAxisMin = allValues.length > 0 ? Math.floor(yDomain[0] / 10) * 10 : 90;
-  const yAxisMax = allValues.length > 0 ? Math.ceil(yDomain[1] / 10) * 10 : 110;
+  const yAxisMin = Math.floor(yDomain[0] / 10) * 10;
+  const yAxisMax = Math.ceil(yDomain[1] / 10) * 10;
 
   return (
     <Card className="mt-6">
         <CardHeader>
-            <CardTitle>Fund Performance vs. NIFTY 50 (Rebased to 100)</CardTitle>
+            <CardTitle>Model Portfolio vs. NIFTY 50 (Rebased to 100)</CardTitle>
         </CardHeader>
         <CardContent className="h-96 w-full">
             <ResponsiveContainer>
@@ -90,7 +87,7 @@ export function PortfolioNiftyChart({ data, fundNames }: Props) {
                         }}
                         labelFormatter={(label) => new Date(label.split('-').reverse().join('-')).toLocaleDateString('en-GB')}
                         formatter={(value: number, name: string) => {
-                             const displayName = name === 'nifty50' ? 'NIFTY 50' : (fundNames[name] || name);
+                             const displayName = name === 'nifty50' ? 'NIFTY 50' : name === 'modelPortfolio' ? 'Model Portfolio' : name;
                              return [value.toFixed(2), displayName];
                         }}
                     />
@@ -103,17 +100,14 @@ export function PortfolioNiftyChart({ data, fundNames }: Props) {
                         dot={false}
                         name="NIFTY 50"
                     />
-                    {fundKeys.map((fundKey, index) => (
-                        <Line
-                            key={fundKey}
-                            type="monotone"
-                            dataKey={fundKey}
-                            stroke={fundColors[index % fundColors.length]}
-                            strokeWidth={2}
-                            dot={false}
-                            name={fundNames[fundKey]}
-                        />
-                    ))}
+                    <Line
+                        type="monotone"
+                        dataKey="modelPortfolio"
+                        stroke="hsl(var(--chart-1))"
+                        strokeWidth={2}
+                        dot={false}
+                        name="Model Portfolio"
+                    />
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>

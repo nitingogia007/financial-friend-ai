@@ -29,7 +29,6 @@ let nextId = 0;
 
 export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
   const [chartData, setChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
-  const [fundNames, setFundNames] = useState<Record<string, string>>({});
   const [isChartLoading, setIsChartLoading] = useState(false);
   const { toast } = useToast();
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -139,16 +138,17 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
   const handleGenerateGraph = async () => {
     const fundsForApi = equityFundWeights
-      .filter(f => f.schemeCode)
+      .filter(f => f.schemeCode && f.weight > 0)
       .map(f => ({
         schemeCode: f.schemeCode!,
         schemeName: f.schemeName!,
+        weight: f.weight,
       }));
 
     if (fundsForApi.length === 0) {
       toast({
         title: "No Equity Funds Selected",
-        description: "Please allocate some SIP to valid equity funds to generate the comparison graph.",
+        description: "Please allocate some SIP to valid equity funds with a category of 'Equity' to generate the comparison graph.",
         variant: "destructive"
       });
       return;
@@ -156,12 +156,10 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     setIsChartLoading(true);
     setChartData(null);
-    setFundNames({});
     try {
       const result = await getModelPortfolioData({ funds: fundsForApi });
       if (result.chartData && result.chartData.length > 0) {
         setChartData(result.chartData);
-        setFundNames(result.fundNames);
       } else {
         toast({
           title: "Could Not Fetch Data",
@@ -177,7 +175,6 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         variant: "destructive"
       });
       setChartData(null);
-      setFundNames({});
     } finally {
       setIsChartLoading(false);
     }
@@ -304,7 +301,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                 <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
             </div>
         ) : chartData && chartData.length > 0 ? (
-            <PortfolioNiftyChart data={chartData} fundNames={fundNames} />
+            <PortfolioNiftyChart data={chartData} />
         ) : (
             chartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Graph" to see the portfolio comparison.</div>
         )}
