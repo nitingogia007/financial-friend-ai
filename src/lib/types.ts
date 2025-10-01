@@ -180,10 +180,13 @@ export interface AssetAllocationProfile {
     riskAppetite: RiskAppetite;
 }
 
+export type FundCategory = 'Equity' | 'Debt' | 'Hybrid' | 'Solution-Oriented' | 'Others' | '';
+
 export interface FundAllocation {
     id: string;
     goalId: string;
     sipRequired: number | '';
+    fundCategory: FundCategory;
     fundName: string;
     schemeName: string;
     schemeCode: string;

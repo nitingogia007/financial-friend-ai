@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Trash2, Loader2, BarChart } from 'lucide-react';
-import type { FundAllocation, Fund, Goal, FundReturnsOutput } from '@/lib/types';
+import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory } from '@/lib/types';
 import { getFundReturns } from '@/ai/flows/fund-returns-flow';
 
 interface FundAllocationItemProps {
@@ -21,6 +21,8 @@ interface FundAllocationItemProps {
   onUpdate: (id: string, field: keyof FundAllocation, value: string | number) => void;
   onRemove: (id: string) => void;
 }
+
+const fundCategories: FundCategory[] = ['Equity', 'Debt', 'Hybrid', 'Solution-Oriented', 'Others'];
 
 export function FundAllocationItem({
   alloc,
@@ -71,7 +73,7 @@ export function FundAllocationItem({
       >
         <Trash2 className="h-4 w-4" />
       </Button>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor={`goalId-${alloc.id}`}>Goal Name</Label>
           <Select
@@ -99,6 +101,24 @@ export function FundAllocationItem({
             value={alloc.sipRequired}
             onChange={(e) => onUpdate(alloc.id, 'sipRequired', e.target.value === '' ? '' : Number(e.target.value))}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`fundCategory-${alloc.id}`}>Category</Label>
+          <Select
+            value={alloc.fundCategory}
+            onValueChange={(value) => onUpdate(alloc.id, 'fundCategory', value)}
+          >
+            <SelectTrigger id={`fundCategory-${alloc.id}`}>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {fundCategories.map(cat => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`fundName-${alloc.id}`}>Mutual Fund</Label>

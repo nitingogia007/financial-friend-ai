@@ -58,6 +58,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
       id: `new-${nextId++}`,
       goalId: '',
       sipRequired: '',
+      fundCategory: '',
       fundName: '',
       schemeName: '',
       schemeCode: '',
@@ -95,25 +96,16 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   const portfolioAnalysis = useMemo(() => {
     const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
     
-    // Simple categorization based on scheme name for demo purposes
-    const getCategory = (schemeName: string) => {
-      const name = schemeName.toLowerCase();
-      if (name.includes('equity') || name.includes('large cap') || name.includes('mid cap') || name.includes('small cap') || name.includes('multi cap') || name.includes('flexi cap')) return 'Equity';
-      if (name.includes('hybrid') || name.includes('balanced')) return 'Hybrid';
-      if (name.includes('debt') || name.includes('bond') || name.includes('gilt') || name.includes('liquid')) return 'Debt';
-      return 'Other';
-    }
-
     const equityTotal = allocations
-        .filter(a => getCategory(a.schemeName) === 'Equity')
+        .filter(a => a.fundCategory === 'Equity')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
         
     const hybridTotal = allocations
-        .filter(a => getCategory(a.schemeName) === 'Hybrid')
+        .filter(a => a.fundCategory === 'Hybrid')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
 
     const debtTotal = allocations
-        .filter(a => getCategory(a.schemeName) === 'Debt')
+        .filter(a => a.fundCategory === 'Debt')
         .reduce((sum, a) => sum + getNum(a.sipRequired), 0);
         
     return {
@@ -125,13 +117,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
   const equityFundWeights = useMemo(() => {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
-    const getCategory = (schemeName: string) => {
-        const name = schemeName.toLowerCase();
-        if (name.includes('equity') || name.includes('large cap') || name.includes('mid cap') || name.includes('small cap') || name.includes('multi cap') || name.includes('flexi cap')) return 'Equity';
-        return 'Other';
-    }
 
-    const equityAllocations = allocations.filter(a => getCategory(a.schemeName) === 'Equity' && getNum(a.sipRequired) > 0);
+    const equityAllocations = allocations.filter(a => a.fundCategory === 'Equity' && getNum(a.sipRequired) > 0);
     
     const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
     
