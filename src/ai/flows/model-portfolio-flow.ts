@@ -2,9 +2,9 @@
 'use server';
 
 /**
- * @fileOverview Reads historical NAV data from APIs and compares a model portfolio against the NIFTY 50 index.
+ * @fileOverview Reads historical NAV data from APIs and compares multiple funds against the NIFTY 50 index.
  *
- * - getModelPortfolioData - Fetches and processes data for model portfolio vs Nifty 50 comparison.
+ * - getModelPortfolioData - Fetches and processes data for a multi-fund vs Nifty 50 comparison.
  * - ModelPortfolioInput - The input type for the flow.
  * - ModelPortfolioOutput - The return type for the flow.
  */
@@ -16,20 +16,21 @@ import yahooFinance from 'yahoo-finance2';
 const ModelPortfolioInputSchema = z.object({
   funds: z.array(z.object({
     schemeCode: z.number(),
-    weight: z.number(),
-  })).describe('An array of funds with their scheme codes and weights (0-100).'),
+    schemeName: z.string(),
+  })).describe('An array of funds with their scheme codes and names.'),
 });
 export type ModelPortfolioInput = z.infer<typeof ModelPortfolioInputSchema>;
 
-const ChartDataPointSchema = z.object({
+const ChartDataPointSchema = z.record(z.string(), z.union([z.string(), z.number()])).and(z.object({
   date: z.string(),
-  modelPortfolio: z.number().optional(),
   nifty50: z.number().optional(),
-});
+}));
 export type ChartDataPoint = z.infer<typeof ChartDataPointSchema>;
+
 
 const ModelPortfolioOutputSchema = z.object({
   chartData: z.array(ChartDataPointSchema),
+  fundNames: z.record(z.string(), z.string())
 });
 export type ModelPortfolioOutput = z.infer<typeof ModelPortfolioOutputSchema>;
 
@@ -76,7 +77,7 @@ async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: str
 export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
   const { funds } = input;
   if (!funds || funds.length === 0) {
-    return { chartData: [] };
+    return { chartData: [], fundNames: {} };
   }
 
   const endDate = new Date();
@@ -112,54 +113,57 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     const combinedData: ChartDataPoint[] = [];
 
     for (const date of sortedDates) {
-        const niftyValue = niftyMap.get(date);
+      const dataPoint: ChartDataPoint = { date };
+      const niftyValue = niftyMap.get(date);
+      if (niftyValue) {
+        dataPoint.nifty50 = niftyValue;
+      }
 
-        let modelPortfolioNav = 0;
-        let totalWeightForDate = 0;
-
-        funds.forEach((fund, index) => {
-            const nav = fundNavMaps[index].get(date);
-            if (nav) {
-                modelPortfolioNav += nav * (fund.weight / 100);
-                totalWeightForDate += (fund.weight);
-            }
-        });
-
-        // Only include data point if we have data for both portfolio and nifty
-        if (niftyValue && totalWeightForDate > 0) {
-             // Normalize the model portfolio NAV if some funds didn't have data for that date
-             const totalWeightPercentage = totalWeightForDate / 100;
-             const adjustedModelNav = totalWeightPercentage > 0 ? modelPortfolioNav / totalWeightPercentage : 0;
-             
-            if (adjustedModelNav > 0) {
-                combinedData.push({
-                    date,
-                    modelPortfolio: adjustedModelNav,
-                    nifty50: niftyValue,
-                });
-            }
+      let hasFundData = false;
+      funds.forEach((fund, index) => {
+        const nav = fundNavMaps[index].get(date);
+        if (nav) {
+          dataPoint[`fund_${fund.schemeCode}`] = nav;
+          hasFundData = true;
         }
+      });
+      
+      if (dataPoint.nifty50 && hasFundData) {
+        combinedData.push(dataPoint);
+      }
     }
     
     // Rebase data to 100
     if (combinedData.length > 0) {
-        const firstModelPoint = combinedData[0].modelPortfolio;
-        const firstNiftyPoint = combinedData[0].nifty50;
-
-        if (firstModelPoint && firstNiftyPoint && firstModelPoint > 0 && firstNiftyPoint > 0) {
-            const rebasedData = combinedData.map(d => ({
-                date: d.date,
-                modelPortfolio: d.modelPortfolio ? (d.modelPortfolio / firstModelPoint) * 100 : undefined,
-                nifty50: d.nifty50 ? (d.nifty50 / firstNiftyPoint) * 100 : undefined,
-            }));
-            return { chartData: rebasedData };
+      const firstPoint = combinedData[0];
+      const rebasedData = combinedData.map(d => {
+        const rebasedPoint: ChartDataPoint = { date: d.date };
+        if (d.nifty50 && firstPoint.nifty50 && firstPoint.nifty50 > 0) {
+          rebasedPoint.nifty50 = (d.nifty50 / firstPoint.nifty50) * 100;
         }
+        funds.forEach(fund => {
+          const key = `fund_${fund.schemeCode}`;
+          const value = d[key];
+          const firstValue = firstPoint[key];
+          if (typeof value === 'number' && typeof firstValue === 'number' && firstValue > 0) {
+            rebasedPoint[key] = (value / firstValue) * 100;
+          }
+        });
+        return rebasedPoint;
+      });
+
+      const fundNamesMap = funds.reduce((acc, fund) => {
+        acc[`fund_${fund.schemeCode}`] = fund.schemeName;
+        return acc;
+      }, {} as Record<string, string>);
+
+      return { chartData: rebasedData, fundNames: fundNamesMap };
     }
 
-    return { chartData: [] };
+    return { chartData: [], fundNames: {} };
 
   } catch (error) {
     console.error("Error processing model portfolio data:", error);
-    return { chartData: [] };
+    return { chartData: [], fundNames: {} };
   }
 }

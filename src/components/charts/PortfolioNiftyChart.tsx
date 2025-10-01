@@ -8,12 +8,22 @@ import { useTheme } from 'next-themes';
 interface Props {
   data: {
     date: string;
-    modelPortfolio?: number;
     nifty50?: number;
+    [key: `fund_${string}`]: number | string | undefined;
   }[];
+  fundNames: Record<string, string>;
 }
 
-export function PortfolioNiftyChart({ data }: Props) {
+const fundColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    'hsl(25, 85%, 65%)',
+    'hsl(330, 74%, 66%)'
+];
+
+export function PortfolioNiftyChart({ data, fundNames }: Props) {
   const { theme } = useTheme();
   
   if (!data || data.length === 0) {
@@ -24,30 +34,31 @@ export function PortfolioNiftyChart({ data }: Props) {
     );
   }
   
-  const formattedData = data.map(d => ({
-      ...d,
-      // Ensure values are numbers, default to null if not
-      modelPortfolio: typeof d.modelPortfolio === 'number' ? d.modelPortfolio : null,
-      nifty50: typeof d.nifty50 === 'number' ? d.nifty50 : null,
-  }));
+  const fundKeys = Object.keys(fundNames);
+
+  // Calculate Y-axis domain dynamically
+  const allValues = data.flatMap(d => [
+      d.nifty50 || null, 
+      ...fundKeys.map(key => (d[key] as number) || null)
+  ]).filter(v => v !== null) as number[];
 
   const yDomain = [
-      Math.min(...data.map(d => Math.min(d.modelPortfolio || Infinity, d.nifty50 || Infinity))),
-      Math.max(...data.map(d => Math.max(d.modelPortfolio || -Infinity, d.nifty50 || -Infinity))),
+      Math.min(...allValues),
+      Math.max(...allValues),
   ];
   
-  const yAxisMin = Math.floor(yDomain[0] / 10) * 10;
-  const yAxisMax = Math.ceil(yDomain[1] / 10) * 10;
+  const yAxisMin = allValues.length > 0 ? Math.floor(yDomain[0] / 10) * 10 : 90;
+  const yAxisMax = allValues.length > 0 ? Math.ceil(yDomain[1] / 10) * 10 : 110;
 
   return (
     <Card className="mt-6">
         <CardHeader>
-            <CardTitle>Model Portfolio vs. NIFTY 50 (Rebased to 100)</CardTitle>
+            <CardTitle>Fund Performance vs. NIFTY 50 (Rebased to 100)</CardTitle>
         </CardHeader>
         <CardContent className="h-96 w-full">
             <ResponsiveContainer>
                 <LineChart
-                    data={formattedData}
+                    data={data}
                     margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
@@ -78,17 +89,12 @@ export function PortfolioNiftyChart({ data }: Props) {
                             fontSize: "12px",
                         }}
                         labelFormatter={(label) => new Date(label.split('-').reverse().join('-')).toLocaleDateString('en-GB')}
-                        formatter={(value: number, name: string) => [value.toFixed(2), name]}
+                        formatter={(value: number, name: string) => {
+                             const displayName = name === 'nifty50' ? 'NIFTY 50' : (fundNames[name] || name);
+                             return [value.toFixed(2), displayName];
+                        }}
                     />
                     <Legend iconSize={10} />
-                    <Line 
-                        type="monotone" 
-                        dataKey="modelPortfolio" 
-                        stroke="hsl(var(--chart-1))" 
-                        strokeWidth={2} 
-                        dot={false}
-                        name="Model Portfolio"
-                    />
                     <Line 
                         type="monotone" 
                         dataKey="nifty50" 
@@ -97,6 +103,17 @@ export function PortfolioNiftyChart({ data }: Props) {
                         dot={false}
                         name="NIFTY 50"
                     />
+                    {fundKeys.map((fundKey, index) => (
+                        <Line
+                            key={fundKey}
+                            type="monotone"
+                            dataKey={fundKey}
+                            stroke={fundColors[index % fundColors.length]}
+                            strokeWidth={2}
+                            dot={false}
+                            name={fundNames[fundKey]}
+                        />
+                    ))}
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>

@@ -291,18 +291,20 @@ export interface AllPlannerData {
 export interface ModelPortfolioInput {
   funds: {
     schemeCode: number;
-    weight: number;
+    schemeName: string;
   }[];
 }
 
-export interface ChartDataPoint {
+export type ChartDataPoint = {
   date: string;
-  modelPortfolio?: number;
   nifty50?: number;
-}
+} & {
+  [key: `fund_${string}`]: number | string | undefined;
+};
 
 export interface ModelPortfolioOutput {
   chartData: ChartDataPoint[];
+  fundNames: Record<string, string>;
 }
 
 export interface Scheme {
