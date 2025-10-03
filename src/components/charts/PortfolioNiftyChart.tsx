@@ -8,20 +8,18 @@ import { useTheme } from 'next-themes';
 interface Props {
   data: {
     date: string;
-    [key: string]: number | string | undefined;
+    nifty50?: number;
+    modelPortfolio?: number;
   }[];
   title: string;
 }
 
-const COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-];
+const COLORS = {
+  modelPortfolio: 'hsl(var(--chart-1))',
+  nifty50: 'hsl(var(--chart-2))',
+};
 
-export function PortfolioComparisonChart({ data, title }: Props) {
+export function PortfolioNiftyChart({ data, title }: Props) {
   const { theme } = useTheme();
   
   if (!data || data.length === 0) {
@@ -32,9 +30,8 @@ export function PortfolioComparisonChart({ data, title }: Props) {
     );
   }
 
-  const keys = Object.keys(data[0]).filter(key => key !== 'date');
+  const keys = Object.keys(data[0]).filter(key => key !== 'date') as (keyof typeof COLORS)[];
 
-  // Calculate Y-axis domain dynamically
   const allValues = data.flatMap(d => 
       keys.map(key => d[key])
   ).filter(v => typeof v === 'number') as number[];
@@ -94,12 +91,12 @@ export function PortfolioComparisonChart({ data, title }: Props) {
                         formatter={(value: number, name: string) => [value.toFixed(2), formatLegendName(name)]}
                     />
                     <Legend iconSize={10} formatter={(value) => formatLegendName(value)} />
-                    {keys.map((key, index) => (
+                    {keys.map((key) => (
                          <Line 
                             key={key}
                             type="monotone" 
                             dataKey={key} 
-                            stroke={COLORS[index % COLORS.length]} 
+                            stroke={COLORS[key]} 
                             strokeWidth={2} 
                             dot={false}
                             name={formatLegendName(key)}
@@ -111,5 +108,3 @@ export function PortfolioComparisonChart({ data, title }: Props) {
     </Card>
   );
 }
-
-    

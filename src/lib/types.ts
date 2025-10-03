@@ -301,8 +301,6 @@ export type ChartDataPoint = {
   date: string;
   nifty50?: number;
   modelPortfolio?: number;
-} & {
-  [key: `fund_${string}`]: number | string | undefined;
 };
 
 export interface ModelPortfolioOutput {
@@ -329,5 +327,3 @@ export interface FundReturnsOutput {
   fiveYearReturn: string | null;
   tenYearReturn: string | null;
 }
-
-    

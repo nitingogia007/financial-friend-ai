@@ -7,13 +7,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Lightbulb, Wallet, PlusCircle, LineChart, Loader2, PieChart, Percent, Info } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund } from '@/lib/types';
+import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund, FundCategory } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
 import { fetchFunds } from '@/ai/flows/fetch-funds-flow';
-import { PortfolioComparisonChart } from '../charts/PortfolioNiftyChart';
+import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
 import { FundAllocationItem } from './FundAllocationItem';
 
@@ -167,7 +167,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     setIsLoading(true);
     setChartData(null);
     try {
-      const result = await getModelPortfolioData({ funds: fundsForApi });
+      const result = await getModelPortfolioData({ funds: fundsForApi, includeNifty: isEquity });
       if (result.chartData && result.chartData.length > 0) {
         setChartData(result.chartData);
       } else {
@@ -312,7 +312,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                 <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
             </div>
         ) : equityChartData && equityChartData.length > 0 ? (
-            <PortfolioComparisonChart 
+            <PortfolioNiftyChart 
                 data={equityChartData} 
                 title="Equity Portfolio vs. NIFTY 50"
             />
@@ -370,7 +370,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                 <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
             </div>
         ) : debtChartData && debtChartData.length > 0 ? (
-            <PortfolioComparisonChart 
+            <PortfolioNiftyChart 
                 data={debtChartData} 
                 title="Debt Portfolio Comparison"
             />
@@ -385,5 +385,3 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     </FormSection>
   );
 }
-
-    
