@@ -13,7 +13,7 @@ import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
 import { fetchFunds } from '@/ai/flows/fetch-funds-flow';
-import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
+import { PortfolioComparisonChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
 import { FundAllocationItem } from './FundAllocationItem';
 
@@ -28,8 +28,11 @@ interface Props {
 let nextId = 0;
 
 export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
-  const [chartData, setChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
-  const [isChartLoading, setIsChartLoading] = useState(false);
+  const [equityChartData, setEquityChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
+  const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
+  const [debtChartData, setDebtChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
+  const [isDebtChartLoading, setIsDebtChartLoading] = useState(false);
+  
   const { toast } = useToast();
   const [funds, setFunds] = useState<Fund[]>([]);
   const [isLoadingFunds, setIsLoadingFunds] = useState(true);
@@ -115,29 +118,36 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     }
   }, [allocations]);
 
-  const equityFundWeights = useMemo(() => {
+  const getFundWeights = (category: FundCategory) => {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
-
-    const equityAllocations = allocations.filter(a => a.fundCategory === 'Equity' && getNum(a.sipRequired) > 0 && a.schemeCode);
     
-    const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
-    
-    if (totalEquitySip === 0) return [];
+    const categoryAllocations = allocations.filter(a => a.fundCategory === category && getNum(a.sipRequired) > 0 && a.schemeCode);
+    const totalCategorySip = categoryAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
 
-    return equityAllocations.map(alloc => {
-      const goal = availableGoals.find(g => g.id === alloc.goalId);
-      return {
-        ...alloc,
-        goalName: goal?.otherType || goal?.name || 'Unlinked',
-        weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
-        schemeCode: Number(alloc.schemeCode),
-        schemeName: alloc.schemeName,
-      };
+    if (totalCategorySip === 0) return [];
+    
+    return categoryAllocations.map(alloc => {
+        const goal = availableGoals.find(g => g.id === alloc.goalId);
+        return {
+            ...alloc,
+            goalName: goal?.otherType || goal?.name || 'Unlinked',
+            weight: (getNum(alloc.sipRequired) / totalCategorySip) * 100,
+            schemeCode: Number(alloc.schemeCode),
+            schemeName: alloc.schemeName,
+        };
     });
-  }, [allocations, availableGoals]);
+  }
 
-  const handleGenerateGraph = async () => {
-    const fundsForApi = equityFundWeights
+  const equityFundWeights = useMemo(() => getFundWeights('Equity'), [allocations, availableGoals]);
+  const debtFundWeights = useMemo(() => getFundWeights('Debt'), [allocations, availableGoals]);
+
+  const handleGenerateGraph = async (category: 'Equity' | 'Debt') => {
+    const isEquity = category === 'Equity';
+    const fundWeights = isEquity ? equityFundWeights : debtFundWeights;
+    const setIsLoading = isEquity ? setIsEquityChartLoading : setIsDebtChartLoading;
+    const setChartData = isEquity ? setEquityChartData : setDebtChartData;
+
+    const fundsForApi = fundWeights
       .filter(f => f.schemeCode && f.weight > 0)
       .map(f => ({
         schemeCode: f.schemeCode!,
@@ -147,14 +157,14 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
     if (fundsForApi.length === 0) {
       toast({
-        title: "No Equity Funds Selected",
-        description: "Please allocate some SIP to valid equity funds with a category of 'Equity' to generate the comparison graph.",
+        title: `No ${category} Funds Selected`,
+        description: `Please allocate some SIP to valid ${category.toLowerCase()} funds to generate the comparison graph.`,
         variant: "destructive"
       });
       return;
     }
 
-    setIsChartLoading(true);
+    setIsLoading(true);
     setChartData(null);
     try {
       const result = await getModelPortfolioData({ funds: fundsForApi });
@@ -168,7 +178,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         });
       }
     } catch (error) {
-      console.error("Error fetching model portfolio data:", error);
+      console.error(`Error fetching ${category} portfolio data:`, error);
       toast({
         title: "Chart Generation Failed",
         description: "An unexpected error occurred while generating the graph.",
@@ -176,7 +186,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
       });
       setChartData(null);
     } finally {
-      setIsChartLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -254,6 +264,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
         <Separator className="my-8" />
 
+        {/* EQUITY ANALYSIS */}
         <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
             <Percent className="h-5 w-5" />
             Equity Fund Weight Analysis
@@ -289,26 +300,90 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         </Card>
 
         <div className="mt-6 text-center">
-            <Button onClick={handleGenerateGraph} disabled={isChartLoading}>
-                {isChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
-                Generate Graph
+            <Button onClick={() => handleGenerateGraph('Equity')} disabled={isEquityChartLoading}>
+                {isEquityChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
+                Generate Equity Graph
             </Button>
         </div>
-
-        {isChartLoading ? (
+        
+        {isEquityChartLoading ? (
             <div className="flex items-center justify-center h-96 mt-6">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
             </div>
-        ) : chartData && chartData.length > 0 ? (
-            <PortfolioNiftyChart data={chartData} />
+        ) : equityChartData && equityChartData.length > 0 ? (
+            <PortfolioComparisonChart 
+                data={equityChartData} 
+                title="Equity Portfolio vs. NIFTY 50"
+            />
         ) : (
-            chartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Graph" to see the portfolio comparison.</div>
+            equityChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Equity Graph" to see the portfolio comparison.</div>
         )}
 
-        <p className="text-xs text-muted-foreground mt-4">
+        <Separator className="my-8" />
+
+        {/* DEBT ANALYSIS */}
+        <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            Debt Fund Weight Analysis
+        </h3>
+
+        <Card>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Fund Name</TableHead>
+                        <TableHead>Goal</TableHead>
+                        <TableHead className="text-right">Weightage</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {debtFundWeights.length > 0 ? (
+                        debtFundWeights.map(fund => (
+                            <TableRow key={fund.id}>
+                                <TableCell className="font-medium">{fund.schemeName}</TableCell>
+                                <TableCell className="text-muted-foreground">{fund.goalName}</TableCell>
+                                <TableCell className="text-right font-bold text-primary">{fund.weight.toFixed(2)}%</TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                No debt fund allocations yet.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </Card>
+
+        <div className="mt-6 text-center">
+            <Button onClick={() => handleGenerateGraph('Debt')} disabled={isDebtChartLoading}>
+                {isDebtChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
+                Generate Debt Graph
+            </Button>
+        </div>
+
+        {isDebtChartLoading ? (
+            <div className="flex items-center justify-center h-96 mt-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
+            </div>
+        ) : debtChartData && debtChartData.length > 0 ? (
+            <PortfolioComparisonChart 
+                data={debtChartData} 
+                title="Debt Portfolio Comparison"
+            />
+        ) : (
+            debtChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Debt Graph" to see the comparison.</div>
+        )}
+
+
+        <p className="text-xs text-muted-foreground mt-8">
             Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
         </p>
     </FormSection>
   );
 }
+
+    

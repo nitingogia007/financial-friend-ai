@@ -56,7 +56,7 @@ async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: str
 
 // Main function to get and process all data
 export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
-  const { funds } = input;
+  const { funds, includeNifty } = input;
   if (!funds || funds.length === 0) {
     return { chartData: [] };
   }
@@ -68,16 +68,32 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
 
   try {
     const fundNavPromises = funds.map(fund => getFundNavData(fund.schemeCode, formattedStartDate, formattedEndDate));
-    const niftyPromise = getNiftyData(startDate, endDate);
+    const promises: any[] = [...fundNavPromises];
 
-    const [niftyData, ...allFundNavs] = await Promise.all([niftyPromise, ...fundNavPromises]);
+    if (includeNifty) {
+      promises.unshift(getNiftyData(startDate, endDate));
+    }
+    
+    const results = await Promise.all(promises);
+    
+    let niftyData: { date: string; close: number }[] = [];
+    let allFundNavs: { date: string; nav: number }[][] = [];
+
+    if (includeNifty) {
+        niftyData = results[0];
+        allFundNavs = results.slice(1);
+    } else {
+        allFundNavs = results;
+    }
     
     // Create a map for quick Nifty lookup
     const niftyMap = new Map(niftyData.map(d => [d.date, d.close]));
     
     // Create a master date list from all available data points to ensure alignment
     const allDates = new Set<string>();
-    niftyData.forEach(d => allDates.add(d.date));
+    if (includeNifty) {
+        niftyData.forEach(d => allDates.add(d.date));
+    }
     allFundNavs.forEach(fundNavs => fundNavs.forEach(d => allDates.add(d.date)));
     
     const sortedDates = Array.from(allDates).sort((a, b) => {
@@ -95,21 +111,25 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
 
     for (const date of sortedDates) {
       const dataPoint: ChartDataPoint = { date };
-      const niftyValue = niftyMap.get(date);
-      if (niftyValue) {
-        dataPoint.nifty50 = niftyValue;
+      
+      if (includeNifty) {
+          const niftyValue = niftyMap.get(date);
+          if (niftyValue) {
+            dataPoint.nifty50 = niftyValue;
+          }
       }
 
-      let hasFundData = false;
+      let hasFundDataForDate = false;
       funds.forEach((fund, index) => {
         const nav = fundNavMaps[index].get(date);
         if (nav) {
           dataPoint[`fund_${fund.schemeCode}`] = nav;
-          hasFundData = true;
+          hasFundDataForDate = true;
         }
       });
       
-      if (dataPoint.nifty50 && hasFundData) {
+      // Only add data point if it has at least one fund data
+      if (hasFundDataForDate) {
         combinedData.push(dataPoint);
       }
     }
@@ -123,7 +143,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
         let weightedPortfolioValue = 0;
         let totalWeightForPoint = 0;
 
-        if (d.nifty50 && firstPoint.nifty50 && firstPoint.nifty50 > 0) {
+        if (includeNifty && d.nifty50 && firstPoint.nifty50 && firstPoint.nifty50 > 0) {
           rebasedPoint.nifty50 = (d.nifty50 / firstPoint.nifty50) * 100;
         }
 
@@ -146,7 +166,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
 
         return rebasedPoint;
       });
-
+      
       return { chartData: rebasedData.filter(d => d.modelPortfolio !== undefined) };
     }
 
@@ -157,3 +177,5 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     return { chartData: [] };
   }
 }
+
+    

@@ -294,6 +294,7 @@ export interface ModelPortfolioInput {
     schemeName: string;
     weight: number;
   }[];
+  includeNifty?: boolean;
 }
 
 export type ChartDataPoint = {
@@ -328,3 +329,5 @@ export interface FundReturnsOutput {
   fiveYearReturn: string | null;
   tenYearReturn: string | null;
 }
+
+    

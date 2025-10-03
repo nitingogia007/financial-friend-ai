@@ -8,12 +8,20 @@ import { useTheme } from 'next-themes';
 interface Props {
   data: {
     date: string;
-    nifty50?: number;
-    modelPortfolio?: number;
+    [key: string]: number | string | undefined;
   }[];
+  title: string;
 }
 
-export function PortfolioNiftyChart({ data }: Props) {
+const COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
+
+export function PortfolioComparisonChart({ data, title }: Props) {
   const { theme } = useTheme();
   
   if (!data || data.length === 0) {
@@ -24,12 +32,12 @@ export function PortfolioNiftyChart({ data }: Props) {
     );
   }
 
-  // Calculate Y-axis domain dynamically
-  const allValues = data.flatMap(d => [
-      d.nifty50,
-      d.modelPortfolio
-  ]).filter(v => v !== null && v !== undefined) as number[];
+  const keys = Object.keys(data[0]).filter(key => key !== 'date');
 
+  // Calculate Y-axis domain dynamically
+  const allValues = data.flatMap(d => 
+      keys.map(key => d[key])
+  ).filter(v => typeof v === 'number') as number[];
 
   const yDomain = allValues.length > 0 
       ? [Math.min(...allValues), Math.max(...allValues)] 
@@ -38,10 +46,16 @@ export function PortfolioNiftyChart({ data }: Props) {
   const yAxisMin = Math.floor(yDomain[0] / 10) * 10;
   const yAxisMax = Math.ceil(yDomain[1] / 10) * 10;
 
+  const formatLegendName = (name: string) => {
+    if (name === 'nifty50') return 'NIFTY 50';
+    if (name === 'modelPortfolio') return 'Model Portfolio';
+    return name;
+  }
+
   return (
     <Card className="mt-6">
         <CardHeader>
-            <CardTitle>Model Portfolio vs. NIFTY 50 (Rebased to 100)</CardTitle>
+            <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent className="h-96 w-full">
             <ResponsiveContainer>
@@ -77,31 +91,25 @@ export function PortfolioNiftyChart({ data }: Props) {
                             fontSize: "12px",
                         }}
                         labelFormatter={(label) => new Date(label.split('-').reverse().join('-')).toLocaleDateString('en-GB')}
-                        formatter={(value: number, name: string) => {
-                             const displayName = name === 'nifty50' ? 'NIFTY 50' : name === 'modelPortfolio' ? 'Model Portfolio' : name;
-                             return [value.toFixed(2), displayName];
-                        }}
+                        formatter={(value: number, name: string) => [value.toFixed(2), formatLegendName(name)]}
                     />
-                    <Legend iconSize={10} />
-                    <Line 
-                        type="monotone" 
-                        dataKey="nifty50" 
-                        stroke="hsl(var(--chart-2))" 
-                        strokeWidth={2} 
-                        dot={false}
-                        name="NIFTY 50"
-                    />
-                    <Line
-                        type="monotone"
-                        dataKey="modelPortfolio"
-                        stroke="hsl(var(--chart-1))"
-                        strokeWidth={2}
-                        dot={false}
-                        name="Model Portfolio"
-                    />
+                    <Legend iconSize={10} formatter={(value) => formatLegendName(value)} />
+                    {keys.map((key, index) => (
+                         <Line 
+                            key={key}
+                            type="monotone" 
+                            dataKey={key} 
+                            stroke={COLORS[index % COLORS.length]} 
+                            strokeWidth={2} 
+                            dot={false}
+                            name={formatLegendName(key)}
+                        />
+                    ))}
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>
     </Card>
   );
 }
+
+    
