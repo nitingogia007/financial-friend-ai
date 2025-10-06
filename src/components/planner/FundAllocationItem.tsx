@@ -8,9 +8,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { Trash2, Loader2, BarChart } from 'lucide-react';
-import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory } from '@/lib/types';
+import { Trash2, Loader2, BarChart, FileText } from 'lucide-react';
+import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory, FactsheetData } from '@/lib/types';
 import { getFundReturns } from '@/ai/flows/fund-returns-flow';
+import { analyzeFactsheet } from '@/ai/flows/analyze-factsheet-flow';
+import { FactsheetDisplay } from './FactsheetDisplay';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 interface FundAllocationItemProps {
   alloc: FundAllocation;
@@ -33,11 +44,61 @@ export function FundAllocationItem({
   onUpdate,
   onRemove,
 }: FundAllocationItemProps) {
+  const { toast } = useToast();
   const selectedFund = funds.find(f => f.fundName === alloc.fundName);
   const schemes = useMemo(() => selectedFund ? selectedFund.schemes.map(s => s.schemeName) : [], [selectedFund]);
   
   const [returns, setReturns] = useState<FundReturnsOutput | null>(null);
   const [isLoadingReturns, setIsLoadingReturns] = useState(false);
+
+  const [factsheetData, setFactsheetData] = useState<FactsheetData | null>(null);
+  const [isLoadingFactsheet, setIsLoadingFactsheet] = useState(false);
+  const [factsheetError, setFactsheetError] = useState<string | null>(null);
+  const [factsheetsMap, setFactsheetsMap] = useState<Record<string, string>>({});
+
+  // Load the factsheet mapping file
+  useEffect(() => {
+    fetch('/factsheets.json')
+      .then(res => res.json())
+      .then(data => setFactsheetsMap(data))
+      .catch(err => console.error("Could not load factsheets.json", err));
+  }, []);
+
+
+  const handleSchemeChange = async (value: string) => {
+    onUpdate(alloc.id, 'schemeName', value);
+    const selectedScheme = selectedFund?.schemes.find(s => s.schemeName === value);
+    if (selectedScheme) {
+        onUpdate(alloc.id, 'schemeCode', selectedScheme.schemeCode.toString());
+        
+        // Trigger factsheet analysis
+        const pdfUrl = factsheetsMap[selectedScheme.schemeName];
+        if (pdfUrl) {
+            setIsLoadingFactsheet(true);
+            setFactsheetData(null);
+            setFactsheetError(null);
+            try {
+                const data = await analyzeFactsheet(pdfUrl);
+                setFactsheetData(data);
+            } catch (error) {
+                console.error("Failed to analyze factsheet:", error);
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                setFactsheetError(errorMessage);
+                toast({
+                    title: "Factsheet Analysis Failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                });
+            } finally {
+                setIsLoadingFactsheet(false);
+            }
+        } else {
+            setFactsheetData(null);
+            setFactsheetError(null);
+        }
+    }
+  };
+
 
   useEffect(() => {
     const fetchReturns = async () => {
@@ -135,10 +196,32 @@ export function FundAllocationItem({
           <SearchableSelect
             options={schemes}
             value={alloc.schemeName}
-            onChange={(value) => onUpdate(alloc.id, 'schemeName', value)}
+            onChange={handleSchemeChange}
             placeholder={!alloc.fundName ? "Select a fund first" : "Search for a scheme"}
             disabled={!alloc.fundName || schemes.length === 0}
           />
+        </div>
+        <div className="flex items-end">
+            {(factsheetData || isLoadingFactsheet || factsheetError) && (
+                 <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full" disabled={isLoadingFactsheet || !!factsheetError}>
+                            {isLoadingFactsheet ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <FileText className="mr-2 h-4 w-4" />
+                            )}
+                            View Factsheet
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                        <DialogTitle>Fund Factsheet: {factsheetData?.fundName}</DialogTitle>
+                        </DialogHeader>
+                        {factsheetData && <FactsheetDisplay data={factsheetData} />}
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
       </div>
       {(isLoadingReturns || returns) && (

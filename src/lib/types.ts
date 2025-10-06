@@ -327,3 +327,20 @@ export interface FundReturnsOutput {
   fiveYearReturn: string | null;
   tenYearReturn: string | null;
 }
+
+export interface IndustryAllocation {
+  sector: string;
+  weight: number;
+}
+
+export interface PortfolioHolding {
+  stock: string;
+  weight: number;
+}
+
+export interface FactsheetData {
+  fundName: string;
+  netAssets: string;
+  industryAllocation: IndustryAllocation[];
+  portfolioHoldings: PortfolioHolding[];
+}
