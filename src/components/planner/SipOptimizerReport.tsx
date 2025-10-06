@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint, FactsheetData, IndustryAllocation, PortfolioHolding } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X, Download, LineChart, Loader2, Percent } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart as PieChartIcon, Check, X, Download, LineChart, Loader2, Percent } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -15,10 +15,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { getAssetAllocation } from '@/lib/calculations';
 import { getFundReturns } from '@/ai/flows/fund-returns-flow';
 import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
+import { analyzeFactsheet } from '@/ai/flows/analyze-factsheet-flow';
 import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 
 const logoUrl = "/financial-friend-logo.png";
@@ -254,12 +256,195 @@ const FundAllocationRow = ({ alloc, goalName }: { alloc: FundAllocation, goalNam
 };
 
 
+const CHART_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#64748b'
+];
+
+
+const ConsolidatedDisplay = ({ title, data, icon: Icon }: { title: string; data: { name: string; value: number }[]; icon: React.ElementType }) => {
+  const chartData = data.map((item, index) => ({
+    ...item,
+    fill: CHART_COLORS[index % CHART_COLORS.length],
+  }));
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Icon className="h-5 w-5" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="md:col-span-2 h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                dataKey="value"
+                nameKey="name"
+                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--background))" />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => [`${value.toFixed(2)}%`, 'Weight']}
+                contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: "12px" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="md:col-span-3">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead className="text-right">Weight (%)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {chartData.map((item) => (
+                <TableRow key={item.name}>
+                  <TableCell className="font-medium flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-sm shrink-0" style={{ backgroundColor: item.fill }} />
+                    {item.name}
+                  </TableCell>
+                  <TableCell className="text-right roboto font-semibold">{item.value.toFixed(2)}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+
+
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [equityChartData, setEquityChartData] = useState<ChartDataPoint[] | null>(null);
   const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
   
+  const [factsheets, setFactsheets] = useState<Record<string, FactsheetData>>({});
+  const [isFactsheetLoading, setIsFactsheetLoading] = useState(false);
+  const [factsheetManifest, setFactsheetManifest] = useState<Record<string, Record<string, string>>>({});
+
+  // Load factsheet manifest
+  useEffect(() => {
+    fetch('/factsheets.json')
+      .then(res => res.json())
+      .then(data => setFactsheetManifest(data))
+      .catch(err => console.error("Could not load factsheets.json", err));
+  }, []);
+
+  // Analyze all factsheets for allocated funds
+  useEffect(() => {
+    if (data.fundAllocations.length === 0 || Object.keys(factsheetManifest).length === 0) return;
+
+    const analyzeAll = async () => {
+      setIsFactsheetLoading(true);
+      const factsheetPromises = data.fundAllocations.map(async (alloc) => {
+        const fundHouseSchemes = factsheetManifest[alloc.fundName];
+        if (!fundHouseSchemes) return null;
+
+        const matchingKey = Object.keys(fundHouseSchemes).find(key =>
+          alloc.schemeName.toLowerCase().startsWith(key.toLowerCase())
+        );
+        
+        if (matchingKey && fundHouseSchemes[matchingKey]) {
+          try {
+            const factsheetData = await analyzeFactsheet(fundHouseSchemes[matchingKey]);
+            return { id: alloc.id, data: factsheetData };
+          } catch (error) {
+            console.error(`Failed to analyze ${alloc.schemeName}:`, error);
+            return null;
+          }
+        }
+        return null;
+      });
+
+      const results = await Promise.all(factsheetPromises);
+      const newFactsheets: Record<string, FactsheetData> = {};
+      results.forEach(result => {
+        if (result) {
+          newFactsheets[result.id] = result.data;
+        }
+      });
+      setFactsheets(newFactsheets);
+      setIsFactsheetLoading(false);
+    };
+
+    analyzeAll();
+  }, [data.fundAllocations, factsheetManifest]);
+
+  const consolidatedHoldings = useMemo(() => {
+    const holdingsMap = new Map<string, number>();
+    let totalSip = 0;
+    data.fundAllocations.forEach(alloc => {
+        totalSip += typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
+    });
+
+    if (totalSip === 0) return [];
+    
+    data.fundAllocations.forEach(alloc => {
+      const factsheet = factsheets[alloc.id];
+      const sip = typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
+      if (factsheet && sip > 0) {
+        const fundWeightInPortfolio = sip / totalSip;
+        factsheet.portfolioHoldings.forEach(holding => {
+          const weightedHolding = holding.weight * fundWeightInPortfolio;
+          holdingsMap.set(holding.stock, (holdingsMap.get(holding.stock) || 0) + weightedHolding);
+        });
+      }
+    });
+
+    return Array.from(holdingsMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 15); // Top 15
+  }, [factsheets, data.fundAllocations]);
+
+  const consolidatedIndustryAllocation = useMemo(() => {
+    const industryMap = new Map<string, number>();
+    let totalSip = 0;
+    data.fundAllocations.forEach(alloc => {
+        totalSip += typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
+    });
+
+    if (totalSip === 0) return [];
+
+    data.fundAllocations.forEach(alloc => {
+      const factsheet = factsheets[alloc.id];
+      const sip = typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
+      if (factsheet && sip > 0) {
+        const fundWeightInPortfolio = sip / totalSip;
+        factsheet.industryAllocation.forEach(industry => {
+          const weightedAllocation = industry.weight * fundWeightInPortfolio;
+          industryMap.set(industry.sector, (industryMap.get(industry.sector) || 0) + weightedAllocation);
+        });
+      }
+    });
+
+    return Array.from(industryMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [factsheets, data.fundAllocations]);
+  
+
   const handlePrint = () => {
     window.print();
   };
@@ -844,9 +1029,51 @@ export function SipOptimizerReport({ data }: Props) {
                     </CardContent>
                  </Card>
 
+                 {isFactsheetLoading ? (
+                    <div className="flex items-center justify-center h-64 mt-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="ml-4 text-muted-foreground">Analyzing factsheets and consolidating portfolio...</p>
+                    </div>
+                 ) : (
+                    <>
+                        <ConsolidatedDisplay
+                            title="Consolidated Industry Allocation (% of Net Assets)"
+                            data={consolidatedIndustryAllocation}
+                            icon={PieChartIcon}
+                        />
+                        <Card className="mt-4">
+                            <CardHeader>
+                                <CardTitle className="text-base flex items-center gap-2">
+                                <Briefcase className="h-5 w-5" />
+                                Consolidated Top Portfolio Holdings
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                        <TableHead>Stock</TableHead>
+                                        <TableHead className="text-right">Weight (%)</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {consolidatedHoldings.map((holding) => (
+                                        <TableRow key={holding.name}>
+                                            <TableCell className="font-medium">{holding.name}</TableCell>
+                                            <TableCell className="text-right roboto font-semibold">{holding.value.toFixed(2)}%</TableCell>
+                                        </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </>
+                 )}
+
+
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                      <div>
-                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChart className="h-5 w-5"/>Model Portfolio Analysis</h3>
+                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChartIcon className="h-5 w-5"/>Model Portfolio Analysis</h3>
                         <Card className="p-4">
                             <CardContent className="p-2 space-y-4 text-sm">
                                 <div className="flex justify-between items-center">
