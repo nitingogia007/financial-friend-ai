@@ -87,7 +87,7 @@ export function FundAllocationItem({
         if (fundHouseSchemes) {
             // Find a key that the selected scheme name starts with
             const matchingKey = Object.keys(fundHouseSchemes).find(key => 
-                selectedScheme.schemeName.startsWith(key)
+                selectedScheme.schemeName.toLowerCase().startsWith(key.toLowerCase())
             );
             if (matchingKey) {
                 pdfUrl = fundHouseSchemes[matchingKey];
