@@ -59,15 +59,32 @@ export function FundAllocationItem({
   // Load the factsheet mapping file
   useEffect(() => {
     fetch('/factsheets.json')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to load factsheets.json: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => setFactsheetsMap(data))
-      .catch(err => console.error("Could not load factsheets.json", err));
-  }, []);
+      .catch(err => {
+        console.error("Could not load or parse factsheets.json", err);
+        toast({
+          title: "Factsheet Manifest Missing",
+          description: "Could not load factsheets.json. Please ensure the file exists in the /public folder.",
+          variant: "destructive",
+        });
+      });
+  }, [toast]);
 
 
   const handleSchemeChange = async (value: string) => {
     onUpdate(alloc.id, 'schemeName', value);
     const selectedScheme = selectedFund?.schemes.find(s => s.schemeName === value);
+    
+    // Clear previous factsheet data immediately on change
+    setFactsheetData(null);
+    setFactsheetError(null);
+
     if (selectedScheme) {
         onUpdate(alloc.id, 'schemeCode', selectedScheme.schemeCode.toString());
         
@@ -75,8 +92,6 @@ export function FundAllocationItem({
         const pdfUrl = factsheetsMap[selectedScheme.schemeName];
         if (pdfUrl) {
             setIsLoadingFactsheet(true);
-            setFactsheetData(null);
-            setFactsheetError(null);
             try {
                 const data = await analyzeFactsheet(pdfUrl);
                 setFactsheetData(data);
@@ -93,8 +108,7 @@ export function FundAllocationItem({
                 setIsLoadingFactsheet(false);
             }
         } else {
-            setFactsheetData(null);
-            setFactsheetError(null);
+           setFactsheetError(`No factsheet URL found for "${selectedScheme.schemeName}" in factsheets.json.`);
         }
     }
   };
@@ -243,7 +257,6 @@ export function FundAllocationItem({
                   </div>
               ) : factsheetError ? (
                   <div className="p-4 border-2 border-dashed border-destructive/50 rounded-lg text-destructive text-center">
-                      <p><strong>Factsheet Analysis Failed</strong></p>
                       <p className="text-sm">{factsheetError}</p>
                   </div>
               ) : factsheetData ? (
