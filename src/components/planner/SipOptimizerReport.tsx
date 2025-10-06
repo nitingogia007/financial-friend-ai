@@ -289,17 +289,19 @@ const ConsolidatedDisplay = ({ title, data, icon: Icon }: { title: string; data:
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={80}
+                outerRadius={100}
+                innerRadius={40}
                 dataKey="value"
                 nameKey="name"
-                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                stroke="hsl(var(--background))"
+                strokeWidth={2}
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--background))" />
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number) => [`${value.toFixed(2)}%`, 'Weight']}
+                formatter={(value: number, name: string) => [`${value.toFixed(2)}%`, name]}
                 contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: "12px" }}
               />
             </PieChart>
