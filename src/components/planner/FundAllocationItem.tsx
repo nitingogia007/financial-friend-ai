@@ -82,7 +82,18 @@ export function FundAllocationItem({
         
         // Trigger factsheet analysis
         const fundHouseSchemes = factsheetsMap[alloc.fundName];
-        const pdfUrl = fundHouseSchemes ? fundHouseSchemes[selectedScheme.schemeName] : null;
+        
+        let pdfUrl: string | null = null;
+        if (fundHouseSchemes) {
+            // Find a key that the selected scheme name starts with
+            const matchingKey = Object.keys(fundHouseSchemes).find(key => 
+                selectedScheme.schemeName.startsWith(key)
+            );
+            if (matchingKey) {
+                pdfUrl = fundHouseSchemes[matchingKey];
+            }
+        }
+
 
         if (pdfUrl) {
             setIsLoadingFactsheet(true);
