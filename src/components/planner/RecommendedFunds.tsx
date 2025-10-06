@@ -320,68 +320,11 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
             equityChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Equity Graph" to see the portfolio comparison.</div>
         )}
 
-        <Separator className="my-8" />
-
-        {/* DEBT ANALYSIS */}
-        <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
-            <Percent className="h-5 w-5" />
-            Debt Fund Weight Analysis
-        </h3>
-
-        <Card>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Fund Name</TableHead>
-                        <TableHead>Goal</TableHead>
-                        <TableHead className="text-right">Weightage</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {debtFundWeights.length > 0 ? (
-                        debtFundWeights.map(fund => (
-                            <TableRow key={fund.id}>
-                                <TableCell className="font-medium">{fund.schemeName}</TableCell>
-                                <TableCell className="text-muted-foreground">{fund.goalName}</TableCell>
-                                <TableCell className="text-right font-bold text-primary">{fund.weight.toFixed(2)}%</TableCell>
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                No debt fund allocations yet.
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </Card>
-
-        <div className="mt-6 text-center">
-            <Button onClick={() => handleGenerateGraph('Debt')} disabled={isDebtChartLoading}>
-                {isDebtChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
-                Generate Debt Graph
-            </Button>
-        </div>
-
-        {isDebtChartLoading ? (
-            <div className="flex items-center justify-center h-96 mt-6">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
-            </div>
-        ) : debtChartData && debtChartData.length > 0 ? (
-            <PortfolioNiftyChart 
-                data={debtChartData} 
-                title="Debt Portfolio Comparison"
-            />
-        ) : (
-            debtChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Debt Graph" to see the comparison.</div>
-        )}
-
-
         <p className="text-xs text-muted-foreground mt-8">
             Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
         </p>
     </FormSection>
   );
 }
+
+    
