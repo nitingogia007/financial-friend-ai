@@ -62,13 +62,21 @@ const analyzeFactsheetFlow = ai.defineFlow(
       throw new Error('Invalid PDF URL provided. Must be a public URL.');
     }
 
-    const { output } = await analyzeFactsheetPrompt({ pdfUrl });
+    try {
+      const { output } = await analyzeFactsheetPrompt({ pdfUrl });
 
-    if (!output) {
-      throw new Error('Failed to analyze the factsheet. The model did not return any data.');
+      if (!output) {
+        throw new Error('Failed to analyze the factsheet. The model did not return any data.');
+      }
+      
+      return output;
+    } catch (error: any) {
+        console.error("Error in analyzeFactsheetFlow: ", error);
+        if (error.message && error.message.includes('over limit')) {
+            throw new Error('The PDF file is too large for analysis. Please provide a file under 10MB.');
+        }
+        throw new Error(`Failed to process PDF from URL: ${error.message}`);
     }
-    
-    return output;
   }
 );
 
