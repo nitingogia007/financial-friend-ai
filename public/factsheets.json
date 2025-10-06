@@ -1,8 +1,8 @@
 {
-  "Aditya Birla Sun Life Mutual Fund": {
-    "Aditya Birla Sun Life Large & Mid Cap Fund": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FAditya%20Birla%20Sun%20Life%20mutual%20fund%2Faditya-birla-sun-life-mutual-fund.pdf?alt=media"
-  },
-  "Example Fund House": {
-    "Example Scheme Name": "https://www.example.com/path/to/your/factsheet.pdf"
-  }
+    "Aditya Birla Sun Life Mutual Fund": {
+        "Aditya Birla Sun Life Large & Mid Cap Fund": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FAditya%20Birla%20Sun%20Life%20mutual%20fund%2Faditya-birla-sun-life-mutual-fund.pdf?alt=media"
+    },
+    "360 ONE Mutual Fund": {
+        "360 ONE": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2F360%20ONE%20mutual%20fund%2F360ONE-MF-September%202025%20-%20Regular.pdf?alt=media"
+    }
 }
