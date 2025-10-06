@@ -64,5 +64,41 @@
   },
   "Mahindra Manulife Mutual Fund": {
     "Mahindra Manulife": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FMahindra%20Manulife%20mutual%20fund%2Fmahindra-manulife.pdf?alt=media"
+  },
+  "Mirae Asset Mutual Fund": {
+    "Mirae Asset": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FMirae%20Asset%20mutual%20fund%2Fpassive-factsheet%20-%20-september-25%20(1)_compressed.pdf?alt=media"
+  },
+  "Motilal Oswal Mutual Fund": {
+    "Motilal Oswal": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FMotilal%20Oswal%20mutual%20fund%2Fmotilal-oswal-mf.pdf?alt=media"
+  },
+  "NJ Mutual Fund": {
+    "NJ": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FNJ%20mutual%20fund%2FNJ%20Factsheet%20August%202025.-20250910040525.pdf?alt=media"
+  },
+  "Navi Mutual Fund": {
+    "Navi": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FNavi%20mutual%20fund%2FActive%20Fund%20-%20Aug%2025_20250910192723.pdf?alt=media"
+  },
+  "Nippon India Mutual Fund": {
+    "Nippon India": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FNippon%20India%20mutual%20fund%2FNippon-FS-Sep-2025_compressed.pdf?alt=media"
+  },
+  "PPFAS Mutual Fund": {
+    "PPFAS": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FPPFAS%20mutual%20fund%2Fppfas-mf-factsheet-for-August-2025.pdf?alt=media"
+  },
+  "SBI Mutual Fund": {
+    "SBI": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FSBI%20mutual%20fund%2Fall-sbimf-schemes-factsheet-august-2025%20(1)_compressed.pdf?alt=media"
+  },
+  "Tata Mutual Fund": {
+    "Tata": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2Ftata%20mutual%20fund%2FTataMF%20Factsheet%20-%20August%202025.pdf?alt=media"
+  },
+  "Trust Mutual Fund": {
+    "Trust": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2Ftrust%20mutual%20fund%2FTRUSTMF-Factsheet-August-2025.pdf?alt=media"
+  },
+  "Unifi Mutual Fund": {
+    "Unifi": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2Funifi%20mutual%20fund%2FUnifi-MF-Factsheet-August-2025.pdf?alt=media"
+  },
+  "UTI Mutual Fund": {
+    "UTI": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2Futi%20mutual%20fund%2FUTI%20Fund%20Watch%20(Passive)-September%202025.pdf?alt=media"
+  },
+  "WhiteOak Capital Mutual Fund": {
+    "WhiteOak Capital": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FwhiteOak%20capital%20mutual%20fund%2FWhiteoak%20Capital%20Factsheet_Aug%202025.pdf?alt=media"
   }
 }
