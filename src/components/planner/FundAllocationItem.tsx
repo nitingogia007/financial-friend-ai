@@ -46,7 +46,7 @@ export function FundAllocationItem({
   const [factsheetData, setFactsheetData] = useState<FactsheetData | null>(null);
   const [isLoadingFactsheet, setIsLoadingFactsheet] = useState(false);
   const [factsheetError, setFactsheetError] = useState<string | null>(null);
-  const [factsheetsMap, setFactsheetsMap] = useState<Record<string, string>>({});
+  const [factsheetsMap, setFactsheetsMap] = useState<Record<string, Record<string, string>>>({});
 
   // Load the factsheet mapping file
   useEffect(() => {
@@ -77,11 +77,13 @@ export function FundAllocationItem({
     setFactsheetData(null);
     setFactsheetError(null);
 
-    if (selectedScheme) {
+    if (selectedScheme && alloc.fundName) {
         onUpdate(alloc.id, 'schemeCode', selectedScheme.schemeCode.toString());
         
         // Trigger factsheet analysis
-        const pdfUrl = factsheetsMap[selectedScheme.schemeName];
+        const fundHouseSchemes = factsheetsMap[alloc.fundName];
+        const pdfUrl = fundHouseSchemes ? fundHouseSchemes[selectedScheme.schemeName] : null;
+
         if (pdfUrl) {
             setIsLoadingFactsheet(true);
             try {
@@ -100,7 +102,7 @@ export function FundAllocationItem({
                 setIsLoadingFactsheet(false);
             }
         } else {
-           setFactsheetError(`No factsheet URL found for "${selectedScheme.schemeName}" in factsheets.json.`);
+           setFactsheetError(`No factsheet found for this scheme.`);
         }
     }
   };

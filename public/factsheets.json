@@ -1,6 +1,8 @@
-
 {
-  "Aditya Birla Sun Life Large & Mid Cap Fund - Regular Plan - Growth": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.appspot.com/o/factsheets%2FAditya%20Birla%20Sun%20Life%20Large%20%26%20Mid%20Cap%20Fund%20-%20Factsheet.pdf?alt=media&token=example-token-1",
-  "HDFC Flexi Cap Fund - Growth": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.appspot.com/o/factsheets%2FHDFC%20Flexi%20Cap%20Fund%20-%20Factsheet.pdf?alt=media&token=example-token-2",
-  "ICICI Prudential Bluechip Fund - Growth": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.appspot.com/o/factsheets%2FICICI%20Prudential%20Bluechip%20Fund%20-%20Factsheet.pdf?alt=media&token=example-token-3"
+  "Aditya Birla Sun Life Mutual Fund": {
+    "Aditya Birla Sun Life Large & Mid Cap Fund - Regular Plan - Growth": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.appspot.com/o/factsheets%2FAditya%20Birla%20Sun%20Life%20Large%20%26%20Mid%20Cap%20Fund%20-%20Regular%20Plan%20-%20Growth.pdf?alt=media"
+  },
+  "Axis Mutual Fund": {
+    "Axis Midcap Fund - Regular Plan - Growth": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.appspot.com/o/factsheets%2FAxis%20Midcap%20Fund%20-%20Regular%20Plan%20-%20Growth.pdf?alt=media"
+  }
 }
