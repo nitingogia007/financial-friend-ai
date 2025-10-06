@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FactsheetData } from '@/lib/types';
@@ -26,12 +27,12 @@ export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
   }));
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Industry Allocation (% of Net Assets)</CardTitle>
+    <div className="space-y-4">
+      <Card className="bg-accent/10">
+        <CardHeader className="py-3">
+          <CardTitle className="text-base">Industry Allocation (% of Net Assets)</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center p-4">
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -47,11 +48,18 @@ export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
                   label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                 >
                   {industryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                    <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--accent) / 0.1)" />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => [`${value.toFixed(2)}%`, 'Weight']} />
-                <Legend layout="vertical" verticalAlign="middle" align="right" iconSize={10} />
+                <Tooltip 
+                  formatter={(value: number) => [`${value.toFixed(2)}%`, 'Weight']} 
+                  contentStyle={{
+                    background: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                    fontSize: "12px",
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -59,8 +67,8 @@ export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
              <div className="grid grid-cols-2 gap-2">
                 {industryData.map((item) => (
                     <div key={item.name} className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.fill }}/>
-                        <span className="truncate">{item.name}</span>
+                        <div className="h-3 w-3 rounded-sm shrink-0" style={{ backgroundColor: item.fill }}/>
+                        <span className="truncate" title={item.name}>{item.name}</span>
                         <span className="ml-auto font-semibold">{item.value.toFixed(2)}%</span>
                     </div>
                 ))}
@@ -69,11 +77,11 @@ export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Portfolio Holdings</CardTitle>
+      <Card className="bg-accent/10">
+        <CardHeader className="py-3">
+          <CardTitle className="text-base">Top Portfolio Holdings</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -92,7 +100,7 @@ export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
           </Table>
         </CardContent>
       </Card>
-      <div className="text-center text-lg font-bold">Net Assets: {data.netAssets}</div>
+      <div className="text-center text-md font-bold">Net Assets: {data.netAssets}</div>
     </div>
   );
 }

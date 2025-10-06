@@ -202,26 +202,7 @@ export function FundAllocationItem({
           />
         </div>
         <div className="flex items-end">
-            {(factsheetData || isLoadingFactsheet || factsheetError) && (
-                 <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full" disabled={isLoadingFactsheet || !!factsheetError}>
-                            {isLoadingFactsheet ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <FileText className="mr-2 h-4 w-4" />
-                            )}
-                            View Factsheet
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
-                        <DialogHeader>
-                        <DialogTitle>Fund Factsheet: {factsheetData?.fundName}</DialogTitle>
-                        </DialogHeader>
-                        {factsheetData && <FactsheetDisplay data={factsheetData} />}
-                    </DialogContent>
-                </Dialog>
-            )}
+           {/* Placeholder for alignment */}
         </div>
       </div>
       {(isLoadingReturns || returns) && (
@@ -252,6 +233,28 @@ export function FundAllocationItem({
              ) : null}
           </CardContent>
         </Card>
+      )}
+      {(isLoadingFactsheet || factsheetData || factsheetError) && (
+          <div className="mt-4">
+              {isLoadingFactsheet ? (
+                  <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
+                      <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                      <p className="text-muted-foreground">Analyzing Factsheet...</p>
+                  </div>
+              ) : factsheetError ? (
+                  <div className="p-4 border-2 border-dashed border-destructive/50 rounded-lg text-destructive text-center">
+                      <p><strong>Factsheet Analysis Failed</strong></p>
+                      <p className="text-sm">{factsheetError}</p>
+                  </div>
+              ) : factsheetData ? (
+                  <div className="animate-in fade-in-50">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm text-accent-foreground/90">
+                        <FileText className="h-4 w-4" /> Factsheet: {factsheetData.fundName}
+                    </h4>
+                    <FactsheetDisplay data={factsheetData} />
+                  </div>
+              ) : null}
+          </div>
       )}
     </Card>
   );
