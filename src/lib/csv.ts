@@ -1,6 +1,6 @@
 
 import Papa from 'papaparse';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, InsuranceAnalysisData, RetirementInputs, AssetAllocationProfile, FundAllocation } from './types';
+import type { AllPlannerData } from './types';
 
 // Helper function to create and download a file
 function downloadFile(filename: string, content: string, mimeType: string) {
@@ -29,21 +29,7 @@ function flattenList<T extends { id: string }>(items: T[] | undefined | null, pr
     });
 }
 
-export function generateCsv(data: {
-    personalDetails: PersonalDetails,
-    assets: Asset[],
-    liabilities: Liability[],
-    incomes: Income[],
-    expenses: Expense[],
-    goals: Goal[],
-    insuranceAnalysis: InsuranceAnalysisData | null,
-    willStatus: 'yes' | 'no' | null,
-    retirementInputs: RetirementInputs,
-    assetAllocationProfile: AssetAllocationProfile,
-    fundAllocations: FundAllocation[],
-    netWorth: number,
-    yearlyCashflow: number
-}) {
+export function generateCsv(data: AllPlannerData & { netWorth: number, yearlyCashflow: number }) {
     let allCsvRows: Record<string, any>[] = [{}];
 
     // Combine all single-value fields into one object
@@ -120,5 +106,3 @@ export function generateCsv(data: {
         alert("Could not generate CSV file.");
     }
 }
-
-    

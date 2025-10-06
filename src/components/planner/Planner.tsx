@@ -8,7 +8,7 @@ import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWith
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, Download, Eraser } from 'lucide-react';
 import { generateCsv } from '@/lib/csv';
 import { useAuth } from '@/context/AuthContext';
 import { useDebouncedCallback } from 'use-debounce';
@@ -23,8 +23,9 @@ import { RetirementPlannerForm } from './RetirementPlannerForm';
 import { AssetAllocationForm } from './AssetAllocationForm';
 import { RecommendedFunds } from './RecommendedFunds';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import { recommendedFunds as defaultRecommendedFunds } from '@/lib/calculations';
 import { AppHeader } from '../layout/AppHeader';
+
+const LOCAL_STORAGE_KEY = 'finfriendPlannerData';
 
 const initialPersonalDetails: PersonalDetails = { name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' };
 const initialAssets: Asset[] = [];
@@ -46,11 +47,24 @@ const initialRetirementInputs: RetirementInputs = {
 const initialAssetAllocation: AssetAllocationProfile = { age: '', riskAppetite: '' };
 const initialFundAllocations: FundAllocation[] = [];
 
+const loadStateFromLocalStorage = (): Partial<AllPlannerData> => {
+    try {
+        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedData) {
+            return JSON.parse(savedData);
+        }
+    } catch (error) {
+        console.error("Error loading state from localStorage:", error);
+    }
+    return {};
+};
 
 export function Planner() {
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
+  
+  const [isClient, setIsClient] = useState(false);
   
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>(initialPersonalDetails);
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
@@ -68,6 +82,21 @@ export function Planner() {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+    const savedState = loadStateFromLocalStorage();
+    setPersonalDetails(savedState.personalDetails || initialPersonalDetails);
+    setAssets(savedState.assets || initialAssets);
+    setLiabilities(savedState.liabilities || initialLiabilities);
+    setIncomes(savedState.incomes || initialIncomes);
+    setExpenses(savedState.expenses || initialExpenses);
+    setGoals(savedState.goals && savedState.goals.length > 0 ? savedState.goals : initialGoals);
+    setWillStatus(savedState.willStatus || null);
+    setRetirementInputs(savedState.retirementInputs || initialRetirementInputs);
+    setAssetAllocationProfile(savedState.assetAllocationProfile || initialAssetAllocation);
+    setFundAllocations(savedState.fundAllocations || initialFundAllocations);
+  }, []);
+
   const getNumericValue = (val: number | '') => typeof val === 'number' ? val : 0;
 
   const age = useMemo(() => calculateAge(personalDetails.dob), [personalDetails.dob]);
@@ -83,10 +112,52 @@ export function Planner() {
   const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
   const investibleSurplus = useMemo(() => monthlyCashflow > 0 ? monthlyCashflow : 0, [monthlyCashflow]);
 
-
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
   const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
   
+  const allPlannerData: AllPlannerData = useMemo(() => ({
+    personalDetails,
+    assets,
+    liabilities,
+    incomes,
+    expenses,
+    goals,
+    insuranceAnalysis,
+    willStatus,
+    retirementInputs,
+    assetAllocationProfile,
+    fundAllocations,
+  }), [
+    personalDetails, assets, liabilities, incomes, expenses, goals, insuranceAnalysis,
+    willStatus, retirementInputs, assetAllocationProfile, fundAllocations
+  ]);
+
+  const debouncedSaveState = useDebouncedCallback((data: AllPlannerData) => {
+    try {
+      const dataToSave = {
+        personalDetails: data.personalDetails,
+        assets: data.assets,
+        liabilities: data.liabilities,
+        incomes: data.incomes,
+        expenses: data.expenses,
+        goals: data.goals,
+        willStatus: data.willStatus,
+        retirementInputs: data.retirementInputs,
+        assetAllocationProfile: data.assetAllocationProfile,
+        fundAllocations: data.fundAllocations,
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error("Error saving state to localStorage:", error);
+    }
+  }, 1000);
+
+  useEffect(() => {
+    if (isClient) {
+        debouncedSaveState(allPlannerData);
+    }
+  }, [allPlannerData, debouncedSaveState, isClient]);
+
   const debouncedCalculateOptimizedGoals = useDebouncedCallback(() => {
         let availableSurplus = investibleSurplus;
         const otherGoals = goalsWithCalculations.filter(g => g.name.toLowerCase() !== 'retirement' && g.name !== '');
@@ -132,24 +203,29 @@ export function Planner() {
     debouncedCalculateOptimizedGoals();
   }, [goalsWithCalculations, investibleSurplus, debouncedCalculateOptimizedGoals]);
 
+  const handleClearForm = () => {
+    if(window.confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        setPersonalDetails(initialPersonalDetails);
+        setAssets(initialAssets);
+        setLiabilities(initialLiabilities);
+        setIncomes(initialIncomes);
+        setExpenses(initialExpenses);
+        setGoals(initialGoals);
+        setWillStatus(null);
+        setRetirementInputs(initialRetirementInputs);
+        setAssetAllocationProfile(initialAssetAllocation);
+        setFundAllocations(initialFundAllocations);
+        toast({
+            title: "Form Cleared",
+            description: "All data has been reset.",
+        });
+    }
+  };
 
   const handleDownloadCsv = () => {
-    const allData = {
-        personalDetails,
-        assets,
-        liabilities,
-        incomes,
-        expenses,
-        goals,
-        insuranceAnalysis,
-        willStatus,
-        retirementInputs,
-        assetAllocationProfile,
-        fundAllocations,
-        netWorth,
-        yearlyCashflow
-    };
-    generateCsv(allData);
+    const dataForCsv = { ...allPlannerData, netWorth, yearlyCashflow };
+    generateCsv(dataForCsv);
   };
 
   const handleGenerateReport = async () => {
@@ -462,8 +538,7 @@ export function Planner() {
     }
   };
 
-  if (!user) {
-    // This case should be handled by the parent Home component redirect
+  if (!user || !isClient) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -540,6 +615,9 @@ export function Planner() {
           </Button>
            <Button onClick={handleDownloadCsv} variant="outline" size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
               <Download className="mr-2 h-5 w-5" /> Download as CSV
+          </Button>
+          <Button onClick={handleClearForm} variant="destructive" size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
+              <Eraser className="mr-2 h-5 w-5" /> Clear Form
           </Button>
         </div>
 
