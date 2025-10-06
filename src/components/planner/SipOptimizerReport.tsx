@@ -1,18 +1,22 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X, Download } from 'lucide-react';
+import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart, Check, X, Download, LineChart, Loader2, Percent } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { AssetAllocationChart } from '../charts/AssetAllocationChart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { getAssetAllocation, fundData as defaultRecommendedFunds } from '@/lib/calculations';
+import { getAssetAllocation } from '@/lib/calculations';
+import { getFundReturns } from '@/ai/flows/fund-returns-flow';
+import { getModelPortfolioData } from '@/ai/flows/model-portfolio-flow';
+import { PortfolioNiftyChart } from '../charts/PortfolioNiftyChart';
+import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -206,9 +210,55 @@ const RetirementAnalysisCard = ({ calcs }: { calcs: RetirementCalculations }) =>
     </Card>
 );
 
+const FundAllocationRow = ({ alloc, goalName }: { alloc: FundAllocation, goalName: string }) => {
+    const [returns, setReturns] = useState<{ threeYearReturn: string | null; fiveYearReturn: string | null; tenYearReturn: string | null; } | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchReturns = async () => {
+            if (alloc.schemeCode) {
+                setIsLoading(true);
+                try {
+                    const result = await getFundReturns({ schemeCode: Number(alloc.schemeCode) });
+                    setReturns(result);
+                } catch (error) {
+                    console.error(`Failed to fetch returns for ${alloc.schemeName}`, error);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+        fetchReturns();
+    }, [alloc.schemeCode, alloc.schemeName]);
+
+    return (
+        <TableRow>
+            <TableCell>
+                <p className="font-bold">{alloc.schemeName || 'N/A'}</p>
+                <p className="text-xs text-gray-500">{alloc.fundName}</p>
+            </TableCell>
+            <TableCell>{goalName}</TableCell>
+            <TableCell>{formatCurrency(alloc.sipRequired)}</TableCell>
+            <TableCell>{alloc.fundCategory}</TableCell>
+            <TableCell className="text-center">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (returns?.threeYearReturn ?? 'N/A')}
+            </TableCell>
+            <TableCell className="text-center">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (returns?.fiveYearReturn ?? 'N/A')}
+            </TableCell>
+            <TableCell className="text-center">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (returns?.tenYearReturn ?? 'N/A')}
+            </TableCell>
+        </TableRow>
+    );
+};
+
 
 export function SipOptimizerReport({ data }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const [equityChartData, setEquityChartData] = useState<ChartDataPoint[] | null>(null);
+  const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
   
   const handlePrint = () => {
     window.print();
@@ -306,6 +356,69 @@ export function SipOptimizerReport({ data }: Props) {
   }).filter(category => category.value > 0);
 
   const recommendedAllocation = getAssetAllocation(data.assetAllocationProfile.age, data.assetAllocationProfile.riskAppetite);
+
+  const portfolioAnalysis = useMemo(() => {
+    const getNum = (val: number | '') => typeof val === 'number' ? val : 0;
+    const equityTotal = data.fundAllocations.filter(a => a.fundCategory === 'Equity').reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    const hybridTotal = data.fundAllocations.filter(a => a.fundCategory === 'Hybrid').reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    const debtTotal = data.fundAllocations.filter(a => a.fundCategory === 'Debt').reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    return { equity: equityTotal, hybrid: hybridTotal, debt: debtTotal };
+  }, [data.fundAllocations]);
+
+  const equityFundWeights = useMemo(() => {
+    const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
+    const equityAllocations = data.fundAllocations.filter(a => a.fundCategory === 'Equity' && getNum(a.sipRequired) > 0 && a.schemeCode);
+    const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    if (totalEquitySip === 0) return [];
+    return equityAllocations.map(alloc => ({
+        ...alloc,
+        goalName: data.goals.find(g => g.id === alloc.goalId)?.name || 'Unlinked',
+        weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
+    }));
+  }, [data.fundAllocations, data.goals]);
+
+
+  useEffect(() => {
+    const generateEquityGraph = async () => {
+        const fundsForApi = equityFundWeights
+          .filter(f => f.schemeCode && f.weight > 0)
+          .map(f => ({
+            schemeCode: Number(f.schemeCode),
+            schemeName: f.schemeName!,
+            weight: f.weight,
+          }));
+
+        if (fundsForApi.length === 0) {
+          return;
+        }
+
+        setIsEquityChartLoading(true);
+        setEquityChartData(null);
+        try {
+          const result = await getModelPortfolioData({ funds: fundsForApi, includeNifty: true });
+          if (result.chartData && result.chartData.length > 0) {
+            setEquityChartData(result.chartData);
+          } else {
+            toast({
+              title: "Could Not Fetch Equity Chart Data",
+              description: "Unable to retrieve historical data for the selected equity funds.",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error(`Error fetching equity portfolio data:`, error);
+           toast({
+              title: "Equity Chart Generation Failed",
+              description: "An unexpected error occurred while generating the equity graph.",
+              variant: "destructive"
+            });
+          setEquityChartData(null);
+        } finally {
+          setIsEquityChartLoading(false);
+        }
+    };
+    generateEquityGraph();
+  }, [equityFundWeights, toast]);
   
 
   return (
@@ -693,6 +806,114 @@ export function SipOptimizerReport({ data }: Props) {
             )}
         </section>
         
+        {/* Fund Allocation & Analysis Section */}
+        {data.fundAllocations && data.fundAllocations.length > 0 && (
+            <section className="mt-4 print-avoid-break">
+                 <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><GoalIcon className="h-5 w-5 text-gray-500"/>Fund Allocation & Analysis</h2>
+                 <p className="text-xs text-gray-600 mb-3">
+                    This section details your chosen mutual fund allocations for each goal, their historical returns, and an analysis of your model portfolio.
+                 </p>
+                 
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Fund Allocations by Goal & Returns (CAGR)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto text-xs">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Scheme</TableHead>
+                                    <TableHead>Goal</TableHead>
+                                    <TableHead>SIP</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead className="text-center">3Y</TableHead>
+                                    <TableHead className="text-center">5Y</TableHead>
+                                    <TableHead className="text-center">10Y</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {data.fundAllocations.map(alloc => (
+                                    <FundAllocationRow 
+                                        key={alloc.id} 
+                                        alloc={alloc} 
+                                        goalName={data.goals.find(g => g.id === alloc.goalId)?.name || 'Unlinked'} 
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                 </Card>
+
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                     <div>
+                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChart className="h-5 w-5"/>Model Portfolio Analysis</h3>
+                        <Card className="p-4">
+                            <CardContent className="p-2 space-y-4 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">Equity Holdings</span>
+                                    <span className="font-bold text-lg text-primary roboto">{formatCurrency(portfolioAnalysis.equity)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">Hybrid Holdings</span>
+                                    <span className="font-bold text-lg text-primary roboto">{formatCurrency(portfolioAnalysis.hybrid)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">Debt Holdings</span>
+                                    <span className="font-bold text-lg text-primary roboto">{formatCurrency(portfolioAnalysis.debt)}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                     </div>
+                     <div>
+                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Equity Fund Weight Analysis</h3>
+                         <Card>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Fund Name</TableHead>
+                                        <TableHead className="text-right">Weightage</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody className="text-xs">
+                                    {equityFundWeights.length > 0 ? (
+                                        equityFundWeights.map(fund => (
+                                            <TableRow key={fund.id}>
+                                                <TableCell className="font-medium">{fund.schemeName}</TableCell>
+                                                <TableCell className="text-right font-bold text-primary roboto">{fund.weight.toFixed(2)}%</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="text-center text-gray-500">
+                                                No equity fund allocations.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </Card>
+                     </div>
+                 </div>
+                 
+                 <div className="mt-4">
+                    {isEquityChartLoading ? (
+                        <div className="flex items-center justify-center h-96 mt-6">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="ml-4 text-gray-500">Generating Equity Performance Chart...</p>
+                        </div>
+                    ) : equityChartData && equityChartData.length > 0 ? (
+                        <PortfolioNiftyChart 
+                            data={equityChartData} 
+                            title="Equity Portfolio vs. NIFTY 50 (2-Year Performance)"
+                        />
+                    ) : (
+                       <div className="text-center text-gray-500 mt-6 h-96 flex items-center justify-center border-2 border-dashed rounded-lg">No equity chart data to display.</div>
+                    )}
+                 </div>
+
+            </section>
+        )}
+
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">
                 <strong>Disclaimer:</strong> The calculators are based on past returns and are meant for illustration purposes only. This information is not investment advice. Mutual Fund investments are subject to market risks, read all scheme related documents carefully. Consult your financial advisor before investing.
@@ -702,3 +923,5 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
+
+    
