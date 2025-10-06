@@ -1,8 +1,68 @@
 {
-    "Aditya Birla Sun Life Mutual Fund": {
-        "Aditya Birla Sun Life Large & Mid Cap Fund": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FAditya%20Birla%20Sun%20Life%20mutual%20fund%2Faditya-birla-sun-life-mutual-fund.pdf?alt=media"
-    },
-    "360 ONE Mutual Fund": {
-        "360 ONE": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2F360%20ONE%20mutual%20fund%2F360ONE-MF-September%202025%20-%20Regular.pdf?alt=media"
-    }
+  "Aditya Birla Sun Life Mutual Fund": {
+    "Aditya Birla Sun Life Large & Mid Cap Fund": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FAditya%20Birla%20Sun%20Life%20mutual%20fund%2Faditya-birla-sun-life-mutual-fund.pdf?alt=media"
+  },
+  "360 ONE Mutual Fund": {
+    "360 ONE": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2F360%20ONE%20mutual%20fund%2F360ONE-MF-September%202025%20-%20Regular.pdf?alt=media"
+  },
+  "Angel One Mutual Fund": {
+    "Angel One": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FAngel%20One%20mutual%20fund%2FAngel-One-Mutual-Fund-Schemes-Aug-2025-1.pdf?alt=media"
+  },
+  "Bajaj Finserv Mutual Fund": {
+    "Bajaj Finserv": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FBajaj%20Finserv%20mutual%20fund%2Fbajaj_finserv_amc_factsheet_september_2025.pdf?alt=media"
+  },
+  "Bank of India Mutual Fund": {
+    "Bank of India": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FBank%20of%20India%20mutual%20fund%2Fbank%20of%20india%20mutual%20fund.pdf?alt=media"
+  },
+  "Baroda BNP Paribas Mutual Fund": {
+    "Baroda BNP Paribas": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FBaroda%20BNP%20Paribas%20mutual%20fund%2FBaroda-bnp-paribas_MF_Fund_Facts_August_2025_14188.pdf?alt=media"
+  },
+  "Canara Robeco Mutual Fund": {
+    "Canara Robeco": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FCanara%20Robeco%20mutual%20fund%2FCanara-factsheet-as-on-August-2025.pdf?alt=media"
+  },
+  "DSP Mutual Fund": {
+    "DSP": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FDSP%20mutual%20fund%2Fdsp-factsheet-august-2025_compressed.pdf?alt=media"
+  },
+  "Edelweiss Mutual Fund": {
+    "Edelweiss": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FEdelweiss%20mutual%20fund%2FEdelweiss_MF_Factsheet_Sept_2025_revised_26092025_045352_PM_compressed.pdf?alt=media"
+  },
+  "Franklin Templeton Mutual Fund": {
+    "Franklin Templeton": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FFranklin%20templeton%20mutual%20fund%2FFranklin-Factsheet-as-on-August-29-2025_web.pdf?alt=media"
+  },
+  "Groww Mutual Fund": {
+    "Groww": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FGroww%20mutual%20fund%2Fgroww-Monthly%20Factsheet%20-%20Aug%2025.pdf?alt=media"
+  },
+  "HDFC Mutual Fund": {
+    "HDFC": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FHDFC%20mutual%20fund%2FHDFC%20MF%20Factsheet%20-%20August%202025.pdf?alt=media"
+  },
+  "HSBC Mutual Fund": {
+    "HSBC": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FHSBC%20mutual%20fund%2Fhsbc-mutual-fund.pdf?alt=media"
+  },
+  "Helios Mutual Fund": {
+    "Helios": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FHelios%20mutual%20fund%2FHelios-Mutual-Fund-Aug-25.pdf?alt=media"
+  },
+  "ICICI Prudential Mutual Fund": {
+    "ICICI Prudential": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FICICI%20Prudential%20mutual%20fund%2Ficici-prudential-mutual-fund-Complete%20Factsheet%20July%202025.pdf?alt=media"
+  },
+  "IDBI Mutual Fund": {
+    "IDBI": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FIDBI%20mutual%20fund%2FIDBIMF_Factsheet_June2023-302638609.pdf?alt=media"
+  },
+  "ITI Mutual Fund": {
+    "ITI": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FITI%20mutual%20fund%2FITI_FACTSHEET_AUGUST_2025.pdf?alt=media"
+  },
+  "Invesco Mutual Fund": {
+    "Invesco": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FInvesco%20mutual%20fund%2Finvesco-factsheet-august-2025.pdf?alt=media"
+  },
+  "JM Financial Mutual Fund": {
+    "JM Financial": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FJM%20financial%20mutual%20fund%2Fjm-financial-mutual-fund.pdf?alt=media"
+  },
+  "Kotak Mahindra Mutual Fund": {
+    "Kotak Mahindra": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FKotak%20Mahindra%20mutual%20fund%2FKotakMFFactsheetSeptember2025.pdf?alt=media"
+  },
+  "LIC Mutual Fund": {
+    "LIC": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FLic%20mutual%20fund%2Flic-mf-factsheet-31st-aug-2025-549386008.pdf?alt=media"
+  },
+  "Mahindra Manulife Mutual Fund": {
+    "Mahindra Manulife": "https://firebasestorage.googleapis.com/v0/b/finfriend-planner.firebasestorage.app/o/factsheets%2FMahindra%20Manulife%20mutual%20fund%2Fmahindra-manulife.pdf?alt=media"
+  }
 }
