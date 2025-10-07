@@ -161,10 +161,17 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
     const currentSip = getNum(goal.currentSip);
     const currentSave = getNum(goal.currentSave);
     
+    let potentialTimeline;
+    if (potentialSip >= goal.newSipRequired) {
+        potentialTimeline = getNum(goal.years);
+    } else {
+        potentialTimeline = calculateNper(futureValueGoal, rate, potentialSip, currentSave);
+    }
+
     return {
         timelineWithCurrentSip: calculateNper(futureValueGoal, rate, currentSip, currentSave),
         timelineWithRequiredSip: getNum(goal.years),
-        timelineWithPotentialSip: calculateNper(futureValueGoal, rate, potentialSip, currentSave),
+        timelineWithPotentialSip: potentialTimeline,
     };
 }
 
