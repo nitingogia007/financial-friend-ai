@@ -38,7 +38,15 @@ export function FundAllocationItem({
 }: FundAllocationItemProps) {
   const { toast } = useToast();
   const selectedFund = funds.find(f => f.fundName === alloc.fundName);
-  const schemes = useMemo(() => selectedFund ? selectedFund.schemes.map(s => s.schemeName) : [], [selectedFund]);
+  
+  const schemes = useMemo(() => {
+    if (!selectedFund) return [];
+    // Filter out schemes with "direct" in their name, case-insensitive
+    return selectedFund.schemes
+      .map(s => s.schemeName)
+      .filter(name => !name.toLowerCase().includes('direct'));
+  }, [selectedFund]);
+
   
   const [returns, setReturns] = useState<FundReturnsOutput | null>(null);
   const [isLoadingReturns, setIsLoadingReturns] = useState(false);
