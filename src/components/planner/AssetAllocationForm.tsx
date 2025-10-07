@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { FormSection } from './FormSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,16 +13,20 @@ import type { AssetAllocationProfile, RiskAppetite } from '@/lib/types';
 import { getAssetAllocation } from '@/lib/calculations';
 
 interface Props {
+  age: number | null;
   profile: AssetAllocationProfile;
   setProfile: React.Dispatch<React.SetStateAction<AssetAllocationProfile>>;
 }
 
 const riskAppetiteOptions: RiskAppetite[] = ['High Aggressive', 'High', 'Moderate', 'Conservative'];
 
-export function AssetAllocationForm({ profile, setProfile }: Props) {
-  const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfile(prev => ({ ...prev, age: e.target.value === '' ? '' : Number(e.target.value) }));
-  };
+export function AssetAllocationForm({ age, profile, setProfile }: Props) {
+  
+  useEffect(() => {
+    if (age !== null) {
+      setProfile(prev => ({ ...prev, age }));
+    }
+  }, [age, setProfile]);
 
   const handleRiskChange = (value: RiskAppetite) => {
     setProfile(prev => ({ ...prev, riskAppetite: value }));
@@ -44,9 +48,10 @@ export function AssetAllocationForm({ profile, setProfile }: Props) {
             <Input
               id="user-age"
               type="number"
-              placeholder="e.g., 30"
-              value={profile.age}
-              onChange={handleAgeChange}
+              placeholder="Calculated from DOB"
+              value={age ?? ''}
+              readOnly
+              className="bg-muted/50"
             />
           </div>
           <div className="space-y-2">
@@ -77,12 +82,17 @@ export function AssetAllocationForm({ profile, setProfile }: Props) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {Object.entries(allocation).map(([key, value]) => (
-                                    <TableRow key={key}>
-                                        <TableCell className="font-medium">{key}</TableCell>
-                                        <TableCell className="text-right font-bold">{value}%</TableCell>
-                                    </TableRow>
-                                ))}
+                                {Object.entries(allocation).map(([key, value]) => {
+                                    if (value > 0) { // Only show categories with an allocation
+                                        return (
+                                            <TableRow key={key}>
+                                                <TableCell className="font-medium">{key}</TableCell>
+                                                <TableCell className="text-right font-bold">{value}%</TableCell>
+                                            </TableRow>
+                                        )
+                                    }
+                                    return null;
+                                })}
                             </TableBody>
                         </Table>
                     ) : (

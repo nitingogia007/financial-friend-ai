@@ -71,6 +71,13 @@ export function Planner() {
 
   const age = useMemo(() => calculateAge(personalDetails.dob), [personalDetails.dob]);
 
+  useEffect(() => {
+    if (age !== null) {
+      setAssetAllocationProfile(prev => ({ ...prev, age: age }));
+      setRetirementInputs(prev => ({ ...prev, currentAge: age }));
+    }
+  }, [age]);
+
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + getNumericValue(a.amount), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
   const netWorth = useMemo(() => totalAssets - totalLiabilities, [totalAssets, totalLiabilities]);
@@ -536,7 +543,8 @@ export function Planner() {
             willStatus={willStatus}
             setWillStatus={setWillStatus}
           />
-          <AssetAllocationForm 
+          <AssetAllocationForm
+            age={age}
             profile={assetAllocationProfile}
             setProfile={setAssetAllocationProfile}
           />
