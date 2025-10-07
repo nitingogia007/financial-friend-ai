@@ -17,7 +17,7 @@ interface Props {
   goalsWithCalculations: GoalWithCalculations[];
 }
 
-const goalTypes = ["Child Education", "Marriage", "House", "Other"];
+const goalTypes = ["Child Education", "Marriage", "House", "Emergency Fund", "Wealth Accumulation", "Vacation Fund", "Vehicle Purchase", "Gadget/Technology Fund", "Other"];
 
 let nextId = 0;
 
