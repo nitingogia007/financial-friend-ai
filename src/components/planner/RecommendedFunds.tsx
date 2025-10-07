@@ -93,7 +93,13 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     setAllocations(prev => prev.filter(alloc => alloc.id !== id));
   };
   
-  const availableGoals = goals.filter(g => g.name && g.name !== 'Retirement');
+  const availableGoals = useMemo(() => {
+    const regularGoals = goals.filter(g => g.name);
+    // Manually add a "Retirement Goal" option
+    const retirementGoal = { id: 'retirement', name: 'Retirement Goal' } as Goal;
+    return [...regularGoals, retirementGoal];
+  }, [goals]);
+
   const fundHouseNames = useMemo(() => funds.map(f => f.fundName), [funds]);
 
   const portfolioAnalysis = useMemo(() => {
