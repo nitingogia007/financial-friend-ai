@@ -202,7 +202,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Do you have Life Insurance?</Label>
-              <RadioGroup value={hasLifeInsurance ?? ''} onValueChange={(value: 'yes' | 'no') => {setHasLifeInsurance(value); if (value === 'yes') setShowLifeQuoteForm(false);}} className="flex gap-4">
+              <RadioGroup value={hasLifeInsurance ?? ''} onValueChange={(value: 'yes' | 'no') => {setHasLifeInsurance(value); if (value === 'no') setShowLifeQuoteForm(false);}} className="flex gap-4">
                 <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="life-yes" /><Label htmlFor="life-yes">Yes</Label></div>
                 <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="life-no" /><Label htmlFor="life-no">No</Label></div>
               </RadioGroup>
@@ -215,11 +215,11 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
               </div>
             )}
             
-            {hasLifeInsurance === 'no' && !showLifeQuoteForm && (
+            {hasLifeInsurance !== null && !showLifeQuoteForm && (
                 <Button variant="outline" size="sm" onClick={() => setShowLifeQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance (Optional)</Button>
             )}
             
-            {hasLifeInsurance === 'no' && showLifeQuoteForm && renderLifeQuoteForm()}
+            {showLifeQuoteForm && renderLifeQuoteForm()}
 
             {canShowRecommendations && relevantAnnualIncome > 0 ? (
               <>
@@ -248,7 +248,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
            <CardContent className="space-y-4">
              <div className="space-y-2">
               <Label>Do you have Health Insurance?</Label>
-              <RadioGroup value={hasHealthInsurance ?? ''} onValueChange={(value: 'yes' | 'no') => {setHasHealthInsurance(value); if (value === 'yes') setShowHealthQuoteForm(false);}} className="flex gap-4">
+              <RadioGroup value={hasHealthInsurance ?? ''} onValueChange={(value: 'yes' | 'no') => {setHasHealthInsurance(value); if (value === 'no') setShowHealthQuoteForm(false);}} className="flex gap-4">
                 <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="health-yes" /><Label htmlFor="health-yes">Yes</Label></div>
                 <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="health-no" /><Label htmlFor="health-no">No</Label></div>
               </RadioGroup>
@@ -261,11 +261,11 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
               </div>
             )}
             
-            {hasHealthInsurance === 'no' && !showHealthQuoteForm && (
+            {hasHealthInsurance !== null && !showHealthQuoteForm && (
                 <Button variant="outline" size="sm" onClick={() => setShowHealthQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance (Optional)</Button>
             )}
             
-            {hasHealthInsurance === 'no' && showHealthQuoteForm && renderHealthQuoteForm()}
+            {showHealthQuoteForm && renderHealthQuoteForm()}
 
 
             {canShowRecommendations ? (
