@@ -45,11 +45,11 @@ export function RetirementPlannerForm({ inputs, setInputs, calculations }: Props
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div className="space-y-1.5">
                     <Label htmlFor="currentAge">Current Age</Label>
-                    <Input id="currentAge" name="currentAge" type="number" value={inputs.currentAge} onChange={handleChange} placeholder="e.g., 25" />
+                    <Input id="currentAge" name="currentAge" type="number" value={inputs.currentAge} readOnly className="bg-muted/50" placeholder="From Details" />
                 </div>
                  <div className="space-y-1.5">
                     <Label htmlFor="desiredRetirementAge">Desired Retirement Age</Label>
-                    <Input id="desiredRetirementAge" name="desiredRetirementAge" type="number" value={inputs.desiredRetirementAge} onChange={handleChange} placeholder="e.g., 60" />
+                    <Input id="desiredRetirementAge" name="desiredRetirementAge" type="number" value={inputs.desiredRetirementAge} readOnly className="bg-muted/50" placeholder="From Details" />
                 </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="lifeExpectancy">Life Expectancy</Label>

@@ -78,6 +78,12 @@ export function Planner() {
     }
   }, [age]);
 
+  useEffect(() => {
+    if (personalDetails.retirementAge) {
+      setRetirementInputs(prev => ({...prev, desiredRetirementAge: personalDetails.retirementAge}));
+    }
+  }, [personalDetails.retirementAge]);
+
   const totalAssets = useMemo(() => assets.reduce((sum, a) => sum + getNumericValue(a.amount), 0), [assets]);
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
   const netWorth = useMemo(() => totalAssets - totalLiabilities, [totalAssets, totalLiabilities]);
