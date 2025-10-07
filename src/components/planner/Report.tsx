@@ -31,7 +31,7 @@ const StatCard = ({ title, value, icon, subValue }: { title: string; value: stri
 
 
 export function Report({ data }: Props) {
-  const yearlyCashflow = data.totalAnnualIncome - data.totalAnnualExpenses;
+  const yearlyCashflow = data.monthlyCashflow * 12;
   
   const generatePdf = async () => {
     const reportElement = document.getElementById('report-section');

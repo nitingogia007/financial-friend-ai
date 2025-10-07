@@ -15,6 +15,7 @@ interface Props {
   setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   expenses: Expense[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
+  monthlyCashflow: number;
   yearlyCashflow: number;
 }
 
@@ -23,7 +24,7 @@ const expenseTypes = ["Rent", "Groceries", "Education", "Insurance Premium", "Ut
 
 let nextId = 0;
 
-export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses, yearlyCashflow }: Props) {
+export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses, monthlyCashflow, yearlyCashflow }: Props) {
   
   const handleUpdate = <T extends Income | Expense>(
     items: T[], 
@@ -53,13 +54,13 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
   return (
     <FormSection
       title="Income & Expenses"
-      description="Understand your annual cash flow."
+      description="Understand your monthly and annual cash flow."
       icon={<HandCoins className="h-6 w-6" />}
     >
       <div className="space-y-6">
         {/* Income Section */}
         <div>
-          <h3 className="font-semibold text-lg mb-2 text-green-600">Annual Income</h3>
+          <h3 className="font-semibold text-lg mb-2 text-green-600">Monthly Income</h3>
           <div className="space-y-3">
             {incomes.map((income) => (
               <div key={income.id} className="p-3 border rounded-md space-y-3">
@@ -104,7 +105,7 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
 
         {/* Expenses Section */}
         <div>
-          <h3 className="font-semibold text-lg mb-2 text-red-600">Annual Expenses</h3>
+          <h3 className="font-semibold text-lg mb-2 text-red-600">Monthly Expenses</h3>
           <div className="space-y-3">
             {expenses.map((expense) => (
               <div key={expense.id} className="p-3 border rounded-md space-y-3">
@@ -152,9 +153,19 @@ export function IncomeExpensesForm({ incomes, setIncomes, expenses, setExpenses,
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <PiggyBank className="h-7 w-7 text-primary" />
-                    <span className="font-semibold text-primary">Yearly Cashflow</span>
+                    <span className="font-semibold text-primary">Monthly Cashflow</span>
                 </div>
-                <span className={`font-bold text-xl font-headline ${yearlyCashflow >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                <span className={`font-bold text-xl font-headline ${monthlyCashflow >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                    ₹{monthlyCashflow.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <PiggyBank className="h-7 w-7 text-primary/70" />
+                    <span className="font-semibold text-primary/80">Yearly Cashflow</span>
+                </div>
+                <span className={`font-bold text-xl font-headline ${yearlyCashflow >= 0 ? 'text-primary/80' : 'text-destructive'}`}>
                     ₹{yearlyCashflow.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
             </div>

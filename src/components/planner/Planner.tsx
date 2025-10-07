@@ -75,11 +75,11 @@ export function Planner() {
   const totalLiabilities = useMemo(() => liabilities.reduce((sum, l) => sum + getNumericValue(l.amount), 0), [liabilities]);
   const netWorth = useMemo(() => totalAssets - totalLiabilities, [totalAssets, totalLiabilities]);
   
-  const totalAnnualIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
-  const totalAnnualExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
-  const yearlyCashflow = useMemo(() => totalAnnualIncome - totalAnnualExpenses, [totalAnnualIncome, totalAnnualExpenses]);
+  const totalMonthlyIncome = useMemo(() => incomes.reduce((sum, i) => sum + getNumericValue(i.amount), 0), [incomes]);
+  const totalMonthlyExpenses = useMemo(() => expenses.reduce((sum, e) => sum + getNumericValue(e.amount), 0), [expenses]);
+  const monthlyCashflow = useMemo(() => totalMonthlyIncome - totalMonthlyExpenses, [totalMonthlyIncome, totalMonthlyExpenses]);
+  const yearlyCashflow = useMemo(() => monthlyCashflow * 12, [monthlyCashflow]);
   
-  const monthlyCashflow = useMemo(() => yearlyCashflow / 12, [yearlyCashflow]);
   const investibleSurplus = useMemo(() => monthlyCashflow > 0 ? monthlyCashflow : 0, [monthlyCashflow]);
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
@@ -204,7 +204,7 @@ export function Planner() {
       // Prepare data with user-specified "Other" values
       const processedAssets: Asset[] = assets.map(a => ({ ...a, type: a.type === 'Other' && a.otherType ? a.otherType : a.type }));
       const processedLiabilities: Liability[] = liabilities.map(l => ({ ...l, type: l.type === 'Other' && l.otherType ? l.otherType : l.type }));
-      const processedExpenses: Expense[] = expenses.map(e => ({ ...e, type: e.type === 'Other' && e.otherType ? e.otherType : e.type }));
+      const processedExpenses: Expense[] = expenses.map(e => ({ ...e, type: e.type === 'Other' && e.otherType ? e.otherType : e.type, amount: getNumericValue(e.amount) * 12 }));
       
       const processedGoals: Goal[] = goals.map(g => ({ ...g, name: g.name === 'Other' && g.otherType ? g.otherType : g.name }));
       const processedGoalsWithCalculations: GoalWithCalculations[] = goalsWithCalculations.map((g, i) => ({ 
@@ -391,8 +391,8 @@ export function Planner() {
           },
           netWorth: netWorth,
           cashflow: {
-              totalMonthlyIncome: totalAnnualIncome / 12,
-              totalMonthlyExpenses: totalAnnualExpenses / 12,
+              totalMonthlyIncome: totalMonthlyIncome,
+              totalMonthlyExpenses: totalMonthlyExpenses,
               investibleSurplus: (monthlyCashflow > 0 ? monthlyCashflow : 0),
           },
           goals: optimizerGoals,
@@ -401,7 +401,7 @@ export function Planner() {
           totalInvestmentStatus,
           detailedTables: {
               incomeExpenses: {
-                  totalMonthlyIncome: totalAnnualIncome / 12,
+                  totalMonthlyIncome: totalMonthlyIncome,
                   fixedExpenses: processedExpenses.filter(e => e.type === 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
                   emiExpenses: 0, // Placeholder
                   otherExpenses: processedExpenses.filter(e => e.type !== 'Rent').reduce((sum, e) => sum + getNumericValue(e.amount), 0) / 12,
@@ -456,8 +456,8 @@ export function Planner() {
         totalLiabilities: totalLiabilities,
         assets: processedAssets,
         liabilities: processedLiabilities,
-        totalAnnualIncome: totalAnnualIncome,
-        totalAnnualExpenses: totalAnnualExpenses,
+        totalAnnualIncome: totalMonthlyIncome * 12,
+        totalAnnualExpenses: totalMonthlyExpenses * 12,
         expenses: processedExpenses,
         aiSummary: summary,
         willStatus: willStatus,
@@ -514,6 +514,7 @@ export function Planner() {
             setIncomes={setIncomes}
             expenses={expenses}
             setExpenses={setExpenses}
+            monthlyCashflow={monthlyCashflow}
             yearlyCashflow={yearlyCashflow}
           />
           <InsuranceForm
