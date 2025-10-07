@@ -19,7 +19,7 @@ interface Props {
 }
 
 const incomeSources = ["Salary", "Business", "Rental Income", "Investments", "Other"];
-const expenseTypes = ["Rent", "Groceries", "Education", "Insurance Premium", "Utilities", "Other"];
+const expenseTypes = ["Rent", "Groceries", "Education", "Insurance Premium", "Utilities", "Clubbing", "Party", "Salary to Househelp", "Other"];
 
 let nextId = 0;
 
