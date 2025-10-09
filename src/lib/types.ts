@@ -132,6 +132,7 @@ export interface WealthCreationGoal {
 }
 
 export interface LifeInsuranceQuote {
+    id: string;
     planName: string;
     premiumAmount: number | '';
     premiumPaymentTerm: string;
@@ -140,6 +141,7 @@ export interface LifeInsuranceQuote {
 }
 
 export interface HealthInsuranceQuote {
+    id: string;
     company: string;
     planName: string;
     premium1Y: number | '';
@@ -162,14 +164,14 @@ export interface InsuranceAnalysisData {
         currentCover: number | '';
         currentPremium?: number | '';
         coverageGap: number;
-        quote?: LifeInsuranceQuote;
+        quotes: LifeInsuranceQuote[];
     };
     healthInsurance: {
         recommendedCover: string;
         currentCover: number | '';
         currentPremium?: number | '';
         coverageGap: number;
-        quote?: HealthInsuranceQuote;
+        quotes: HealthInsuranceQuote[];
     };
 }
 

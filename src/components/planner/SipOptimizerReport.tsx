@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint, FactsheetData, IndustryAllocation, PortfolioHolding } from '@/lib/types';
@@ -902,7 +903,7 @@ export function SipOptimizerReport({ data }: Props) {
                         <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.lifeInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.lifeInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.lifeInsurance.coverageGap)}</p></div>
                     </div>
-                    {data.insuranceAnalysis.lifeInsurance.quote && <LifeInsuranceQuoteCard quote={data.insuranceAnalysis.lifeInsurance.quote} />}
+                    {data.insuranceAnalysis.lifeInsurance.quotes?.map(quote => <LifeInsuranceQuoteCard key={quote.id} quote={quote} />)}
                 </div>
                 <div className="border rounded-lg p-3 bg-green-50/50 space-y-2">
                     <h3 className="font-semibold text-green-800">Health Insurance Analysis</h3>
@@ -911,7 +912,7 @@ export function SipOptimizerReport({ data }: Props) {
                         <div className="flex justify-between"><p>Current Annual Cover:</p><p className="font-bold roboto">{formatCurrency(data.insuranceAnalysis.healthInsurance.currentCover)}</p></div>
                         <div className="flex justify-between"><p>Coverage Gap:</p><p className={`font-bold roboto ${data.insuranceAnalysis.healthInsurance.coverageGap > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(data.insuranceAnalysis.healthInsurance.coverageGap)}</p></div>
                     </div>
-                    {data.insuranceAnalysis.healthInsurance.quote && <HealthInsuranceQuoteCard quote={data.insuranceAnalysis.healthInsurance.quote} />}
+                    {data.insuranceAnalysis.healthInsurance.quotes?.map(quote => <HealthInsuranceQuoteCard key={quote.id} quote={quote} />)}
                 </div>
             </div>
         </section>
