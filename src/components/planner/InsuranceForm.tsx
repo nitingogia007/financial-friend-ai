@@ -216,7 +216,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
             )}
             
             {hasLifeInsurance !== null && !showLifeQuoteForm && (
-                <Button variant="outline" size="sm" onClick={() => setShowLifeQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance (Optional)</Button>
+                <Button variant="outline" size="sm" onClick={() => setShowLifeQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Plan (Optional)</Button>
             )}
             
             {showLifeQuoteForm && renderLifeQuoteForm()}
@@ -262,7 +262,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
             )}
             
             {hasHealthInsurance !== null && !showHealthQuoteForm && (
-                <Button variant="outline" size="sm" onClick={() => setShowHealthQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance (Optional)</Button>
+                <Button variant="outline" size="sm" onClick={() => setShowHealthQuoteForm(true)} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Plan (Optional)</Button>
             )}
             
             {showHealthQuoteForm && renderHealthQuoteForm()}
