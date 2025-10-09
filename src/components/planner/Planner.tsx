@@ -136,13 +136,20 @@ export function Planner() {
 
             const timelines = calculateTimelines(goal, allocatedInvestment);
             
+            const potentialCorpusWithCurrentSip = calculateFutureValue(
+              getNumericValue(goal.currentSip), 
+              getNumericValue(goal.rate), 
+              getNumericValue(goal.years), 
+              getNumericValue(goal.currentSave)
+            );
+
             return {
                 id: goal.id,
                 name: goal.otherType ? goal.otherType : goal.name,
                 targetCorpus: getNumericValue(goal.corpus),
                 futureValue: goal.futureValueOfGoal,
                 timeline: {
-                    current: timelines.timelineWithCurrentSip,
+                    current: 0, // This is now derived from required timeline
                     required: timelines.timelineWithRequiredSip,
                     potential: timelines.timelineWithPotentialSip,
                 },
@@ -151,7 +158,7 @@ export function Planner() {
                     requiredInvestment: goal.newSipRequired,
                     allocatedInvestment: allocatedInvestment,
                 },
-                potentialCorpus: goal.futureValueOfGoal, 
+                potentialCorpus: potentialCorpusWithCurrentSip, 
             };
         });
         setOptimizedGoals(newOptimizedGoals);

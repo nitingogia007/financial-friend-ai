@@ -158,7 +158,6 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
 
     const futureValueGoal = goal.futureValueOfGoal;
     const rate = getNum(goal.rate);
-    const currentSip = getNum(goal.currentSip);
     const currentSave = getNum(goal.currentSave);
     
     let potentialTimeline;
@@ -169,7 +168,7 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
     }
 
     return {
-        timelineWithCurrentSip: calculateNper(futureValueGoal, rate, currentSip, currentSave),
+        // timelineWithCurrentSip is now implicitly the original goal time, as corpus will be recalculated.
         timelineWithRequiredSip: getNum(goal.years),
         timelineWithPotentialSip: potentialTimeline,
     };

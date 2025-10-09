@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { SipOptimizerGoal } from '@/lib/types';
@@ -50,11 +51,11 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="font-bold text-lg">{formatYears(goal.timeline.current)}</p>
+                  <p className="font-bold text-lg">{formatYears(goal.timeline.required)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Goal Amt.</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.futureValue)}</p>
+                  <p className="font-bold text-lg">{formatCurrency(goal.potentialCorpus)}</p>
                 </div>
               </CardContent>
             </Card>
