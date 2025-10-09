@@ -126,29 +126,38 @@ export function calculateGoalDetails(goal: Goal): GoalWithCalculations {
 }
 
 export function calculateNper(fv: number, annualRate: number, pmt: number, pv: number): number {
-    if (annualRate <= 0) {
-        if (pmt <= 0 && pv >= fv) return 0;
-        if (pmt <= 0) return Infinity;
-        return (fv - pv) / pmt / 12;
-    }
     const monthlyRate = annualRate / 100 / 12;
-    const monthlyPmt = pmt;
 
-    if (monthlyPmt <= 0) {
-        if (pv >= fv) return 0;
-        if (pv <= 0) return Infinity; // Cannot grow without payments
-        return Math.log(fv / pv) / Math.log(1 + monthlyRate) / 12;
+    if (annualRate <= 0 || monthlyRate <= 0) {
+        if (pmt <= 0) {
+            return pv >= fv ? 0 : Infinity;
+        }
+        return (fv - pv) / (pmt * 12);
     }
-
-    const futureValueOfPv = pv * Math.pow(1 + monthlyRate, 1); // Start with PV
-    const target = fv + futureValueOfPv;
-
-    const numerator = Math.log(((target * monthlyRate) / (monthlyPmt * (1 + monthlyRate))) + 1);
+    
+    // When PMT is 0, we solve for N in FV = PV * (1+r)^N
+    if (pmt === 0) {
+        if (pv >= fv) return 0;
+        if (pv <= 0) return Infinity; // Cannot grow from 0 or negative without payments
+        const nperMonths = Math.log(fv / pv) / Math.log(1 + monthlyRate);
+        return nperMonths / 12;
+    }
+    
+    // When PMT is non-zero, use the full formula
+    // NPER = LOG((PMT*(1+i*type) - FV*i) / (PMT*(1+i*type) + PV*i)) / LOG(1+i)
+    const type = 1; // Assuming payments at the beginning of the period
+    const pmtPart = pmt * (1 + monthlyRate * type);
+    
+    const numerator = Math.log((pmtPart - fv * monthlyRate) / (pmtPart + pv * monthlyRate));
     const denominator = Math.log(1 + monthlyRate);
-
+    
+    // Handle cases where log is not possible
     if (denominator === 0) return Infinity;
+    const argumentOfLog = (pmtPart - fv * monthlyRate) / (pmtPart + pv * monthlyRate);
+    if (argumentOfLog <= 0) return Infinity; // Cannot reach target
 
     const nperMonths = numerator / denominator;
+    
     return nperMonths / 12;
 }
 
@@ -159,18 +168,23 @@ export function calculateTimelines(goal: GoalWithCalculations, potentialSip: num
     const futureValueGoal = goal.futureValueOfGoal;
     const rate = getNum(goal.rate);
     const currentSave = getNum(goal.currentSave);
-    
-    let potentialTimeline;
-    if (potentialSip >= goal.newSipRequired) {
-        potentialTimeline = getNum(goal.years);
+    const currentSip = getNum(goal.currentSip);
+
+    // Timeline with current SIP
+    const timelineWithCurrentSip = calculateNper(futureValueGoal, rate, currentSip, currentSave);
+
+    // Timeline with allocated "potential" SIP
+    let timelineWithPotentialSip;
+    if (potentialSip > 0 && potentialSip >= goal.newSipRequired) {
+        timelineWithPotentialSip = getNum(goal.years);
     } else {
-        potentialTimeline = calculateNper(futureValueGoal, rate, potentialSip, currentSave);
+        timelineWithPotentialSip = calculateNper(futureValueGoal, rate, potentialSip, currentSave);
     }
 
     return {
-        // timelineWithCurrentSip is now implicitly the original goal time, as corpus will be recalculated.
-        timelineWithRequiredSip: getNum(goal.years),
-        timelineWithPotentialSip: potentialTimeline,
+        timelineWithCurrentSip: timelineWithCurrentSip,
+        timelineWithRequiredSip: getNum(goal.years), // Required timeline is always the original goal timeline
+        timelineWithPotentialSip: timelineWithPotentialSip,
     };
 }
 

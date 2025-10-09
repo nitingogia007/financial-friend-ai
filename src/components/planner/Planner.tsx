@@ -142,16 +142,23 @@ export function Planner() {
               getNumericValue(goal.years), 
               getNumericValue(goal.currentSave)
             );
+            
+            const potentialCorpusWithAllocatedSip = calculateFutureValue(
+                allocatedInvestment,
+                getNumericValue(goal.rate),
+                getNumericValue(goal.years),
+                getNumericValue(goal.currentSave)
+            );
 
             return {
                 id: goal.id,
                 name: goal.otherType ? goal.otherType : goal.name,
                 targetCorpus: getNumericValue(goal.corpus),
-                futureValue: goal.futureValueOfGoal,
+                futureValue: potentialCorpusWithAllocatedSip,
                 timeline: {
-                    current: 0, // This is now derived from required timeline
-                    required: timelines.timelineWithRequiredSip,
-                    potential: timelines.timelineWithPotentialSip,
+                    current: getNumericValue(goal.years),
+                    required: getNumericValue(goal.years),
+                    potential: getNumericValue(goal.years), 
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),

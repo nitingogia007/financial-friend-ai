@@ -51,7 +51,7 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="font-bold text-lg">{formatYears(goal.timeline.required)}</p>
+                  <p className="font-bold text-lg">{formatYears(goal.timeline.current)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Goal Amt.</p>
@@ -76,7 +76,7 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Expected Corpus</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.futureValue)}</p>
+                  <p className="font-bold text-lg">{formatCurrency(goal.targetCorpus * Math.pow(1.06, goal.timeline.required))}</p>
                 </div>
               </CardContent>
             </Card>
