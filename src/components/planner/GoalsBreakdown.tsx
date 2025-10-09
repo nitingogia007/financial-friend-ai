@@ -25,6 +25,10 @@ const formatYears = (years: number) => {
     return '0M';
 }
 
+const roundToNearest100 = (num: number) => {
+    return Math.round(num / 100) * 100;
+}
+
 export function GoalsBreakdown({ optimizedGoals }: Props) {
   if (!optimizedGoals || optimizedGoals.length === 0) {
     return null;
@@ -68,7 +72,7 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
               <CardContent className="p-4 text-center space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Required SIP</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.investmentStatus.requiredInvestment)}</p>
+                  <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.requiredInvestment))}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time</p>
@@ -89,7 +93,7 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
               <CardContent className="p-4 text-center space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Allocated SIP</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.investmentStatus.allocatedInvestment)}</p>
+                  <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.allocatedInvestment))}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Time</p>
