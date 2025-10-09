@@ -133,8 +133,6 @@ export function Planner() {
                     allocatedInvestment = availableSurplus * weight;
                 }
             }
-
-            const timelines = calculateTimelines(goal, allocatedInvestment);
             
             const potentialCorpusWithCurrentSip = calculateFutureValue(
               getNumericValue(goal.currentSip), 
@@ -336,23 +334,25 @@ export function Planner() {
         // CASE 1 & 3: All goals are covered, potentially with surplus
         surplusForWealthCreation = investibleSurplus - totalRequiredSipForOtherGoals;
         optimizerGoals = otherGoalsCalculations.map(goal => {
-            const timelines = calculateTimelines(goal, goal.newSipRequired);
+            const potentialCorpus = calculateFutureValue(goal.newSipRequired, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
+            const potentialCorpusWithCurrentSip = calculateFutureValue(getNum(goal.currentSip), getNum(goal.rate), getNum(goal.years), getNum(goal.currentSave));
+
             return {
                 id: goal.id,
                 name: goal.name,
                 targetCorpus: getNumericValue(goal.corpus),
-                futureValue: goal.futureValueOfGoal,
+                futureValue: potentialCorpus,
                 timeline: {
-                    current: timelines.timelineWithCurrentSip,
-                    required: timelines.timelineWithRequiredSip,
-                    potential: timelines.timelineWithRequiredSip, // Same as required because surplus goes to wealth creation
+                    current: getNumericValue(goal.years),
+                    required: getNumericValue(goal.years),
+                    potential: getNumericValue(goal.years),
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),
                     requiredInvestment: goal.newSipRequired,
                     allocatedInvestment: goal.newSipRequired, // Fund exactly what's required
                 },
-                potentialCorpus: goal.futureValueOfGoal, // It's achievable
+                potentialCorpus: potentialCorpusWithCurrentSip,
             };
         });
       } else {
@@ -366,26 +366,25 @@ export function Planner() {
                 allocatedInvestment = investibleSurplus * weight;
             }
             
-            // Recalculate potential corpus based on the allocated SIP and ORIGINAL timeline
             const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
-            const timelines = calculateTimelines(goal, allocatedInvestment);
+            const potentialCorpusWithCurrentSip = calculateFutureValue(getNum(goal.currentSip), getNum(goal.rate), getNum(goal.years), getNum(goal.currentSave));
             
             return {
                 id: goal.id,
                 name: goal.name,
                 targetCorpus: getNumericValue(goal.corpus),
-                futureValue: goal.futureValueOfGoal,
+                futureValue: potentialCorpus,
                 timeline: {
-                    current: timelines.timelineWithCurrentSip,
-                    required: timelines.timelineWithRequiredSip,
-                    potential: timelines.timelineWithPotentialSip, // Use recalculated timeline
+                    current: getNumericValue(goal.years),
+                    required: getNumericValue(goal.years),
+                    potential: getNumericValue(goal.years),
                 },
                 investmentStatus: {
                     currentInvestment: getNumericValue(goal.currentSip),
                     requiredInvestment: goal.newSipRequired,
                     allocatedInvestment: allocatedInvestment,
                 },
-                potentialCorpus: goal.futureValueOfGoal, // Keep the target corpus constant
+                potentialCorpus: potentialCorpusWithCurrentSip,
             };
         });
       }
@@ -601,3 +600,5 @@ export function Planner() {
     </div>
   );
 }
+
+    
