@@ -39,75 +39,79 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
         <div className="text-center">
             <h3 className="text-2xl font-bold font-headline text-foreground">Goals Breakdown</h3>
         </div>
-      {optimizedGoals.map((goal) => (
-        <div key={goal.id} className="space-y-4">
-          <h4 className="font-bold text-xl text-center md:text-left text-primary">{goal.name}</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card 1: What I am investing */}
-            <Card className="border-red-200 bg-red-50/50">
-              <CardHeader className="p-4">
-                <CardTitle className="text-center text-sm font-semibold text-red-700">What I am investing / Month</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 text-center space-y-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">Current SIP</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.investmentStatus.currentInvestment)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="font-bold text-lg">{formatYears(goal.timeline.current)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Goal Amt.</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.potentialCorpus)}</p>
-                </div>
-              </CardContent>
-            </Card>
+      {optimizedGoals.map((goal) => {
+          const expectedCorpusMustInvest = goal.targetCorpus * Math.pow(1.06, goal.timeline.required);
 
-            {/* Card 2: What I must invest */}
-            <Card className="border-orange-200 bg-orange-50/50">
-              <CardHeader className="p-4">
-                <CardTitle className="text-center text-sm font-semibold text-orange-700">What I must invest / Month</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 text-center space-y-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">Required SIP</p>
-                  <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.requiredInvestment))}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="font-bold text-lg">{formatYears(goal.timeline.required)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Expected Corpus</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.targetCorpus * Math.pow(1.06, goal.timeline.required))}</p>
-                </div>
-              </CardContent>
-            </Card>
+          return (
+            <div key={goal.id} className="space-y-4">
+              <h4 className="font-bold text-xl text-center md:text-left text-primary">{goal.name}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Card 1: What I am investing */}
+                <Card className="border-red-200 bg-red-50/50">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-center text-sm font-semibold text-red-700">What I am investing / Month</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 text-center space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Current SIP</p>
+                      <p className="font-bold text-lg">{formatCurrency(goal.investmentStatus.currentInvestment)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="font-bold text-lg">{formatYears(goal.timeline.current)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Goal Amt.</p>
+                      <p className="font-bold text-lg">{formatCurrency(goal.potentialCorpus)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Card 3: What I can invest */}
-            <Card className="border-green-200 bg-green-50/50">
-              <CardHeader className="p-4">
-                <CardTitle className="text-center text-sm font-semibold text-green-700">What I can invest / Month</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 text-center space-y-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">Allocated SIP</p>
-                  <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.allocatedInvestment))}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Time</p>
-                  <p className="font-bold text-lg">{formatYears(goal.timeline.potential)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Expected Corpus</p>
-                  <p className="font-bold text-lg">{formatCurrency(goal.futureValue)}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      ))}
+                {/* Card 2: What I must invest */}
+                <Card className="border-orange-200 bg-orange-50/50">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-center text-sm font-semibold text-orange-700">What I must invest / Month</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 text-center space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Required SIP</p>
+                      <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.requiredInvestment))}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="font-bold text-lg">{formatYears(goal.timeline.required)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Expected Corpus</p>
+                      <p className="font-bold text-lg">{formatCurrency(expectedCorpusMustInvest)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3: What I can invest */}
+                <Card className="border-green-200 bg-green-50/50">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-center text-sm font-semibold text-green-700">What I can invest / Month</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 text-center space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Allocated SIP</p>
+                      <p className="font-bold text-lg">{formatCurrency(roundToNearest100(goal.investmentStatus.allocatedInvestment))}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="font-bold text-lg">{formatYears(goal.timeline.potential)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Expected Corpus</p>
+                      <p className="font-bold text-lg">{formatCurrency(goal.futureValue)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )
+      })}
     </div>
   );
 }

@@ -830,7 +830,8 @@ export function SipOptimizerReport({ data }: Props) {
             <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
-                    const goalCorpus = goal.futureValue || goal.potentialCorpus;
+                    const expectedCorpusMustInvest = goal.targetCorpus * Math.pow(1.06, goal.timeline.required);
+                    
                     return (
                         <div key={goal.id} className="border-b pb-4 last:border-b-0">
                             <h3 className="font-bold text-base text-gray-800 mb-2">{goal.name}</h3>
@@ -840,21 +841,21 @@ export function SipOptimizerReport({ data }: Props) {
                                     <div className="flex flex-col items-center text-center space-y-1">
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Current SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.currentInvestment)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.current)}</span></div>
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(goalCorpus)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Goal Amt</span><span className="font-bold roboto text-sm">{formatCurrency(goal.potentialCorpus)}</span></div>
                                     </div>
                                 </div>
                                 <div className="p-2 rounded-lg border border-orange-200 bg-orange-50">
                                     <h4 className="text-center font-semibold text-orange-700 mb-2">What I must invest / Month</h4>
                                     <div className="flex flex-col items-center text-center space-y-1">
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Required SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.requiredInvestment)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Required SIP</span><span className="font-bold roboto text-sm">{formatCurrency(Math.round(goal.investmentStatus.requiredInvestment / 100) * 100)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.required)}</span></div>
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(expectedCorpusMustInvest)}</span></div>
                                     </div>
                                 </div>
                                 <div className="p-2 rounded-lg border border-green-200 bg-green-50">
                                     <h4 className="text-center font-semibold text-green-700 mb-2">What I can invest / Month</h4>
                                     <div className="flex flex-col items-center text-center space-y-1">
-                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(goal.investmentStatus.allocatedInvestment)}</span></div>
+                                        <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Allocated SIP</span><span className="font-bold roboto text-sm">{formatCurrency(Math.round(goal.investmentStatus.allocatedInvestment / 100) * 100)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Time</span><span className="font-bold roboto text-sm">{formatYears(goal.timeline.potential)}</span></div>
                                         <div className="flex flex-col"><span className="text-gray-500 text-[10px]">Expected Corpus</span><span className="font-bold roboto text-sm">{formatCurrency(goal.futureValue)}</span></div>
                                     </div>
