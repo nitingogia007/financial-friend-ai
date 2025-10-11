@@ -250,6 +250,7 @@ export interface SipOptimizerReportData {
   retirementCalculations: RetirementCalculations;
   assetAllocationProfile: AssetAllocationProfile;
   fundAllocations: FundAllocation[];
+  goalsWithCalculations: GoalWithCalculations[];
 }
 
 export interface RetirementInputs {
@@ -346,3 +347,5 @@ export interface FactsheetData {
   industryAllocation: IndustryAllocation[];
   portfolioHoldings: PortfolioHolding[];
 }
+
+    

@@ -335,7 +335,7 @@ export function Planner() {
         surplusForWealthCreation = investibleSurplus - totalRequiredSipForOtherGoals;
         optimizerGoals = otherGoalsCalculations.map(goal => {
             const potentialCorpus = calculateFutureValue(goal.newSipRequired, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
-            const potentialCorpusWithCurrentSip = calculateFutureValue(getNum(goal.currentSip), getNum(goal.rate), getNum(goal.years), getNum(goal.currentSave));
+            const potentialCorpusWithCurrentSip = calculateFutureValue(getNumericValue(goal.currentSip), getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
 
             return {
                 id: goal.id,
@@ -367,7 +367,7 @@ export function Planner() {
             }
             
             const potentialCorpus = calculateFutureValue(allocatedInvestment, getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
-            const potentialCorpusWithCurrentSip = calculateFutureValue(getNum(goal.currentSip), getNum(goal.rate), getNum(goal.years), getNum(goal.currentSave));
+            const potentialCorpusWithCurrentSip = calculateFutureValue(getNumericValue(goal.currentSip), getNumericValue(goal.rate), getNumericValue(goal.years), getNumericValue(goal.currentSave));
             
             return {
                 id: goal.id,
@@ -406,7 +406,7 @@ export function Planner() {
       };
 
        // SIP Optimizer Report Data
-      const generatedSipReportData: SipOptimizerReportData = {
+      const generatedSipReportData: SipOptimizerReportData & { goalsWithCalculations: GoalWithCalculations[] } = {
           personalDetails: {
               name: personalDetails.name || "N/A",
               dob: personalDetails.dob || "N/A",
@@ -447,6 +447,7 @@ export function Planner() {
           retirementCalculations: retirementCalculations,
           assetAllocationProfile: assetAllocationProfile,
           fundAllocations: fundAllocations,
+          goalsWithCalculations: processedGoalsWithCalculations,
       };
       
       // Detailed Wellness Report Data
@@ -600,5 +601,7 @@ export function Planner() {
     </div>
   );
 }
+
+    
 
     

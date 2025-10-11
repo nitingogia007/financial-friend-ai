@@ -4,13 +4,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SipOptimizerReport } from '@/components/planner/SipOptimizerReport';
-import type { SipOptimizerReportData } from '@/lib/types';
+import type { SipOptimizerReportData, GoalWithCalculations } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SipOptimizerReportPage() {
-  const [reportData, setReportData] = useState<SipOptimizerReportData | null>(null);
+  const [reportData, setReportData] = useState<(SipOptimizerReportData & { goalsWithCalculations: GoalWithCalculations[] }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +20,7 @@ export default function SipOptimizerReportPage() {
     const data = sessionStorage.getItem('sipOptimizerReportData');
     if (data) {
       try {
-        const parsedData: SipOptimizerReportData = JSON.parse(data);
+        const parsedData: SipOptimizerReportData & { goalsWithCalculations: GoalWithCalculations[] } = JSON.parse(data);
         setReportData(parsedData);
       } catch (e) {
         console.error("Failed to parse SIP optimizer report data:", e);
@@ -70,3 +70,5 @@ export default function SipOptimizerReportPage() {
     </div>
   );
 }
+
+    
