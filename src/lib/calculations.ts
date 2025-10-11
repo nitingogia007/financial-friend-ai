@@ -253,34 +253,34 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         };
     }
 
-    const realRateOfReturn = postRetirementRoi > 0 ? ((1 + postRetirementRoi) / (1 + inflationRate)) - 1 : 0;
+    const realRateOfReturn = postRetirementRoi > inflationRate ? ((1 + postRetirementRoi) / (1 + inflationRate)) - 1 : 0;
     const yearsToRetirement = desiredRetirementAge - currentAge;
     const yearsInRetirement = lifeExpectancy - desiredRetirementAge;
 
     const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const corpusForExpenses = pv(realRateOfReturn, yearsInRetirement, -annualExpenseAtRetirement, 0, 1);
-    const futureValueOfCurrentInvestments = fv(preRetirementRoi, yearsToRetirement, -currentSip * 12, -currentSavings, 0);
+    const corpusForExpenses = annualExpenseAtRetirement / realRateOfReturn * (1 - (1 / Math.pow(1 + realRateOfReturn, yearsInRetirement)));
     
-    let requiredRetirementCorpus = corpusForExpenses;
-    if (futureValueOfCurrentInvestments > 0) {
-        requiredRetirementCorpus -= futureValueOfCurrentInvestments;
-    }
+    const futureValueOfCurrentInvestments = fv(preRetirementRoi, yearsToRetirement, -(currentSip * 12), -currentSavings, 0);
+    
+    let requiredShortfall = corpusForExpenses - futureValueOfCurrentInvestments;
+    if (requiredShortfall < 0) requiredShortfall = 0;
     
     let monthlyInvestmentNeeded = 0;
-    if (requiredRetirementCorpus > 0 && yearsToRetirement > 0) {
-        monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
+    if (requiredShortfall > 0 && yearsToRetirement > 0 && preRetirementRoi > 0) {
+        monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredShortfall, 1);
     }
     
     let incrementalMonthlyInvestment = 0;
     const preRoi = preRetirementRoi;
     const incRate = incrementalRate;
-    if (requiredRetirementCorpus > 0 && preRoi !== incRate) {
-        const numerator = requiredRetirementCorpus * (preRoi - incRate);
+    if (requiredShortfall > 0 && preRoi !== incRate) {
+        const numerator = requiredShortfall * (preRoi - incRate);
         const denominator = Math.pow(1 + preRoi, yearsToRetirement) - Math.pow(1 + incRate, yearsToRetirement);
         if (denominator !== 0) {
-           incrementalMonthlyInvestment = (numerator / denominator) / 12;
+           const annualInvestment = (numerator / denominator);
+           incrementalMonthlyInvestment = annualInvestment / 12;
         }
     }
 

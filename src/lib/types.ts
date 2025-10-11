@@ -258,7 +258,7 @@ export interface RetirementInputs {
     desiredRetirementAge: number | '';
     lifeExpectancy: number | '';
     currentMonthlyExpense: number | '';
-    preRetirementRoi: number | '';
+    preRetirementRoi: number | '';    //string -> retirement: Required Retirement Corpus	
     postRetirementRoi: number | '';
     incrementalRate: number | '';
     currentSavings: number | '';
