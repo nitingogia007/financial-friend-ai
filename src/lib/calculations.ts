@@ -260,16 +260,19 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
     const inflatedMonthlyExpense = fv(inflationRate, yearsToRetirement, 0, -currentMonthlyExpense, 0);
     const annualExpenseAtRetirement = inflatedMonthlyExpense * 12;
     
-    const corpusForExpenses = annualExpenseAtRetirement / realRateOfReturn * (1 - (1 / Math.pow(1 + realRateOfReturn, yearsInRetirement)));
-    
+    let requiredRetirementCorpus = 0;
+    if (realRateOfReturn > 0) {
+        requiredRetirementCorpus = (annualExpenseAtRetirement / realRateOfReturn) * (1 - (1 / Math.pow(1 + realRateOfReturn, yearsInRetirement)))
+    }
+
     const futureValueOfCurrentInvestments = fv(preRetirementRoi, yearsToRetirement, -(currentSip * 12), -currentSavings, 0);
     
-    let requiredShortfall = corpusForExpenses - futureValueOfCurrentInvestments;
+    let requiredShortfall = requiredRetirementCorpus - futureValueOfCurrentInvestments;
     if (requiredShortfall < 0) requiredShortfall = 0;
     
     let monthlyInvestmentNeeded = 0;
-    if (requiredShortfall > 0 && yearsToRetirement > 0 && preRetirementRoi > 0) {
-        monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredShortfall, 1);
+    if (requiredRetirementCorpus > 0 && yearsToRetirement > 0 && preRetirementRoi > 0) {
+        monthlyInvestmentNeeded = pmt(preRetirementRoi / 12, yearsToRetirement * 12, 0, -requiredRetirementCorpus, 0);
     }
     
     let incrementalMonthlyInvestment = 0;
@@ -291,7 +294,7 @@ export function calculateRetirementDetails(inputs: RetirementInputs): Retirement
         yearsInRetirement: yearsInRetirement > 0 ? yearsInRetirement : 0,
         inflatedMonthlyExpense,
         annualExpenseAtRetirement,
-        requiredRetirementCorpus: corpusForExpenses,
+        requiredRetirementCorpus: requiredRetirementCorpus,
         monthlyInvestmentNeeded: monthlyInvestmentNeeded > 0 ? monthlyInvestmentNeeded : 0,
         incrementalMonthlyInvestment: incrementalMonthlyInvestment > 0 ? incrementalMonthlyInvestment : 0,
     };
