@@ -159,7 +159,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
         <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7 text-destructive" onClick={() => handleRemoveQuote('life', quote.id)}>
             <Trash2 className="h-4 w-4" />
         </Button>
-        <h4 className="font-semibold text-md text-primary">Life Insurance Plan Details</h4>
+        <h4 className="font-semibold text-md text-primary">Life Insurance Quotation</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
                 <Label>Plan Name</Label>
@@ -190,7 +190,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
         <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7 text-destructive" onClick={() => handleRemoveQuote('health', quote.id)}>
             <Trash2 className="h-4 w-4" />
         </Button>
-        <h4 className="font-semibold text-md text-primary">Health Insurance Plan Details</h4>
+        <h4 className="font-semibold text-md text-primary">Health Insurance Quotation</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5"><Label>Company</Label><Input value={quote.company} onChange={e => handleHealthQuoteChange(quote.id, 'company', e.target.value)} /></div>
             <div className="space-y-1.5"><Label>Plan Name</Label><Input value={quote.planName} onChange={e => handleHealthQuoteChange(quote.id, 'planName', e.target.value)} /></div>
@@ -240,7 +240,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
             {lifeQuotes.map(quote => renderLifeQuoteForm(quote))}
             
             {hasLifeInsurance !== null && (
-                <Button variant="outline" size="sm" onClick={() => handleAddQuote('life')} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Plan (Optional)</Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddQuote('life')} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Quotation (Optional)</Button>
             )}
 
             {canShowRecommendations && relevantAnnualIncome > 0 ? (
@@ -286,7 +286,7 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
             {healthQuotes.map(quote => renderHealthQuoteForm(quote))}
 
             {hasHealthInsurance !== null && (
-                <Button variant="outline" size="sm" onClick={() => handleAddQuote('health')} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Plan (Optional)</Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddQuote('health')} className="animate-in fade-in-50"><PlusCircle className="mr-2 h-4 w-4" /> Add Insurance Quotation (Optional)</Button>
             )}
 
 
