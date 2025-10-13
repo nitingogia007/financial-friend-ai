@@ -419,10 +419,18 @@ export function SipOptimizerReport({ data }: Props) {
       }
     });
 
-    return Array.from(holdingsMap.entries())
+    const sortedHoldings = Array.from(holdingsMap.entries())
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 15); // Top 15
+      .sort((a, b) => b.value - a.value);
+
+    const top10 = sortedHoldings.slice(0, 10);
+    const others = sortedHoldings.slice(10);
+    if (others.length > 0) {
+        const othersValue = others.reduce((sum, holding) => sum + holding.value, 0);
+        top10.push({ name: 'Others', value: othersValue });
+    }
+    return top10;
+
   }, [factsheets, data.fundAllocations]);
 
   const consolidatedIndustryAllocation = useMemo(() => {
@@ -446,9 +454,18 @@ export function SipOptimizerReport({ data }: Props) {
       }
     });
 
-    return Array.from(industryMap.entries())
+    const sortedIndustries = Array.from(industryMap.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
+    
+    const top10 = sortedIndustries.slice(0, 10);
+    const others = sortedIndustries.slice(10);
+    if (others.length > 0) {
+        const othersValue = others.reduce((sum, industry) => sum + industry.value, 0);
+        top10.push({ name: 'Others', value: othersValue });
+    }
+    return top10;
+
   }, [factsheets, data.fundAllocations]);
   
 
@@ -1260,10 +1277,3 @@ export function SipOptimizerReport({ data }: Props) {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
