@@ -2,9 +2,9 @@
 'use server';
 
 /**
- * @fileOverview Reads historical NAV data from APIs, calculates a weighted model portfolio, and compares it against the NIFTY 50 index.
+ * @fileOverview Reads historical NAV data from APIs, calculates a weighted model portfolio, and compares it against a benchmark index.
  *
- * - getModelPortfolioData - Fetches and processes data for a weighted multi-fund vs Nifty 50 comparison.
+ * - getModelPortfolioData - Fetches and processes data for a weighted multi-fund vs benchmark comparison.
  * - ModelPortfolioInput - The input type for the flow.
  * - ModelPortfolioOutput - The return type for the flow.
  */
@@ -75,10 +75,17 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         return;
                     }
                     
-                    const formattedData = results.data.map((row: any) => ({
-                        date: row.Date,
-                        close: row.Close
-                    })).filter(d => d.date && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0);
+                    const formattedData = results.data.map((row: any) => {
+                        // The key is to parse the date from the CSV and re-format it to DD-MM-YYYY
+                        const parsedDate = parse(row.Date, 'dd-MMM-yyyy', new Date());
+                        if (isValid(parsedDate)) {
+                            return {
+                                date: format(parsedDate, 'dd-MM-yyyy'),
+                                close: row.Close
+                            }
+                        }
+                        return null;
+                    }).filter(d => d && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0) as { date: string; close: number }[];
 
                     resolve(formattedData);
                 },
