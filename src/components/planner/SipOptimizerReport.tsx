@@ -56,8 +56,8 @@ const formatYears = (years: number) => {
 }
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
-    <div className="flex items-start gap-3">
-        <div className="bg-black/5 rounded-full p-1.5 print:bg-gray-200">
+    <div className="flex items-start gap-3 print:gap-2">
+        <div className="bg-pink-50 rounded-full p-1.5 print:bg-pink-50">
             <Icon className="h-4 w-4 text-pink-800" />
         </div>
         <div>
@@ -68,8 +68,8 @@ const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, lab
 );
 
 const DetailItemWhite = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
-    <div className="flex items-start gap-3">
-         <div className="bg-gray-100 rounded-full p-1.5 print:bg-gray-200">
+    <div className="flex items-start gap-3 print:gap-2">
+         <div className="bg-gray-100 rounded-full p-1.5 print:bg-gray-100">
             <Icon className="h-4 w-4 text-gray-600" />
         </div>
         <div>
@@ -743,21 +743,22 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Investor Details */}
         <section className="bg-white p-1 print-avoid-break print:bg-white">
-            <div className="rounded-lg shadow-sm border overflow-hidden">
-                <div className="grid grid-cols-2">
-                    <div className="bg-pink-50 p-4 space-y-4 print:bg-pink-50">
-                       <DetailItem icon={User} label="Name" value={data.personalDetails.name} />
-                       <DetailItem icon={Calendar} label="Date of Birth" value={formatDate(data.personalDetails.dob)} />
-                       <DetailItem icon={Users} label="Dependents" value={data.personalDetails.dependents} />
-                    </div>
-                    <div className="bg-white p-4 space-y-4 print:bg-white">
-                        <DetailItemWhite icon={Target} label="Retirement Age" value={data.personalDetails.retirementAge} />
-                        <DetailItemWhite icon={Phone} label="Mobile No." value={data.personalDetails.mobile} />
-                        <DetailItemWhite icon={Mail} label="Email ID" value={data.personalDetails.email} />
-                    </div>
-                </div>
+          <div className="rounded-lg shadow-sm border overflow-hidden">
+            <div className="grid grid-cols-2 print:grid-cols-2">
+              <div className="bg-pink-50 p-4 space-y-4 print:bg-pink-50">
+                <DetailItem icon={User} label="Name" value={data.personalDetails.name} />
+                <DetailItem icon={Calendar} label="Date of Birth" value={formatDate(data.personalDetails.dob)} />
+                <DetailItem icon={Users} label="Dependents" value={data.personalDetails.dependents} />
+              </div>
+              <div className="bg-white p-4 space-y-4 print:bg-white">
+                <DetailItemWhite icon={Target} label="Retirement Age" value={data.personalDetails.retirementAge} />
+                <DetailItemWhite icon={Phone} label="Mobile No." value={data.personalDetails.mobile} />
+                <DetailItemWhite icon={Mail} label="Email ID" value={data.personalDetails.email} />
+              </div>
             </div>
+          </div>
         </section>
+
         
         {/* Net Worth */}
         <section className="mt-4 print-avoid-break">
@@ -771,7 +772,7 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Monthly Cashflow Summary */}
         <section className="mt-4 print-avoid-break">
-             <div className="p-3 rounded-lg bg-gray-100 text-center print:bg-gray-100">
+            <div className="p-3 rounded-lg bg-gray-100 text-center print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Your Monthly Cashflow Summary</h3>
             </div>
             <div className="mt-3 relative h-8 bg-gray-200 rounded-full overflow-hidden print:bg-gray-200">
@@ -835,16 +836,7 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
 
-        {/* Retirement Analysis */}
-        {data.retirementCalculations && (
-          <section className="mt-4 print-avoid-break">
-            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
-                <h3 className="font-bold text-gray-700">Retirement Planning Analysis</h3>
-            </div>
-            <RetirementAnalysisCard calcs={data.retirementCalculations} />
-          </section>
-        )}
-        
+        {/* Financial Goal Details */}
         {data.goalsWithCalculations && data.goalsWithCalculations.length > 0 && (
           <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -878,8 +870,8 @@ export function SipOptimizerReport({ data }: Props) {
             </Card>
           </section>
         )}
-
-        {/* Goals Table */}
+        
+        {/* Goals Breakdown */}
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Goals Breakdown</h3>
@@ -949,6 +941,15 @@ export function SipOptimizerReport({ data }: Props) {
           </section>
         )}
 
+        {/* Retirement Analysis */}
+        {data.retirementCalculations && (
+          <section className="mt-4 print-avoid-break">
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
+                <h3 className="font-bold text-gray-700">Retirement Planning Analysis</h3>
+            </div>
+            <RetirementAnalysisCard calcs={data.retirementCalculations} />
+          </section>
+        )}
 
         {/* Insurance Analysis */}
         {data.insuranceAnalysis && (
