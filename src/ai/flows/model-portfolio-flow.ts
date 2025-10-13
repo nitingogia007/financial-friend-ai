@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -78,7 +79,8 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
 
                     const formattedData = results.data.map((row: any) => {
                         const dateStr = (row.Date || row.date);
-                        if (!dateStr) return null;
+                        const closeStr = (row.Close || row.close || row['Nifty 65 35']);
+                        if (!dateStr || !closeStr) return null;
 
                         let parsedDate: Date | null = null;
                         for (const fmt of dateFormatsToTry) {
@@ -89,14 +91,16 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                             }
                         }
                         
-                        if (parsedDate) {
+                        const closeValue = typeof closeStr === 'string' ? parseFloat(closeStr.replace(/,/g, '')) : closeStr;
+
+                        if (parsedDate && typeof closeValue === 'number' && !isNaN(closeValue) && closeValue > 0) {
                             return {
                                 date: format(parsedDate, 'dd-MM-yyyy'),
-                                close: row.Close || row.close
+                                close: closeValue
                             }
                         }
                         return null;
-                    }).filter(d => d && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0) as { date: string; close: number }[];
+                    }).filter(d => d) as { date: string; close: number }[];
                     
                     resolve(formattedData.sort((a, b) => parse(a.date, 'dd-MM-yyyy', new Date()).getTime() - parse(b.date, 'dd-MM-yyyy', new Date()).getTime()));
                 },
@@ -135,7 +139,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
         benchmarkData = await getBenchmarkDataFromCsv('NIFTY_50_HYBRID_COMPOSITE_DEBT_65-35_Index.csv');
     }
 
-    if (benchmark && benchmarkData.length === 0) {
+    if (!benchmark || benchmarkData.length === 0) {
       console.error("Benchmark data could not be fetched or is empty.");
       return { chartData: [] };
     }
@@ -162,7 +166,6 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     for (const date of masterDates) {
         let portfolioValueForDate = 0;
         let totalWeightForDate = 0;
-        let canCalculatePortfolio = true;
 
         for (let i = 0; i < funds.length; i++) {
             const fund = funds[i];
@@ -175,8 +178,6 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
             if (lastKnownNavs[i] !== null) {
                 portfolioValueForDate += lastKnownNavs[i]! * (fund.weight / 100);
                 totalWeightForDate += fund.weight;
-            } else {
-                 // can't calculate portfolio if a fund has no initial data
             }
         }
         
@@ -194,7 +195,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
                 initialBenchmarkValue = benchmarkValue;
             }
 
-            if (initialPortfolioValue > 0 && initialBenchmarkValue! > 0) {
+            if (initialPortfolioValue > 0 && initialBenchmarkValue! > 0 && portfolioValueForDate > 0) {
                 const rebasedPoint: ChartDataPoint = { date };
                 rebasedPoint.modelPortfolio = (portfolioValueForDate / initialPortfolioValue) * 100;
                 rebasedPoint.benchmark = (benchmarkValue / initialBenchmarkValue) * 100;

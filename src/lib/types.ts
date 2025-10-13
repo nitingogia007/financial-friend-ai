@@ -297,7 +297,7 @@ export interface ModelPortfolioInput {
     schemeName: string;
     weight: number;
   }[];
-  benchmark?: 'nifty50' | 'debt';
+  benchmark?: 'nifty50' | 'debt' | 'hybrid';
 }
 
 export type ChartDataPoint = {
