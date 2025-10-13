@@ -465,10 +465,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
 
         <p className="text-xs text-muted-foreground mt-8">
-            Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
+            Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any
         </p>
     </FormSection>
   );
 }
-
-    

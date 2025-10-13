@@ -11,7 +11,6 @@
 
 import { z } from 'zod';
 import { format, subYears, isValid, parse, isAfter, isEqual } from 'date-fns';
-import yahooFinance from 'yahoo-finance2';
 import type { ModelPortfolioInput, ModelPortfolioOutput, ChartDataPoint } from '@/lib/types';
 import Papa from 'papaparse';
 import path from 'path';
@@ -40,23 +39,6 @@ async function getFundNavData(schemeCode: number, startDate: string, endDate: st
   }
 }
 
-// Helper to fetch Nifty 50 data from Yahoo Finance
-async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: string; close: number }[]> {
-  try {
-    const results = await yahooFinance.historical('^NSEI', {
-      period1: startDate,
-      period2: endDate,
-    });
-    return results.map(d => ({
-      date: format(new Date(d.date), 'dd-MM-yyyy'),
-      close: d.close,
-    })).filter(d => !isNaN(d.close) && d.close > 0);
-  } catch (error) {
-    console.error('Error fetching Nifty 50 data from Yahoo Finance:', error);
-    return [];
-  }
-}
-
 // Helper to fetch benchmark data from a local CSV file
 async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string; close: number }[]> {
     try {
@@ -75,11 +57,12 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         return;
                     }
                     
-                    const dateFormatsToTry = ['dd-MMM-yy', 'MM/dd/yyyy', 'yyyy-MM-dd', 'dd-MM-yyyy'];
+                    const dateFormatsToTry = ['yyyy-MM-dd', 'dd-MMM-yy', 'MM/dd/yyyy', 'dd-MM-yyyy'];
 
                     const formattedData = results.data.map((row: any) => {
                         const dateStr = (row.Date || row.date);
-                        const closeStr = (row.Close || row.close || row['Nifty 65 35']);
+                        const closeStr = (row.Close || row.close || row['Nifty 500'] || row['Nifty 65 35']);
+
                         if (!dateStr || !closeStr) return null;
 
                         let parsedDate: Date | null = null;
@@ -102,7 +85,7 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         return null;
                     }).filter(d => d) as { date: string; close: number }[];
                     
-                    resolve(formattedData.sort((a, b) => parse(a.date, 'dd-MM-yyyy', new Date()).getTime() - parse(b.date, 'dd-MM-yyyy', new Date()).getTime()));
+                    resolve(formattedData.sort((a, b) => parse(b.date, 'dd-MM-yyyy', new Date()).getTime() - parse(a.date, 'dd-MM-yyyy', new Date()).getTime()));
                 },
                 error: (error: Error) => {
                     console.error("PapaParse error:", error);
@@ -132,7 +115,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
   try {
     let benchmarkData: { date: string; close: number }[] = [];
     if (benchmark === 'nifty50') {
-      benchmarkData = await getNiftyData(startDate, endDate);
+      benchmarkData = await getBenchmarkDataFromCsv('NIFTY_50_Index.csv');
     } else if (benchmark === 'debt') {
       benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
     } else if (benchmark === 'hybrid') {
@@ -151,8 +134,8 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
         console.warn("One or more funds returned no NAV data.");
     }
     
-    // Use benchmark dates as the master list of dates
-    const masterDates = benchmarkData.map(d => d.date);
+    // Use benchmark dates as the master list of dates, reversed to go from past to present
+    const masterDates = benchmarkData.map(d => d.date).reverse();
 
     const fundNavMaps = allFundNavs.map(fundNavs => new Map(fundNavs.map(d => [d.date, d.nav])));
     const benchmarkMap = new Map(benchmarkData.map(d => [d.date, d.close]));
@@ -166,6 +149,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     for (const date of masterDates) {
         let portfolioValueForDate = 0;
         let totalWeightForDate = 0;
+        let allFundsHaveNav = true;
 
         for (let i = 0; i < funds.length; i++) {
             const fund = funds[i];
@@ -178,10 +162,13 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
             if (lastKnownNavs[i] !== null) {
                 portfolioValueForDate += lastKnownNavs[i]! * (fund.weight / 100);
                 totalWeightForDate += fund.weight;
+            } else {
+                allFundsHaveNav = false;
             }
         }
         
-        if (totalWeightForDate < 100) { // Don't calculate if we don't have all funds yet
+        // Wait until we have the first NAV for all funds before starting calculations
+        if (!allFundsHaveNav) {
             continue;
         }
 
