@@ -8,7 +8,7 @@ import { useTheme } from 'next-themes';
 interface Props {
   data: {
     date: string;
-    nifty50?: number;
+    benchmark?: number;
     modelPortfolio?: number;
   }[];
   title: string;
@@ -16,7 +16,7 @@ interface Props {
 
 const COLORS = {
   modelPortfolio: 'hsl(var(--chart-1))',
-  nifty50: 'hsl(var(--chart-2))',
+  benchmark: 'hsl(var(--chart-2))',
 };
 
 export function PortfolioNiftyChart({ data, title }: Props) {
@@ -44,7 +44,8 @@ export function PortfolioNiftyChart({ data, title }: Props) {
   const yAxisMax = Math.ceil(yDomain[1] / 10) * 10;
 
   const formatLegendName = (name: string) => {
-    if (name === 'nifty50') return 'NIFTY 50';
+    if (name === 'benchmark' && title.includes('NIFTY 50')) return 'NIFTY 50';
+    if (name === 'benchmark') return 'Benchmark';
     if (name === 'modelPortfolio') return 'Model Portfolio';
     return name;
   }

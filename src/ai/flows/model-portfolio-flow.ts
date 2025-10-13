@@ -13,6 +13,9 @@ import { z } from 'zod';
 import { format, subYears, isValid, parse } from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
 import type { ModelPortfolioInput, ModelPortfolioOutput, ChartDataPoint } from '@/lib/types';
+import Papa from 'papaparse';
+import path from 'path';
+import fs from 'fs';
 
 
 // Helper to fetch NAV data for a single fund
@@ -37,7 +40,7 @@ async function getFundNavData(schemeCode: number, startDate: string, endDate: st
   }
 }
 
-// Helper to fetch Nifty 50 data
+// Helper to fetch Nifty 50 data from Yahoo Finance
 async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: string; close: number }[]> {
   try {
     const results = await yahooFinance.historical('^NSEI', {
@@ -54,9 +57,47 @@ async function getNiftyData(startDate: Date, endDate: Date): Promise<{ date: str
   }
 }
 
+// Helper to fetch benchmark data from a local CSV file
+async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string; close: number }[]> {
+    try {
+        const csvPath = path.join(process.cwd(), 'public', 'csv', fileName);
+        const csvFile = fs.readFileSync(csvPath, 'utf-8');
+        
+        return new Promise((resolve, reject) => {
+            Papa.parse(csvFile, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    if (results.errors.length) {
+                        console.error("Errors parsing CSV:", results.errors);
+                        reject(new Error('Failed to parse benchmark CSV file.'));
+                        return;
+                    }
+                    
+                    const formattedData = results.data.map((row: any) => ({
+                        date: row.Date,
+                        close: row.Close
+                    })).filter(d => d.date && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0);
+
+                    resolve(formattedData);
+                },
+                error: (error: Error) => {
+                    console.error("PapaParse error:", error);
+                    reject(error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error(`Error reading or parsing ${fileName}:`, error);
+        return [];
+    }
+}
+
+
 // Main function to get and process all data
 export async function getModelPortfolioData(input: ModelPortfolioInput): Promise<ModelPortfolioOutput> {
-  const { funds, includeNifty = false } = input;
+  const { funds, benchmark } = input;
   if (!funds || funds.length === 0) {
     return { chartData: [] };
   }
@@ -71,15 +112,18 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     
     const allFundNavs = await Promise.all(fundNavPromises);
     
-    let niftyData: { date: string; close: number }[] = [];
-    if (includeNifty) {
-      niftyData = await getNiftyData(startDate, endDate);
+    let benchmarkData: { date: string; close: number }[] = [];
+    if (benchmark === 'nifty50') {
+      benchmarkData = await getNiftyData(startDate, endDate);
+    } else if (benchmark === 'debt') {
+      benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
     }
+
 
     const allDates = new Set<string>();
     allFundNavs.forEach(fundNavs => fundNavs.forEach(nav => allDates.add(nav.date)));
-    if (includeNifty) {
-      niftyData.forEach(d => allDates.add(d.date));
+    if (benchmark) {
+      benchmarkData.forEach(d => allDates.add(d.date));
     }
     
     const sortedDates = Array.from(allDates).sort((aStr, bStr) => {
@@ -90,9 +134,9 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     });
 
     const fundNavMaps = allFundNavs.map(fundNavs => new Map(fundNavs.map(d => [d.date, d.nav])));
-    const niftyMap = new Map(niftyData.map(d => [d.date, d.close]));
+    const benchmarkMap = new Map(benchmarkData.map(d => [d.date, d.close]));
     
-    let combinedData: ({ date: string, nifty50?: number, funds: (number|null)[] })[] = [];
+    let combinedData: ({ date: string, benchmark?: number, funds: (number|null)[] })[] = [];
 
     for (const date of sortedDates) {
         const fundValues = fundNavMaps.map(navMap => navMap.get(date) ?? null);
@@ -101,14 +145,14 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
         if (fundValues.some(v => v !== null)) {
             combinedData.push({
                 date,
-                nifty50: niftyMap.get(date),
+                benchmark: benchmarkMap.get(date),
                 funds: fundValues,
             });
         }
     }
     
     // Find the first data point where all funds have a value, to use as the baseline
-    const firstValidIndex = combinedData.findIndex(d => d.funds.every(f => f !== null) && (!includeNifty || d.nifty50 !== undefined));
+    const firstValidIndex = combinedData.findIndex(d => d.funds.every(f => f !== null) && (!benchmark || d.benchmark !== undefined));
     if (firstValidIndex === -1) {
         console.log("No common baseline found for all funds.");
         return { chartData: [] };
@@ -116,7 +160,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     
     const baseline = combinedData[firstValidIndex];
     const baselineFundValues = baseline.funds as number[];
-    const baselineNifty = baseline.nifty50;
+    const baselineBenchmark = baseline.benchmark;
     
     const rebasedData: ChartDataPoint[] = combinedData.slice(firstValidIndex).map(d => {
       const rebasedPoint: ChartDataPoint = { date: d.date };
@@ -140,8 +184,8 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
           rebasedPoint.modelPortfolio = (weightedPortfolioValue / totalWeightForPoint) * 100;
       }
       
-      if (includeNifty && d.nifty50 !== undefined && baselineNifty !== undefined && baselineNifty > 0) {
-          rebasedPoint.nifty50 = (d.nifty50 / baselineNifty) * 100;
+      if (benchmark && d.benchmark !== undefined && baselineBenchmark !== undefined && baselineBenchmark > 0) {
+          rebasedPoint.benchmark = (d.benchmark / baselineBenchmark) * 100;
       }
 
       return rebasedPoint;

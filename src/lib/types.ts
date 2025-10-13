@@ -297,12 +297,12 @@ export interface ModelPortfolioInput {
     schemeName: string;
     weight: number;
   }[];
-  includeNifty?: boolean;
+  benchmark?: 'nifty50' | 'debt';
 }
 
 export type ChartDataPoint = {
   date: string;
-  nifty50?: number;
+  benchmark?: number;
   modelPortfolio?: number;
 };
 
@@ -347,5 +347,3 @@ export interface FactsheetData {
   industryAllocation: IndustryAllocation[];
   portfolioHoldings: PortfolioHolding[];
 }
-
-    
