@@ -16,11 +16,23 @@ const COLORS = [
   'hsl(var(--chart-3))',
   'hsl(var(--chart-4))',
   'hsl(var(--chart-5))',
-  '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'
+  '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'
 ];
 
 export function FactsheetDisplay({ data }: FactsheetDisplayProps) {
-  const industryData = data.industryAllocation.map((item, index) => ({
+  const sortedAllocations = [...data.industryAllocation].sort((a, b) => b.weight - a.weight);
+  const top10 = sortedAllocations.slice(0, 10);
+  const others = sortedAllocations.slice(10);
+  
+  let processedAllocations = top10;
+
+  if (others.length > 0) {
+    const othersWeight = others.reduce((acc, curr) => acc + curr.weight, 0);
+    processedAllocations.push({ sector: 'Others', weight: othersWeight });
+  }
+
+
+  const industryData = processedAllocations.map((item, index) => ({
     name: item.sector,
     value: item.weight,
     fill: COLORS[index % COLORS.length],
