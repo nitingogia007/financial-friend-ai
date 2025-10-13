@@ -794,31 +794,30 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Underinvesting Section */}
         {data.totalInvestmentStatus && (
         <section className="mt-4 print-avoid-break">
-             <div className="text-red-600 font-semibold flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5"/>
-                <h3>
-                {
-                    data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment
-                    ? "Investment Status"
-                    : "Underinvesting"
-                }
+            <div className="p-3 rounded-lg bg-gray-100 text-center">
+                <h3 className="font-bold text-gray-700">
+                    {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment
+                        ? "Investment Status"
+                        : "Underinvesting Alert"}
                 </h3>
             </div>
-
-            {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment ? (
-                <p className="text-sm mt-1">
-                    Your investable surplus is sufficient to meet your required investments.
-                    <span className="font-bold text-green-600 bg-green-100 rounded-md px-1.5 py-0.5 mx-1">
-                        I must invest / month = I can invest / month
-                    </span>
-                </p>
-            ) : (
-                <p className="text-sm mt-1">
-                    You are currently underinvesting and need an additional SIP of 
-                    <span className="font-bold text-red-600 bg-red-100 rounded-md px-1.5 py-0.5 mx-1">{formatCurrency(additionalSipRequired)}</span>
-                    per month to stay on track and achieve your goals.
-                </p>
-            )}
+            <div className="mt-3">
+                {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment ? (
+                    <p className="text-sm text-center">
+                        Your investable surplus is sufficient to meet your required investments.
+                        <br/>
+                        <span className="font-bold text-green-600 bg-green-100 rounded-md px-1.5 py-0.5 mx-1">
+                            I must invest / month = I can invest / month
+                        </span>
+                    </p>
+                ) : (
+                    <p className="text-sm text-center">
+                        You are currently underinvesting and need an additional SIP of 
+                        <span className="font-bold text-red-600 bg-red-100 rounded-md px-1.5 py-0.5 mx-1">{formatCurrency(additionalSipRequired)}</span>
+                        per month to stay on track and achieve your goals.
+                    </p>
+                )}
+            </div>
 
             <div className="grid grid-cols-3 gap-3 mt-3 text-center text-xs">
                 <div className="border border-red-200 bg-red-50 p-2 rounded-lg">
