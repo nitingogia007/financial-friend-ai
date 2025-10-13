@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import { format, subYears, isValid, parse } from 'date-fns';
+import { format, subYears, isValid, parse, isAfter, isEqual } from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
 import type { ModelPortfolioInput, ModelPortfolioOutput, ChartDataPoint } from '@/lib/types';
 import Papa from 'papaparse';
@@ -76,8 +76,11 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                     }
                     
                     const formattedData = results.data.map((row: any) => {
-                        // The key is to parse the date from the CSV and re-format it to DD-MM-YYYY
-                        const parsedDate = parse(row.Date, 'dd-MMM-yyyy', new Date());
+                        const dateStr = (row.Date || row.date);
+                        if (!dateStr) return null;
+
+                        // Try multiple date formats
+                        const parsedDate = parse(dateStr, 'dd-MMM-yy', new Date());
                         if (isValid(parsedDate)) {
                             return {
                                 date: format(parsedDate, 'dd-MM-yyyy'),
@@ -86,7 +89,7 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         }
                         return null;
                     }).filter(d => d && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0) as { date: string; close: number }[];
-
+                    
                     resolve(formattedData);
                 },
                 error: (error: Error) => {
@@ -133,72 +136,117 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
       benchmarkData.forEach(d => allDates.add(d.date));
     }
     
-    const sortedDates = Array.from(allDates).sort((aStr, bStr) => {
-      const dateA = parse(aStr, 'dd-MM-yyyy', new Date());
-      const dateB = parse(bStr, 'dd-MM-yyyy', new Date());
-      if (!isValid(dateA) || !isValid(dateB)) return 0;
-      return dateA.getTime() - dateB.getTime();
-    });
+    const sortedDates = Array.from(allDates)
+      .map(dStr => parse(dStr, 'dd-MM-yyyy', new Date()))
+      .filter(isValid)
+      .sort((a, b) => a.getTime() - b.getTime())
+      .map(d => format(d, 'dd-MM-yyyy'));
 
     const fundNavMaps = allFundNavs.map(fundNavs => new Map(fundNavs.map(d => [d.date, d.nav])));
     const benchmarkMap = new Map(benchmarkData.map(d => [d.date, d.close]));
     
-    let combinedData: ({ date: string, benchmark?: number, funds: (number|null)[] })[] = [];
+    // --- New Resilient Data Processing Logic ---
 
-    for (const date of sortedDates) {
-        const fundValues = fundNavMaps.map(navMap => navMap.get(date) ?? null);
+    // 1. Create a full data map with all available data points
+    const fullDataMap = new Map<string, { funds: (number | null)[]; benchmark?: number }>();
+    sortedDates.forEach(date => {
+        fullDataMap.set(date, {
+            funds: fundNavMaps.map(navMap => navMap.get(date) ?? null),
+            benchmark: benchmarkMap.get(date)
+        });
+    });
 
-        // Only include dates where at least one fund has data
-        if (fundValues.some(v => v !== null)) {
-            combinedData.push({
-                date,
-                benchmark: benchmarkMap.get(date),
-                funds: fundValues,
-            });
+    // 2. Find the earliest valid start date for each fund and benchmark
+    const fundStartDates = fundNavMaps.map(navMap => {
+        const firstDate = sortedDates.find(d => navMap.has(d));
+        return firstDate ? parse(firstDate, 'dd-MM-yyyy', new Date()) : null;
+    }).filter(d => d !== null) as Date[];
+
+    if (benchmark) {
+        const firstBenchmarkDate = sortedDates.find(d => benchmarkMap.has(d));
+        if (firstBenchmarkDate) {
+            fundStartDates.push(parse(firstBenchmarkDate, 'dd-MM-yyyy', new Date()));
         }
     }
     
-    // Find the first data point where all funds have a value, to use as the baseline
-    const firstValidIndex = combinedData.findIndex(d => d.funds.every(f => f !== null) && (!benchmark || d.benchmark !== undefined));
-    if (firstValidIndex === -1) {
-        console.log("No common baseline found for all funds.");
-        return { chartData: [] };
+    if (fundStartDates.length === 0) return { chartData: [] };
+
+    // 3. Determine the common baseline date (the latest of all start dates)
+    const baselineDate = fundStartDates.reduce((latest, current) => isAfter(current, latest) ? current : latest);
+
+    // 4. Find the initial baseline values on or just before the baselineDate
+    const getBaselineValue = (dataMap: Map<string, number>, date: Date) => {
+        let currentDate = date;
+        while(currentDate.getTime() >= startDate.getTime()) {
+            const dateStr = format(currentDate, 'dd-MM-yyyy');
+            if (dataMap.has(dateStr)) {
+                return dataMap.get(dateStr);
+            }
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        return null;
     }
     
-    const baseline = combinedData[firstValidIndex];
-    const baselineFundValues = baseline.funds as number[];
-    const baselineBenchmark = baseline.benchmark;
-    
-    const rebasedData: ChartDataPoint[] = combinedData.slice(firstValidIndex).map(d => {
-      const rebasedPoint: ChartDataPoint = { date: d.date };
+    const baselineFundValues = fundNavMaps.map(navMap => getBaselineValue(navMap, baselineDate));
+    const baselineBenchmark = benchmark ? getBaselineValue(benchmarkMap, baselineDate) : null;
+
+    if (baselineFundValues.some(v => v === null) || (benchmark && baselineBenchmark === null)) {
+         console.error("Could not establish a common baseline for all assets.");
+         return { chartData: [] };
+    }
+
+    // 5. Build the final chart data with forward-filling for missing values
+    const chartData: ChartDataPoint[] = [];
+    const validDates = sortedDates
+      .map(d => parse(d, 'dd-MM-yyyy', new Date()))
+      .filter(d => isAfter(d, baselineDate) || isEqual(d, baselineDate));
       
+    let lastFundValues = [...baselineFundValues];
+    let lastBenchmarkValue = baselineBenchmark;
+
+    for (const date of validDates) {
+      const dateStr = format(date, 'dd-MM-yyyy');
+      const dayData = fullDataMap.get(dateStr);
+
+      if (!dayData) continue;
+      
+      const currentFundValues = dayData.funds.map((v, i) => v ?? lastFundValues[i]);
+      const currentBenchmarkValue = dayData.benchmark ?? lastBenchmarkValue;
+
       let weightedPortfolioValue = 0;
       let totalWeightForPoint = 0;
 
-      d.funds.forEach((value, index) => {
+      currentFundValues.forEach((value, index) => {
           if (value !== null) {
               const fund = funds[index];
               const baselineValue = baselineFundValues[index];
-              if (baselineValue > 0) {
+              if (baselineValue && baselineValue > 0) {
                   const rebasedValue = (value / baselineValue) * 100;
                   weightedPortfolioValue += rebasedValue * (fund.weight / 100);
                   totalWeightForPoint += fund.weight;
               }
           }
       });
-
+      
+      const rebasedPoint: ChartDataPoint = { date: dateStr };
       if (totalWeightForPoint > 0) {
-          rebasedPoint.modelPortfolio = (weightedPortfolioValue / totalWeightForPoint) * 100;
+          // Normalize the weighted value
+          rebasedPoint.modelPortfolio = (weightedPortfolioValue / (totalWeightForPoint / 100));
+      }
+
+       if (benchmark && currentBenchmarkValue !== undefined && currentBenchmarkValue !== null && baselineBenchmark && baselineBenchmark > 0) {
+          rebasedPoint.benchmark = (currentBenchmarkValue / baselineBenchmark) * 100;
       }
       
-      if (benchmark && d.benchmark !== undefined && baselineBenchmark !== undefined && baselineBenchmark > 0) {
-          rebasedPoint.benchmark = (d.benchmark / baselineBenchmark) * 100;
+      if (rebasedPoint.modelPortfolio !== undefined) {
+         chartData.push(rebasedPoint);
       }
+      
+      lastFundValues = currentFundValues;
+      lastBenchmarkValue = currentBenchmarkValue;
+    }
 
-      return rebasedPoint;
-    }).filter(d => d.modelPortfolio !== undefined);
-
-    return { chartData: rebasedData };
+    return { chartData };
 
   } catch (error) {
     console.error("Error processing model portfolio data:", error);
