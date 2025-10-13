@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -132,6 +131,8 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
       benchmarkData = await getNiftyData(startDate, endDate);
     } else if (benchmark === 'debt') {
       benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
+    } else if (benchmark === 'hybrid') {
+        benchmarkData = await getBenchmarkDataFromCsv('NIFTY_50_HYBRID_COMPOSITE_DEBT_65-35_Index.csv');
     }
 
     if (benchmark && benchmarkData.length === 0) {

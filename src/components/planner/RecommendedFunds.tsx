@@ -32,6 +32,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
   const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
   const [debtChartData, setDebtChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
   const [isDebtChartLoading, setIsDebtChartLoading] = useState(false);
+  const [hybridChartData, setHybridChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
+  const [isHybridChartLoading, setIsHybridChartLoading] = useState(false);
   
   const { toast } = useToast();
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -146,14 +148,30 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
 
   const equityFundWeights = useMemo(() => getFundWeights('Equity'), [allocations, availableGoals]);
   const debtFundWeights = useMemo(() => getFundWeights('Debt'), [allocations, availableGoals]);
+  const hybridFundWeights = useMemo(() => getFundWeights('Hybrid'), [allocations, availableGoals]);
 
-  const handleGenerateGraph = async (category: 'Equity' | 'Debt') => {
-    const isEquity = category === 'Equity';
-    const fundWeights = isEquity ? equityFundWeights : debtFundWeights;
-    const setIsLoading = isEquity ? setIsEquityChartLoading : setIsDebtChartLoading;
-    const setChartData = isEquity ? setEquityChartData : setDebtChartData;
-    const benchmark = isEquity ? 'nifty50' : 'debt';
-    const chartTitle = isEquity ? 'Equity Portfolio vs. NIFTY 50' : 'Debt Portfolio vs. NIFTY 10Y G-Sec';
+  const handleGenerateGraph = async (category: 'Equity' | 'Debt' | 'Hybrid') => {
+    let fundWeights, setIsLoading, setChartData, benchmark, chartTitle;
+
+    if (category === 'Equity') {
+        fundWeights = equityFundWeights;
+        setIsLoading = setIsEquityChartLoading;
+        setChartData = setEquityChartData;
+        benchmark = 'nifty50';
+        chartTitle = 'Equity Portfolio vs. NIFTY 50';
+    } else if (category === 'Debt') {
+        fundWeights = debtFundWeights;
+        setIsLoading = setIsDebtChartLoading;
+        setChartData = setDebtChartData;
+        benchmark = 'debt';
+        chartTitle = 'Debt Portfolio vs. NIFTY 10Y G-Sec';
+    } else { // Hybrid
+        fundWeights = hybridFundWeights;
+        setIsLoading = setIsHybridChartLoading;
+        setChartData = setHybridChartData;
+        benchmark = 'hybrid';
+        chartTitle = 'Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index';
+    }
 
 
     const fundsForApi = fundWeights
@@ -386,6 +404,65 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         ) : (
             debtChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Debt Graph" to see the portfolio comparison.</div>
         )}
+        
+        <Separator className="my-8" />
+
+        {/* HYBRID ANALYSIS */}
+        <h3 className="text-xl font-bold font-headline text-foreground mb-4 flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            Hybrid Fund Weight Analysis
+        </h3>
+
+        <Card>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Fund Name</TableHead>
+                        <TableHead>Goal</TableHead>
+                        <TableHead className="text-right">Weightage</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {hybridFundWeights.length > 0 ? (
+                        hybridFundWeights.map(fund => (
+                            <TableRow key={fund.id}>
+                                <TableCell className="font-medium">{fund.schemeName}</TableCell>
+                                <TableCell className="text-muted-foreground">{fund.goalName}</TableCell>
+                                <TableCell className="text-right font-bold text-primary">{fund.weight.toFixed(2)}%</TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                No hybrid fund allocations yet.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </Card>
+
+        <div className="mt-6 text-center">
+            <Button onClick={() => handleGenerateGraph('Hybrid')} disabled={isHybridChartLoading}>
+                {isHybridChartLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <LineChart className="mr-2 h-4 w-4" />}
+                Generate Hybrid Graph
+            </Button>
+        </div>
+        
+        {isHybridChartLoading ? (
+            <div className="flex items-center justify-center h-96 mt-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-4 text-muted-foreground">Fetching and analyzing historical data...</p>
+            </div>
+        ) : hybridChartData && hybridChartData.length > 0 ? (
+            <PortfolioNiftyChart 
+                data={hybridChartData} 
+                title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index"
+            />
+        ) : (
+            hybridChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Hybrid Graph" to see the portfolio comparison.</div>
+        )}
+
 
         <p className="text-xs text-muted-foreground mt-8">
             Disclaimer: These are example funds for educational purposes only and do not constitute investment advice. Please consult with your financial advisor before making any investment decisions. Mutual fund investments are subject to market risks.
@@ -393,3 +470,5 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
     </FormSection>
   );
 }
+
+    
