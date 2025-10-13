@@ -99,7 +99,7 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         return null;
                     }).filter(d => d && typeof d.close === 'number' && !isNaN(d.close) && d.close > 0) as { date: string; close: number }[];
                     
-                    resolve(formattedData);
+                    resolve(formattedData.sort((a, b) => parse(a.date, 'dd-MM-yyyy', new Date()).getTime() - parse(b.date, 'dd-MM-yyyy', new Date()).getTime()));
                 },
                 error: (error: Error) => {
                     console.error("PapaParse error:", error);
@@ -127,10 +127,6 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
   const formattedStartDate = format(startDate, 'dd-MM-yyyy');
 
   try {
-    const fundNavPromises = funds.map(fund => getFundNavData(fund.schemeCode, formattedStartDate, formattedEndDate));
-    
-    const allFundNavs = await Promise.all(fundNavPromises);
-    
     let benchmarkData: { date: string; close: number }[] = [];
     if (benchmark === 'nifty50') {
       benchmarkData = await getNiftyData(startDate, endDate);
@@ -138,28 +134,20 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
       benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
     }
 
+    if (benchmark && benchmarkData.length === 0) {
+      console.error("Benchmark data could not be fetched or is empty.");
+      return { chartData: [] };
+    }
+
+    const fundNavPromises = funds.map(fund => getFundNavData(fund.schemeCode, formattedStartDate, formattedEndDate));
+    const allFundNavs = await Promise.all(fundNavPromises);
+
     if (allFundNavs.some(navs => navs.length === 0)) {
         console.warn("One or more funds returned no NAV data.");
-        // We can proceed, but the portfolio will be weighted based on funds that did return data.
-    }
-    if (benchmark && benchmarkData.length === 0) {
-        console.error("Benchmark data could not be fetched.");
-        // Depending on requirements, we could return just portfolio data or fail.
-        // For now, let's try to proceed without benchmark.
-    }
-
-
-    const allDates = new Set<string>();
-    allFundNavs.forEach(fundNavs => fundNavs.forEach(nav => allDates.add(nav.date)));
-    if (benchmark) {
-      benchmarkData.forEach(d => allDates.add(d.date));
     }
     
-    const sortedDates = Array.from(allDates)
-      .map(dStr => parse(dStr, 'dd-MM-yyyy', new Date()))
-      .filter(isValid)
-      .sort((a, b) => a.getTime() - b.getTime())
-      .map(d => format(d, 'dd-MM-yyyy'));
+    // Use benchmark dates as the master list of dates
+    const masterDates = benchmarkData.map(d => d.date);
 
     const fundNavMaps = allFundNavs.map(fundNavs => new Map(fundNavs.map(d => [d.date, d.nav])));
     const benchmarkMap = new Map(benchmarkData.map(d => [d.date, d.close]));
@@ -168,7 +156,9 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     let initialPortfolioValue: number | null = null;
     let initialBenchmarkValue: number | null = null;
 
-    for (const date of sortedDates) {
+    const lastKnownNavs: (number | null)[] = Array(funds.length).fill(null);
+
+    for (const date of masterDates) {
         let portfolioValueForDate = 0;
         let totalWeightForDate = 0;
         let canCalculatePortfolio = true;
@@ -176,44 +166,38 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
         for (let i = 0; i < funds.length; i++) {
             const fund = funds[i];
             const navMap = fundNavMaps[i];
+            
             if (navMap.has(date)) {
-                portfolioValueForDate += navMap.get(date)! * (fund.weight / 100);
+                lastKnownNavs[i] = navMap.get(date)!;
+            }
+            
+            if (lastKnownNavs[i] !== null) {
+                portfolioValueForDate += lastKnownNavs[i]! * (fund.weight / 100);
                 totalWeightForDate += fund.weight;
             } else {
-                // If a fund is missing data on a particular day, we might decide to skip this day for the portfolio
-                // For simplicity now, we assume all funds have data on the dates present in sortedDates from their respective ranges
+                 // can't calculate portfolio if a fund has no initial data
             }
         }
         
-        // Normalize portfolio value to total weight for the day, if not all funds were present
-        if (totalWeightForDate > 0 && totalWeightForDate < 100) {
-            portfolioValueForDate = portfolioValueForDate / (totalWeightForDate / 100);
-        } else if (totalWeightForDate === 0) {
-            canCalculatePortfolio = false;
+        if (totalWeightForDate < 100) { // Don't calculate if we don't have all funds yet
+            continue;
         }
-
 
         const benchmarkValue = benchmarkMap.get(date);
 
-        if (canCalculatePortfolio && (benchmark ? benchmarkValue !== undefined : true)) {
+        if (benchmarkValue !== undefined) {
             if (initialPortfolioValue === null) {
                 initialPortfolioValue = portfolioValueForDate;
             }
-             if (benchmark && initialBenchmarkValue === null && benchmarkValue) {
+            if (initialBenchmarkValue === null && benchmarkValue) {
                 initialBenchmarkValue = benchmarkValue;
             }
 
-            const rebasedPoint: ChartDataPoint = { date };
-
-            if (initialPortfolioValue !== null && initialPortfolioValue > 0) {
+            if (initialPortfolioValue > 0 && initialBenchmarkValue! > 0) {
+                const rebasedPoint: ChartDataPoint = { date };
                 rebasedPoint.modelPortfolio = (portfolioValueForDate / initialPortfolioValue) * 100;
-            }
-            if (benchmark && initialBenchmarkValue !== null && initialBenchmarkValue > 0 && benchmarkValue) {
                 rebasedPoint.benchmark = (benchmarkValue / initialBenchmarkValue) * 100;
-            }
-
-            if (rebasedPoint.modelPortfolio !== undefined) {
-               chartData.push(rebasedPoint);
+                chartData.push(rebasedPoint);
             }
         }
     }
