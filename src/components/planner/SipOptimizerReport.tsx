@@ -276,10 +276,9 @@ const ConsolidatedDisplay = ({ title, data, icon: Icon }: { title: string; data:
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Icon className="h-5 w-5" />
-          {title}
-        </CardTitle>
+        <div className="p-3 rounded-lg bg-gray-100 text-center mb-2">
+            <h3 className="font-bold text-gray-700">{title}</h3>
+        </div>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="md:col-span-2 h-64">
@@ -791,15 +790,11 @@ export function SipOptimizerReport({ data }: Props) {
              </div>
         </section>
         
-        {/* Underinvesting Section */}
+        {/* Investment Status Section */}
         {data.totalInvestmentStatus && (
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center">
-                <h3 className="font-bold text-gray-700">
-                    {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment
-                        ? "Investment Status"
-                        : "Underinvesting Alert"}
-                </h3>
+                <h3 className="font-bold text-gray-700">Investment Status</h3>
             </div>
             <div className="mt-3">
                 {data.cashflow.investibleSurplus >= data.totalInvestmentStatus.requiredInvestment ? (
@@ -843,16 +838,18 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Retirement Analysis */}
         {data.retirementCalculations && (
           <section className="mt-4 print-avoid-break">
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Retirement Planning Analysis</h3>
+            </div>
             <RetirementAnalysisCard calcs={data.retirementCalculations} />
           </section>
         )}
         
         {data.goalsWithCalculations && data.goalsWithCalculations.length > 0 && (
           <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <GoalIcon className="h-5 w-5 text-gray-500" />
-              Financial Goal Details
-            </h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Financial Goal Details</h3>
+            </div>
             <Card className="bg-white border">
                 <CardContent className="p-0">
                     <Table>
@@ -884,7 +881,9 @@ export function SipOptimizerReport({ data }: Props) {
 
         {/* Goals Table */}
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2">Goals Breakdown</h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Goals Breakdown</h3>
+            </div>
             <div className="overflow-x-auto text-xs space-y-4">
                 {Array.isArray(data.goals) && data.goals.length > 0 && data.goals.map(goal => {
                     const expectedCorpusMustInvest = goal.targetCorpus * Math.pow(1.06, goal.timeline.required);
@@ -927,7 +926,9 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Wealth Creation Section */}
         {data.wealthCreationGoal && (
           <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gray-500"/>Wealth Creation</h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Wealth Creation</h3>
+            </div>
             <div className="p-4 rounded-lg border border-teal-200 bg-teal-50">
                 <p className="text-center text-sm text-teal-800 mb-3">Your surplus cashflow after funding all goals has been allocated to wealth creation.</p>
                 <div className="grid grid-cols-3 gap-4 text-center">
@@ -952,7 +953,9 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Insurance Analysis */}
         {data.insuranceAnalysis && (
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-gray-500"/>Insurance Analysis and Quote</h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Insurance Analysis and Quote</h3>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="border rounded-lg p-3 bg-blue-50/50 space-y-2">
                     <h3 className="font-semibold text-blue-800">Life Insurance Analysis</h3>
@@ -979,7 +982,9 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Estate Planning Section */}
         {data.willStatus && (
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><FileText className="h-5 w-5 text-gray-500"/>Estate Planning</h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Estate Planning</h3>
+            </div>
             {data.willStatus === 'yes' ? (
                 <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm">
                     <CheckCircle className="h-5 w-5"/>
@@ -996,7 +1001,9 @@ export function SipOptimizerReport({ data }: Props) {
         
         {/* Existing Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
-            <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Wallet className="h-5 w-5 text-gray-500"/>Liquid Asset Allocation</h2>
+            <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                <h3 className="font-bold text-gray-700">Liquid Asset Allocation</h3>
+            </div>
             <div className="flex flex-col md:flex-row gap-4 items-center">
                 <div className="w-full md:w-1/2 h-48">
                     <AssetAllocationChart assets={aggregatedLiquidAssets} />
@@ -1055,7 +1062,9 @@ export function SipOptimizerReport({ data }: Props) {
         {/* Fund Allocation & Analysis Section */}
         {data.fundAllocations && data.fundAllocations.length > 0 && (
             <section className="mt-4 print-avoid-break">
-                 <h2 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><GoalIcon className="h-5 w-5 text-gray-500"/>Fund Allocation & Analysis</h2>
+                <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                    <h3 className="font-bold text-gray-700">Fund Allocation & Analysis</h3>
+                </div>
                  <p className="text-xs text-gray-600 mb-3">
                     This section details your chosen mutual fund allocations for each goal, their historical returns, and an analysis of your model portfolio.
                  </p>
@@ -1102,12 +1111,11 @@ export function SipOptimizerReport({ data }: Props) {
                             data={consolidatedIndustryAllocation}
                             icon={PieChartIcon}
                         />
-                        <Card className="mt-4">
+                         <Card className="mt-4">
                             <CardHeader>
-                                <CardTitle className="text-base flex items-center gap-2">
-                                <Briefcase className="h-5 w-5" />
-                                Consolidated Top Portfolio Holdings
-                                </CardTitle>
+                                <div className="p-3 rounded-lg bg-gray-100 text-center">
+                                    <h3 className="font-bold text-gray-700">Consolidated Top Portfolio Holdings</h3>
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 <Table>
@@ -1134,7 +1142,9 @@ export function SipOptimizerReport({ data }: Props) {
 
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                      <div>
-                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><PieChartIcon className="h-5 w-5"/>Model Portfolio Analysis</h3>
+                        <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                            <h3 className="font-bold text-gray-700">Model Portfolio Analysis</h3>
+                        </div>
                         <Card className="p-4">
                             <CardContent className="p-2 space-y-4 text-sm">
                                 <div className="flex justify-between items-center">
@@ -1153,7 +1163,9 @@ export function SipOptimizerReport({ data }: Props) {
                         </Card>
                      </div>
                      <div>
-                        <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Equity Fund Weight Analysis</h3>
+                        <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                            <h3 className="font-bold text-gray-700">Equity Fund Weight Analysis</h3>
+                        </div>
                          <Card>
                             <Table>
                                 <TableHeader>
@@ -1200,7 +1212,9 @@ export function SipOptimizerReport({ data }: Props) {
                  </div>
                  
                 <div className="mt-4">
-                    <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Debt Fund Weight Analysis</h3>
+                    <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                        <h3 className="font-bold text-gray-700">Debt Fund Weight Analysis</h3>
+                    </div>
                     <Card>
                         <Table>
                             <TableHeader>
@@ -1232,7 +1246,9 @@ export function SipOptimizerReport({ data }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Hybrid Fund Weight Analysis</h3>
+                    <div className="p-3 rounded-lg bg-gray-100 text-center mb-3">
+                        <h3 className="font-bold text-gray-700">Hybrid Fund Weight Analysis</h3>
+                    </div>
                      <Card>
                         <Table>
                             <TableHeader>
