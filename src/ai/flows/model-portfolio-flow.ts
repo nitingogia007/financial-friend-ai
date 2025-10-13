@@ -75,16 +75,25 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
                         return;
                     }
                     
+                    const dateFormatsToTry = ['dd-MMM-yy', 'MM/dd/yyyy', 'yyyy-MM-dd', 'dd-MM-yyyy'];
+
                     const formattedData = results.data.map((row: any) => {
                         const dateStr = (row.Date || row.date);
                         if (!dateStr) return null;
 
-                        // Try multiple date formats
-                        const parsedDate = parse(dateStr, 'dd-MMM-yy', new Date());
-                        if (isValid(parsedDate)) {
+                        let parsedDate: Date | null = null;
+                        for (const fmt of dateFormatsToTry) {
+                            const d = parse(dateStr, fmt, new Date());
+                            if (isValid(d)) {
+                                parsedDate = d;
+                                break;
+                            }
+                        }
+                        
+                        if (parsedDate) {
                             return {
                                 date: format(parsedDate, 'dd-MM-yyyy'),
-                                close: row.Close
+                                close: row.Close || row.close
                             }
                         }
                         return null;
@@ -129,6 +138,16 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
       benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
     }
 
+    if (allFundNavs.some(navs => navs.length === 0)) {
+        console.warn("One or more funds returned no NAV data.");
+        // We can proceed, but the portfolio will be weighted based on funds that did return data.
+    }
+    if (benchmark && benchmarkData.length === 0) {
+        console.error("Benchmark data could not be fetched.");
+        // Depending on requirements, we could return just portfolio data or fail.
+        // For now, let's try to proceed without benchmark.
+    }
+
 
     const allDates = new Set<string>();
     allFundNavs.forEach(fundNavs => fundNavs.forEach(nav => allDates.add(nav.date)));
@@ -145,105 +164,58 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     const fundNavMaps = allFundNavs.map(fundNavs => new Map(fundNavs.map(d => [d.date, d.nav])));
     const benchmarkMap = new Map(benchmarkData.map(d => [d.date, d.close]));
     
-    // --- New Resilient Data Processing Logic ---
+    let chartData: ChartDataPoint[] = [];
+    let initialPortfolioValue: number | null = null;
+    let initialBenchmarkValue: number | null = null;
 
-    // 1. Create a full data map with all available data points
-    const fullDataMap = new Map<string, { funds: (number | null)[]; benchmark?: number }>();
-    sortedDates.forEach(date => {
-        fullDataMap.set(date, {
-            funds: fundNavMaps.map(navMap => navMap.get(date) ?? null),
-            benchmark: benchmarkMap.get(date)
-        });
-    });
+    for (const date of sortedDates) {
+        let portfolioValueForDate = 0;
+        let totalWeightForDate = 0;
+        let canCalculatePortfolio = true;
 
-    // 2. Find the earliest valid start date for each fund and benchmark
-    const fundStartDates = fundNavMaps.map(navMap => {
-        const firstDate = sortedDates.find(d => navMap.has(d));
-        return firstDate ? parse(firstDate, 'dd-MM-yyyy', new Date()) : null;
-    }).filter(d => d !== null) as Date[];
-
-    if (benchmark) {
-        const firstBenchmarkDate = sortedDates.find(d => benchmarkMap.has(d));
-        if (firstBenchmarkDate) {
-            fundStartDates.push(parse(firstBenchmarkDate, 'dd-MM-yyyy', new Date()));
-        }
-    }
-    
-    if (fundStartDates.length === 0) return { chartData: [] };
-
-    // 3. Determine the common baseline date (the latest of all start dates)
-    const baselineDate = fundStartDates.reduce((latest, current) => isAfter(current, latest) ? current : latest);
-
-    // 4. Find the initial baseline values on or just before the baselineDate
-    const getBaselineValue = (dataMap: Map<string, number>, date: Date) => {
-        let currentDate = date;
-        while(currentDate.getTime() >= startDate.getTime()) {
-            const dateStr = format(currentDate, 'dd-MM-yyyy');
-            if (dataMap.has(dateStr)) {
-                return dataMap.get(dateStr);
+        for (let i = 0; i < funds.length; i++) {
+            const fund = funds[i];
+            const navMap = fundNavMaps[i];
+            if (navMap.has(date)) {
+                portfolioValueForDate += navMap.get(date)! * (fund.weight / 100);
+                totalWeightForDate += fund.weight;
+            } else {
+                // If a fund is missing data on a particular day, we might decide to skip this day for the portfolio
+                // For simplicity now, we assume all funds have data on the dates present in sortedDates from their respective ranges
             }
-            currentDate.setDate(currentDate.getDate() - 1);
         }
-        return null;
-    }
-    
-    const baselineFundValues = fundNavMaps.map(navMap => getBaselineValue(navMap, baselineDate));
-    const baselineBenchmark = benchmark ? getBaselineValue(benchmarkMap, baselineDate) : null;
+        
+        // Normalize portfolio value to total weight for the day, if not all funds were present
+        if (totalWeightForDate > 0 && totalWeightForDate < 100) {
+            portfolioValueForDate = portfolioValueForDate / (totalWeightForDate / 100);
+        } else if (totalWeightForDate === 0) {
+            canCalculatePortfolio = false;
+        }
 
-    if (baselineFundValues.some(v => v === null) || (benchmark && baselineBenchmark === null)) {
-         console.error("Could not establish a common baseline for all assets.");
-         return { chartData: [] };
-    }
 
-    // 5. Build the final chart data with forward-filling for missing values
-    const chartData: ChartDataPoint[] = [];
-    const validDates = sortedDates
-      .map(d => parse(d, 'dd-MM-yyyy', new Date()))
-      .filter(d => isAfter(d, baselineDate) || isEqual(d, baselineDate));
-      
-    let lastFundValues = [...baselineFundValues];
-    let lastBenchmarkValue = baselineBenchmark;
+        const benchmarkValue = benchmarkMap.get(date);
 
-    for (const date of validDates) {
-      const dateStr = format(date, 'dd-MM-yyyy');
-      const dayData = fullDataMap.get(dateStr);
+        if (canCalculatePortfolio && (benchmark ? benchmarkValue !== undefined : true)) {
+            if (initialPortfolioValue === null) {
+                initialPortfolioValue = portfolioValueForDate;
+            }
+             if (benchmark && initialBenchmarkValue === null && benchmarkValue) {
+                initialBenchmarkValue = benchmarkValue;
+            }
 
-      if (!dayData) continue;
-      
-      const currentFundValues = dayData.funds.map((v, i) => v ?? lastFundValues[i]);
-      const currentBenchmarkValue = dayData.benchmark ?? lastBenchmarkValue;
+            const rebasedPoint: ChartDataPoint = { date };
 
-      let weightedPortfolioValue = 0;
-      let totalWeightForPoint = 0;
+            if (initialPortfolioValue !== null && initialPortfolioValue > 0) {
+                rebasedPoint.modelPortfolio = (portfolioValueForDate / initialPortfolioValue) * 100;
+            }
+            if (benchmark && initialBenchmarkValue !== null && initialBenchmarkValue > 0 && benchmarkValue) {
+                rebasedPoint.benchmark = (benchmarkValue / initialBenchmarkValue) * 100;
+            }
 
-      currentFundValues.forEach((value, index) => {
-          if (value !== null) {
-              const fund = funds[index];
-              const baselineValue = baselineFundValues[index];
-              if (baselineValue && baselineValue > 0) {
-                  const rebasedValue = (value / baselineValue) * 100;
-                  weightedPortfolioValue += rebasedValue * (fund.weight / 100);
-                  totalWeightForPoint += fund.weight;
-              }
-          }
-      });
-      
-      const rebasedPoint: ChartDataPoint = { date: dateStr };
-      if (totalWeightForPoint > 0) {
-          // Normalize the weighted value
-          rebasedPoint.modelPortfolio = (weightedPortfolioValue / (totalWeightForPoint / 100));
-      }
-
-       if (benchmark && currentBenchmarkValue !== undefined && currentBenchmarkValue !== null && baselineBenchmark && baselineBenchmark > 0) {
-          rebasedPoint.benchmark = (currentBenchmarkValue / baselineBenchmark) * 100;
-      }
-      
-      if (rebasedPoint.modelPortfolio !== undefined) {
-         chartData.push(rebasedPoint);
-      }
-      
-      lastFundValues = currentFundValues;
-      lastBenchmarkValue = currentBenchmarkValue;
+            if (rebasedPoint.modelPortfolio !== undefined) {
+               chartData.push(rebasedPoint);
+            }
+        }
     }
 
     return { chartData };
