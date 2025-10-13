@@ -831,36 +831,32 @@ export function SipOptimizerReport({ data }: Props) {
               <GoalIcon className="h-5 w-5 text-gray-500" />
               Financial Goal Details
             </h2>
-            <div className="space-y-4">
-              {data.goalsWithCalculations.map((goal, index) => (
-                <Card key={goal.id} className="bg-white border">
-                  <CardHeader>
-                    <CardTitle className="text-md text-gray-800">{goal.name || `Goal ${index + 1}`}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                      <div><p className="text-gray-500">Target Corpus</p><p className="font-bold roboto">{formatCurrency(goal.corpus)}</p></div>
-                      <div><p className="text-gray-500">Years to Goal</p><p className="font-bold roboto">{goal.years}</p></div>
-                      <div><p className="text-gray-500">Expected Return</p><p className="font-bold roboto">{goal.rate}%</p></div>
-                      <div><p className="text-gray-500">Current Savings</p><p className="font-bold roboto">{formatCurrency(goal.currentSave)}</p></div>
-                      <div><p className="text-gray-500">Current SIP</p><p className="font-bold roboto">{formatCurrency(goal.currentSip)}</p></div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t">
-                       <h4 className="font-semibold text-gray-700 mb-2">Goal Projection</h4>
-                       <Table>
-                         <TableBody className="text-xs">
-                            <TableRow><TableCell>Future Value of Goal (Inflated)</TableCell><TableCell className="text-right font-semibold roboto">{formatCurrency(goal.futureValueOfGoal)}</TableCell></TableRow>
-                            <TableRow><TableCell>Future Value of Current Savings</TableCell><TableCell className="text-right font-semibold roboto">{formatCurrency(goal.futureValueOfCurrentSave)}</TableCell></TableRow>
-                            <TableRow><TableCell>Future Value of Current SIP</TableCell><TableCell className="text-right font-semibold roboto">{formatCurrency(goal.futureValueOfSip)}</TableCell></TableRow>
-                            <TableRow className="bg-gray-100"><TableCell className="font-bold">Shortfall / Surplus</TableCell><TableCell className={`text-right font-bold roboto ${goal.shortfall < 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(goal.shortfall)}</TableCell></TableRow>
-                            <TableRow className="bg-blue-50"><TableCell className="font-bold text-blue-800">New Monthly SIP Required</TableCell><TableCell className="text-right font-bold text-blue-800 roboto">{formatCurrency(goal.newSipRequired)}</TableCell></TableRow>
-                         </TableBody>
-                       </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Card className="bg-white border">
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Goal Name</TableHead>
+                                <TableHead>Target Corpus (Today's Value)</TableHead>
+                                <TableHead>Years to Goal</TableHead>
+                                <TableHead>Current Savings for Goal</TableHead>
+                                <TableHead>Current Monthly SIP</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody className="text-xs">
+                            {data.goalsWithCalculations.map((goal, index) => (
+                                <TableRow key={goal.id}>
+                                    <TableCell className="font-medium">{goal.name || `Goal ${index + 1}`}</TableCell>
+                                    <TableCell>{formatCurrency(goal.corpus)}</TableCell>
+                                    <TableCell>{goal.years}</TableCell>
+                                    <TableCell>{formatCurrency(goal.currentSave)}</TableCell>
+                                    <TableCell>{formatCurrency(goal.currentSip)}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
           </section>
         )}
 
