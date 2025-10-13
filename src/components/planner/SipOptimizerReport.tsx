@@ -341,6 +341,10 @@ export function SipOptimizerReport({ data }: Props) {
   const { toast } = useToast();
   const [equityChartData, setEquityChartData] = useState<ChartDataPoint[] | null>(null);
   const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
+  const [debtChartData, setDebtChartData] = useState<ChartDataPoint[] | null>(null);
+  const [isDebtChartLoading, setIsDebtChartLoading] = useState(false);
+  const [hybridChartData, setHybridChartData] = useState<ChartDataPoint[] | null>(null);
+  const [isHybridChartLoading, setIsHybridChartLoading] = useState(false);
   
   const [factsheets, setFactsheets] = useState<Record<string, FactsheetData>>({});
   const [isFactsheetLoading, setIsFactsheetLoading] = useState(false);
@@ -553,61 +557,63 @@ export function SipOptimizerReport({ data }: Props) {
     return { equity: equityTotal, hybrid: hybridTotal, debt: debtTotal };
   }, [data.fundAllocations]);
 
-  const equityFundWeights = useMemo(() => {
+  const getFundWeights = (category: 'Equity' | 'Debt' | 'Hybrid') => {
     const getNum = (val: number | '' | undefined) => (typeof val === 'number' ? val : 0);
-    const equityAllocations = data.fundAllocations.filter(a => a.fundCategory === 'Equity' && getNum(a.sipRequired) > 0 && a.schemeCode);
-    const totalEquitySip = equityAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
-    if (totalEquitySip === 0) return [];
-    return equityAllocations.map(alloc => ({
+    const categoryAllocations = data.fundAllocations.filter(a => a.fundCategory === category && getNum(a.sipRequired) > 0 && a.schemeCode);
+    const totalCategorySip = categoryAllocations.reduce((sum, a) => sum + getNum(a.sipRequired), 0);
+    if (totalCategorySip === 0) return [];
+    return categoryAllocations.map(alloc => ({
         ...alloc,
-        goalName: data.goals.find(g => g.id === alloc.goalId)?.name || 'Unlinked',
-        weight: (getNum(alloc.sipRequired) / totalEquitySip) * 100,
+        goalName: data.goalsWithCalculations.find(g => g.id === alloc.goalId)?.name || 'Unlinked',
+        weight: (getNum(alloc.sipRequired) / totalCategorySip) * 100,
     }));
-  }, [data.fundAllocations, data.goals]);
+  };
 
-
-  useEffect(() => {
-    const generateEquityGraph = async () => {
-        const fundsForApi = equityFundWeights
-          .filter(f => f.schemeCode && f.weight > 0)
-          .map(f => ({
-            schemeCode: Number(f.schemeCode),
-            schemeName: f.schemeName!,
-            weight: f.weight,
-          }));
-
-        if (fundsForApi.length === 0) {
-          return;
-        }
-
-        setIsEquityChartLoading(true);
-        setEquityChartData(null);
-        try {
-          const result = await getModelPortfolioData({ funds: fundsForApi, benchmark: 'nifty50' });
-          if (result.chartData && result.chartData.length > 0) {
-            setEquityChartData(result.chartData);
-          } else {
-            toast({
-              title: "Could Not Fetch Equity Chart Data",
-              description: "Unable to retrieve historical data for the selected equity funds.",
-              variant: "destructive"
-            });
-          }
-        } catch (error) {
-          console.error(`Error fetching equity portfolio data:`, error);
-           toast({
-              title: "Equity Chart Generation Failed",
-              description: "An unexpected error occurred while generating the equity graph.",
-              variant: "destructive"
-            });
-          setEquityChartData(null);
-        } finally {
-          setIsEquityChartLoading(false);
-        }
-    };
-    generateEquityGraph();
-  }, [equityFundWeights, toast]);
+  const equityFundWeights = useMemo(() => getFundWeights('Equity'), [data.fundAllocations, data.goalsWithCalculations]);
+  const debtFundWeights = useMemo(() => getFundWeights('Debt'), [data.fundAllocations, data.goalsWithCalculations]);
+  const hybridFundWeights = useMemo(() => getFundWeights('Hybrid'), [data.fundAllocations, data.goalsWithCalculations]);
   
+  const generateGraph = async (category: 'Equity' | 'Debt' | 'Hybrid') => {
+      let fundWeights, setIsLoading, setChartData, benchmark;
+  
+      if (category === 'Equity') {
+          fundWeights = equityFundWeights; setIsLoading = setIsEquityChartLoading; setChartData = setEquityChartData; benchmark = 'nifty50';
+      } else if (category === 'Debt') {
+          fundWeights = debtFundWeights; setIsLoading = setIsDebtChartLoading; setChartData = setDebtChartData; benchmark = 'debt';
+      } else { // Hybrid
+          fundWeights = hybridFundWeights; setIsLoading = setIsHybridChartLoading; setChartData = setHybridChartData; benchmark = 'hybrid';
+      }
+  
+      const fundsForApi = fundWeights.filter(f => f.schemeCode && f.weight > 0).map(f => ({
+          schemeCode: Number(f.schemeCode), schemeName: f.schemeName!, weight: f.weight,
+      }));
+  
+      if (fundsForApi.length === 0) return;
+  
+      setIsLoading(true); setChartData(null);
+      try {
+          const result = await getModelPortfolioData({ funds: fundsForApi, benchmark: benchmark });
+          if (result.chartData && result.chartData.length > 0) {
+              setChartData(result.chartData);
+          } else {
+              toast({ title: `Could Not Fetch ${category} Chart Data`, description: `Unable to retrieve historical data for the selected ${category.toLowerCase()} funds.`, variant: "destructive" });
+          }
+      } catch (error) {
+          console.error(`Error fetching ${category} portfolio data:`, error);
+          toast({ title: `${category} Chart Generation Failed`, description: "An unexpected error occurred.", variant: "destructive" });
+          setChartData(null);
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
+  useEffect(() => {
+    generateGraph('Equity');
+    generateGraph('Debt');
+    generateGraph('Hybrid');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.fundAllocations]);
+
 
   return (
     <div className="bg-gray-100 text-gray-800 font-sans">
@@ -1060,7 +1066,7 @@ export function SipOptimizerReport({ data }: Props) {
                                     <FundAllocationRow 
                                         key={alloc.id} 
                                         alloc={alloc} 
-                                        goalName={data.goals.find(g => g.id === alloc.goalId)?.name || 'Unlinked'} 
+                                        goalName={data.goalsWithCalculations.find(g => g.id === alloc.goalId)?.name || 'Unlinked'} 
                                     />
                                 ))}
                             </TableBody>
@@ -1176,6 +1182,70 @@ export function SipOptimizerReport({ data }: Props) {
                        <div className="text-center text-gray-500 mt-6 h-96 flex items-center justify-center border-2 border-dashed rounded-lg">No equity chart data to display.</div>
                     )}
                  </div>
+                 
+                <div className="mt-4">
+                    <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Debt Fund Weight Analysis</h3>
+                    <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow><TableHead>Fund Name</TableHead><TableHead className="text-right">Weightage</TableHead></TableRow>
+                            </TableHeader>
+                            <TableBody className="text-xs">
+                                {debtFundWeights.length > 0 ? (
+                                    debtFundWeights.map(fund => (
+                                        <TableRow key={fund.id}>
+                                            <TableCell className="font-medium">{fund.schemeName}</TableCell>
+                                            <TableCell className="text-right font-bold text-primary roboto">{fund.weight.toFixed(2)}%</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow><TableCell colSpan={2} className="text-center text-gray-500">No debt fund allocations.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </Card>
+                    <div className="mt-4">
+                        {isDebtChartLoading ? (
+                             <div className="flex items-center justify-center h-96 mt-6">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" /><p className="ml-4 text-gray-500">Generating Debt Performance Chart...</p>
+                            </div>
+                        ) : debtChartData && debtChartData.length > 0 ? (
+                            <PortfolioNiftyChart data={debtChartData} title="Debt Portfolio vs. NIFTY 10Y Benchmark G-Sec"/>
+                        ) : ( <div className="text-center text-gray-500 mt-6 h-96 flex items-center justify-center border-2 border-dashed rounded-lg">No debt chart data to display.</div>)}
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Percent className="h-5 w-5"/>Hybrid Fund Weight Analysis</h3>
+                     <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow><TableHead>Fund Name</TableHead><TableHead className="text-right">Weightage</TableHead></TableRow>
+                            </TableHeader>
+                            <TableBody className="text-xs">
+                                {hybridFundWeights.length > 0 ? (
+                                    hybridFundWeights.map(fund => (
+                                        <TableRow key={fund.id}>
+                                            <TableCell className="font-medium">{fund.schemeName}</TableCell>
+                                            <TableCell className="text-right font-bold text-primary roboto">{fund.weight.toFixed(2)}%</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow><TableCell colSpan={2} className="text-center text-gray-500">No hybrid fund allocations.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </Card>
+                     <div className="mt-4">
+                        {isHybridChartLoading ? (
+                             <div className="flex items-center justify-center h-96 mt-6">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" /><p className="ml-4 text-gray-500">Generating Hybrid Performance Chart...</p>
+                            </div>
+                        ) : hybridChartData && hybridChartData.length > 0 ? (
+                            <PortfolioNiftyChart data={hybridChartData} title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index"/>
+                        ) : ( <div className="text-center text-gray-500 mt-6 h-96 flex items-center justify-center border-2 border-dashed rounded-lg">No hybrid chart data to display.</div>)}
+                    </div>
+                </div>
 
             </section>
         )}
@@ -1196,3 +1266,4 @@ export function SipOptimizerReport({ data }: Props) {
     
 
     
+
