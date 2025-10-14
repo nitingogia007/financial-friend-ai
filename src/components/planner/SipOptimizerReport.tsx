@@ -1256,14 +1256,13 @@ export function SipOptimizerReport({ data }: Props) {
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" /><p className="ml-4 text-gray-500">Generating Hybrid Performance Chart...</p>
                             </div>
                         ) : hybridChartData && hybridChartData.length > 0 ? (
-                            <PortfolioNiftyChart data={hybridChartData} title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index"/>
+                            <PortfolioNiftyChart data={hybridChartData} title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 50-50 Index"/>
                         ) : ( <div className="text-center text-gray-500 mt-6 h-96 flex items-center justify-center border-2 border-dashed rounded-lg">No hybrid chart data to display.</div>)}
                     </div>
                 </div>
 
             </section>
         )}
-
         {data.insuranceAnalysis && (data.insuranceAnalysis.lifeInsurance.quotes.length > 0 || data.insuranceAnalysis.healthInsurance.quotes.length > 0) && (
             <section className="mt-4 print-avoid-break">
                 <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -1314,7 +1313,6 @@ export function SipOptimizerReport({ data }: Props) {
                 )}
             </section>
         )}
-        
 
         <footer className="mt-auto pt-4 border-t-2 border-gray-300 print-avoid-break">
             <p className="text-xs text-gray-500 text-center leading-tight">

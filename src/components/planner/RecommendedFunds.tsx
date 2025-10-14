@@ -181,7 +181,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         setIsLoading = setIsHybridChartLoading;
         setChartData = setHybridChartData;
         benchmark = 'hybrid';
-        chartTitle = 'Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index';
+        chartTitle = 'Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 50-50 Index';
     }
 
 
@@ -471,7 +471,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         ) : hybridChartData && hybridChartData.length > 0 ? (
             <PortfolioNiftyChart 
                 data={hybridChartData} 
-                title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 65-35 Index"
+                title="Hybrid Portfolio vs. NIFTY 50 Hybrid Composite Debt 50-50 Index"
             />
         ) : (
             hybridChartData !== null && <div className="text-center text-muted-foreground mt-6">Click "Generate Hybrid Graph" to see the portfolio comparison.</div>

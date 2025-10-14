@@ -61,7 +61,7 @@ async function getBenchmarkDataFromCsv(fileName: string): Promise<{ date: string
 
                     const formattedData = results.data.map((row: any) => {
                         const dateStr = (row.Date || row.date);
-                        const closeStr = (row.Close || row.close || row['Nifty 500'] || row['Nifty 65 35']);
+                        const closeStr = (row.Close || row.close || row['Nifty 500'] || row['Nifty 50 50']);
 
                         if (!dateStr || !closeStr) return null;
 
@@ -119,7 +119,7 @@ export async function getModelPortfolioData(input: ModelPortfolioInput): Promise
     } else if (benchmark === 'debt') {
       benchmarkData = await getBenchmarkDataFromCsv('NIFTY_10_YR_BENCHMARK_G-SEC.csv');
     } else if (benchmark === 'hybrid') {
-        benchmarkData = await getBenchmarkDataFromCsv('NIFTY_50_HYBRID_COMPOSITE_DEBT_65-35_Index.csv');
+        benchmarkData = await getBenchmarkDataFromCsv('NIFTY_50_HYBRID_COMPOSITE_DEBT_50-50_Index.csv');
     }
 
     if (!benchmark || benchmarkData.length === 0) {
