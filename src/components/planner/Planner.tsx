@@ -25,6 +25,8 @@ import { AssetAllocationForm } from './AssetAllocationForm';
 import { RecommendedFunds } from './RecommendedFunds';
 import { GoalsBreakdown } from './GoalsBreakdown';
 import { AppHeader } from '../layout/AppHeader';
+import { InsuranceQuotesForm } from './InsuranceQuotesForm';
+
 
 const initialPersonalDetails: PersonalDetails = { name: '', dob: '', dependents: '', retirementAge: '', mobile: '', email: '', arn: '' };
 const initialAssets: Asset[] = [];
@@ -45,6 +47,8 @@ const initialRetirementInputs: RetirementInputs = {
 };
 const initialAssetAllocation: AssetAllocationProfile = { age: '', riskAppetite: '' };
 const initialFundAllocations: FundAllocation[] = [];
+const initialLifeQuotes: LifeInsuranceQuote[] = [];
+const initialHealthQuotes: HealthInsuranceQuote[] = [];
 
 
 export function Planner() {
@@ -58,7 +62,9 @@ export function Planner() {
   const [incomes, setIncomes] = useState<Income[]>(initialIncomes);
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
-  const [insuranceAnalysis, setInsuranceAnalysis] = useState<InsuranceAnalysisData | null>(null);
+  const [insuranceAnalysisData, setInsuranceAnalysisData] = useState<Pick<InsuranceAnalysisData, 'lifeInsurance' | 'healthInsurance'>>({ lifeInsurance: { recommendedCover: 0, currentCover: '', currentPremium: '', coverageGap: 0 }, healthInsurance: { recommendedCover: '', currentCover: '', currentPremium: '', coverageGap: 0 } });
+  const [lifeQuotes, setLifeQuotes] = useState<LifeInsuranceQuote[]>(initialLifeQuotes);
+  const [healthQuotes, setHealthQuotes] = useState<HealthInsuranceQuote[]>(initialHealthQuotes);
   const [willStatus, setWillStatus] = useState<'yes' | 'no' | null>(null);
   const [retirementInputs, setRetirementInputs] = useState<RetirementInputs>(initialRetirementInputs);
   const [assetAllocationProfile, setAssetAllocationProfile] = useState<AssetAllocationProfile>(initialAssetAllocation);
@@ -98,6 +104,12 @@ export function Planner() {
 
   const goalsWithCalculations = useMemo<GoalWithCalculations[]>(() => goals.map(g => calculateGoalDetails(g)), [goals]);
   const retirementCalculations = useMemo<RetirementCalculations>(() => calculateRetirementDetails(retirementInputs), [retirementInputs]);
+
+  const insuranceAnalysis: InsuranceAnalysisData = useMemo(() => ({
+    ...insuranceAnalysisData,
+    lifeInsurance: { ...insuranceAnalysisData.lifeInsurance, quotes: lifeQuotes },
+    healthInsurance: { ...insuranceAnalysisData.healthInsurance, quotes: healthQuotes }
+  }), [insuranceAnalysisData, lifeQuotes, healthQuotes]);
   
   const allPlannerData: AllPlannerData = useMemo(() => ({
     personalDetails,
@@ -185,6 +197,8 @@ export function Planner() {
         setRetirementInputs(initialRetirementInputs);
         setAssetAllocationProfile(initialAssetAllocation);
         setFundAllocations(initialFundAllocations);
+        setLifeQuotes(initialLifeQuotes);
+        setHealthQuotes(initialHealthQuotes);
         toast({
             title: "Form Cleared",
             description: "All data has been reset.",
@@ -549,7 +563,7 @@ export function Planner() {
           <InsuranceForm
             age={age}
             incomes={incomes}
-            onInsuranceDataChange={setInsuranceAnalysis}
+            onInsuranceDataChange={setInsuranceAnalysisData}
           />
           <GoalsForm
             goals={goals}
@@ -577,6 +591,13 @@ export function Planner() {
             optimizedGoals={optimizedGoals}
             goals={goals}
            />
+          <InsuranceQuotesForm
+             lifeQuotes={lifeQuotes}
+             setLifeQuotes={setLifeQuotes}
+             healthQuotes={healthQuotes}
+             setHealthQuotes={setHealthQuotes}
+          />
+
         </div>
 
         <div className="mt-12 text-center flex justify-center items-center gap-4">
