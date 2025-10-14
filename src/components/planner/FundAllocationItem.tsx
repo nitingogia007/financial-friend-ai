@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Trash2, Loader2, BarChart, FileText } from 'lucide-react';
-import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory, FactsheetData, SipOptimizerGoal } from '@/lib/types';
+import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory, FactsheetData, SipOptimizerGoal, RetirementCalculations } from '@/lib/types';
 import { getFundReturns } from '@/ai/flows/fund-returns-flow';
 import { analyzeFactsheet } from '@/ai/flows/analyze-factsheet-flow';
 import { FactsheetDisplay } from './FactsheetDisplay';
@@ -25,6 +25,7 @@ interface FundAllocationItemProps {
   onRemove: (id: string) => void;
   optimizedGoals: SipOptimizerGoal[];
   allocatedSipForGoal: number;
+  retirementCalculations: RetirementCalculations;
 }
 
 const fundCategories: FundCategory[] = ['Equity', 'Debt', 'Hybrid', 'Solution-Oriented', 'Others'];
@@ -39,6 +40,7 @@ export function FundAllocationItem({
   onRemove,
   optimizedGoals,
   allocatedSipForGoal,
+  retirementCalculations,
 }: FundAllocationItemProps) {
   const { toast } = useToast();
   const selectedFund = funds.find(f => f.fundName === alloc.fundName);
@@ -52,12 +54,15 @@ export function FundAllocationItem({
   }, [selectedFund]);
 
   const remainingSip = useMemo(() => {
+    if (alloc.goalId === 'retirement') {
+      return retirementCalculations.monthlyInvestmentNeeded;
+    }
     const selectedGoal = optimizedGoals.find(g => g.id === alloc.goalId);
     if (!selectedGoal) return 0;
     const goalAllocatedSip = selectedGoal.investmentStatus.allocatedInvestment;
     const currentSipForThisAlloc = typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
     return goalAllocatedSip - allocatedSipForGoal + currentSipForThisAlloc;
-  }, [alloc.goalId, alloc.sipRequired, optimizedGoals, allocatedSipForGoal]);
+  }, [alloc.goalId, alloc.sipRequired, optimizedGoals, allocatedSipForGoal, retirementCalculations]);
   
   const [returns, setReturns] = useState<FundReturnsOutput | null>(null);
   const [isLoadingReturns, setIsLoadingReturns] = useState(false);

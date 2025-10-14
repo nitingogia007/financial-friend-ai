@@ -590,6 +590,7 @@ export function Planner() {
             investibleSurplus={investibleSurplus}
             optimizedGoals={optimizedGoals}
             goals={goals}
+            retirementCalculations={retirementCalculations}
            />
           <InsuranceQuotesForm
              lifeQuotes={lifeQuotes}

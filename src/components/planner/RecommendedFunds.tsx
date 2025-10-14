@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Lightbulb, Wallet, PlusCircle, LineChart, Loader2, PieChart, Percent, Info } from 'lucide-react';
 import { Label } from '../ui/label';
 import { GoalsBreakdown } from './GoalsBreakdown';
-import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund, FundCategory } from '@/lib/types';
+import type { SipOptimizerGoal, FundAllocation, Goal, ModelPortfolioOutput, Fund, FundCategory, RetirementCalculations } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -23,11 +23,12 @@ interface Props {
     investibleSurplus: number;
     optimizedGoals: SipOptimizerGoal[];
     goals: Goal[];
+    retirementCalculations: RetirementCalculations;
 }
 
 let nextId = 0;
 
-export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals }: Props) {
+export function RecommendedFunds({ allocations, setAllocations, investibleSurplus, optimizedGoals, goals, retirementCalculations }: Props) {
   const [equityChartData, setEquityChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
   const [isEquityChartLoading, setIsEquityChartLoading] = useState(false);
   const [debtChartData, setDebtChartData] = useState<ModelPortfolioOutput['chartData'] | null>(null);
@@ -264,6 +265,7 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                 onRemove={handleRemoveAllocation}
                 optimizedGoals={optimizedGoals}
                 allocatedSipForGoal={allocatedSipsByGoal[alloc.goalId] || 0}
+                retirementCalculations={retirementCalculations}
               />
             ))}
         </div>
