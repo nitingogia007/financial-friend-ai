@@ -40,7 +40,7 @@ export function GoalsBreakdown({ optimizedGoals }: Props) {
             <h3 className="text-2xl font-bold font-headline text-foreground">Goals Breakdown</h3>
         </div>
       {optimizedGoals.map((goal) => {
-          const expectedCorpusMustInvest = goal.targetCorpus * Math.pow(1.06, goal.timeline.required);
+          const expectedCorpusMustInvest = goal.futureValue;
 
           return (
             <div key={goal.id} className="space-y-4">
