@@ -865,6 +865,15 @@ export function SipOptimizerReport({ data }: Props) {
                                     <TableCell>{formatCurrency(goal.currentSip)}</TableCell>
                                 </TableRow>
                             ))}
+                            {data.retirementCalculations && (
+                                <TableRow>
+                                    <TableCell className="font-medium">Retirement</TableCell>
+                                    <TableCell>{formatCurrency(data.retirementCalculations.requiredRetirementCorpus)}</TableCell>
+                                    <TableCell>{data.retirementCalculations.yearsToRetirement}</TableCell>
+                                    <TableCell>{formatCurrency(data.retirementInputs.currentSavings)}</TableCell>
+                                    <TableCell>{formatCurrency(data.retirementInputs.currentSip)}</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
