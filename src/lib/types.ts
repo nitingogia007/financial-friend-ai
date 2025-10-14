@@ -247,6 +247,7 @@ export interface SipOptimizerReportData {
   insuranceAnalysis: InsuranceAnalysisData;
   assets: Asset[];
   willStatus: 'yes' | 'no' | null;
+  retirementInputs: RetirementInputs;
   retirementCalculations: RetirementCalculations;
   assetAllocationProfile: AssetAllocationProfile;
   fundAllocations: FundAllocation[];

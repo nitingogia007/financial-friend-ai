@@ -5,7 +5,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { summarizeFinancialStatus } from '@/ai/flows/financial-status-summary';
-import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, AllPlannerData, FundAllocation, LifeInsuranceQuote, HealthInsuranceQuote } from '@/lib/types';
+import type { PersonalDetails, Asset, Liability, Income, Expense, Goal, GoalWithCalculations, SipOptimizerReportData, GoalWithSip, SipOptimizerGoal, InsuranceAnalysisData, WealthCreationGoal, ReportData, RetirementInputs, RetirementCalculations, AssetAllocationProfile, AllPlannerData, FundAllocation, LifeInsuranceQuote, HealthInsuranceQuote, RetirementGoalReport } from '@/lib/types';
 import { calculateAge, calculateGoalDetails, calculateTimelines, calculateSip, calculateWealthCreation, calculateFutureValue, calculateRetirementDetails, calculateNper } from '@/lib/calculations';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -444,6 +444,7 @@ export function Planner() {
           insuranceAnalysis: insuranceAnalysis,
           assets: processedAssets,
           willStatus: willStatus,
+          retirementInputs: retirementInputs,
           retirementCalculations: retirementCalculations,
           assetAllocationProfile: assetAllocationProfile,
           fundAllocations: fundAllocations,
@@ -601,7 +602,3 @@ export function Planner() {
     </div>
   );
 }
-
-    
-
-    

@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint, FactsheetData, IndustryAllocation, PortfolioHolding, GoalWithCalculations } from '@/lib/types';
+import type { SipOptimizerReportData, SipOptimizerGoal, Asset, RetirementCalculations, LifeInsuranceQuote, HealthInsuranceQuote, FundAllocation, ChartDataPoint, FactsheetData, IndustryAllocation, PortfolioHolding, GoalWithCalculations, RetirementInputs } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Printer, Phone, Mail, User, Calendar, Users, Target, ArrowRight, AlertTriangle, Info, Goal as GoalIcon, ShieldCheck, Wallet, PiggyBank, Briefcase, FileText, CheckCircle, TrendingUp, Banknote, CandlestickChart, Gem, Building, Calculator, BarChart3, PieChart as PieChartIcon, Check, X, Download, LineChart, Loader2, Percent } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -865,7 +865,7 @@ export function SipOptimizerReport({ data }: Props) {
                                     <TableCell>{formatCurrency(goal.currentSip)}</TableCell>
                                 </TableRow>
                             ))}
-                            {data.retirementCalculations && (
+                            {data.retirementCalculations && data.retirementInputs && (
                                 <TableRow>
                                     <TableCell className="font-medium">Retirement</TableCell>
                                     <TableCell>{formatCurrency(data.retirementCalculations.requiredRetirementCorpus)}</TableCell>
