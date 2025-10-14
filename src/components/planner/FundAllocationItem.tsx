@@ -192,13 +192,13 @@ export function FundAllocationItem({
           </Select>
         </div>
         <div className="space-y-1.5">
-           <Label htmlFor={`remaining-sip-${alloc.id}`}>Remaining SIP</Label>
+           <Label htmlFor={`remaining-sip-${alloc.id}`} className="text-green-700 dark:text-green-400">Remaining SIP</Label>
            <Input
               id={`remaining-sip-${alloc.id}`}
               type="text"
               readOnly
               value={`₹${remainingSip.toLocaleString('en-IN')}`}
-              className="bg-muted/50 font-semibold"
+              className="bg-muted/50 font-semibold text-green-700 dark:text-green-400"
             />
         </div>
         <div className="space-y-1.5">
