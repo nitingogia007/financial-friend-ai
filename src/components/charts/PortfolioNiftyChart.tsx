@@ -117,10 +117,11 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                     {alpha !== null && lastDataPoint && (
                       <ReferenceLine
                         x={lastDataPoint.date}
-                        stroke="hsl(var(--background))"
+                        stroke="hsl(var(--border))"
+                        strokeDasharray="3 3"
                         label={{
                           position: 'right',
-                          value: `Alpha\n${alpha.toFixed(2)}`,
+                          value: `α(${alpha.toFixed(2)})`,
                           fill: alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))',
                           fontSize: 12,
                           fontWeight: 'bold',
