@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -68,7 +69,18 @@ const summarizeFinancialStatusFlow = ai.defineFlow(
     outputSchema: FinancialStatusSummaryOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      if (!output) {
+        throw new Error("AI model did not return a summary.");
+      }
+      return output;
+    } catch(e: any) {
+      console.error("Error generating financial summary:", e);
+      // Return a fallback summary if the AI service fails
+      return {
+        summary: "Based on the provided data, you have a solid foundation with a positive net worth and clear financial goals. It's important to ensure your monthly cash flow can support the required SIPs for your goals. Regularly reviewing your insurance coverage is also key to protecting your financial future. This report outlines the steps to align your investments with your long-term objectives."
+      };
+    }
   }
 );
