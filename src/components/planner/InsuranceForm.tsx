@@ -30,9 +30,10 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
   const [healthPremium, setHealthPremium] = useState<number | ''>('');
   
   const relevantAnnualIncome = useMemo(() => {
-    return incomes
+    const monthlyIncome = incomes
       .filter(i => i.source === 'Salary' || i.source === 'Business')
       .reduce((sum, i) => sum + (typeof i.amount === 'number' ? i.amount : 0), 0);
+    return monthlyIncome * 12;
   }, [incomes]);
 
   const recommendedLifeCover = useMemo(() => {
@@ -187,3 +188,5 @@ export function InsuranceForm({ age, incomes, onInsuranceDataChange }: Props) {
     </FormSection>
   );
 }
+
+    
