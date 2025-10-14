@@ -772,7 +772,6 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
 
         
-        {/* Net Worth */}
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Your Net Worth</h3>
@@ -782,7 +781,6 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </section>
 
-        {/* Monthly Cashflow Summary */}
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Your Monthly Cashflow Summary</h3>
@@ -803,7 +801,6 @@ export function SipOptimizerReport({ data }: Props) {
              </div>
         </section>
         
-        {/* Investment Status Section */}
         {data.totalInvestmentStatus && (
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center print:bg-gray-100">
@@ -848,7 +845,6 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
 
-        {/* Financial Goal Details */}
         {data.goalsWithCalculations && data.goalsWithCalculations.length > 0 && (
           <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -892,7 +888,6 @@ export function SipOptimizerReport({ data }: Props) {
           </section>
         )}
         
-        {/* Goals Breakdown */}
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Goals Breakdown</h3>
@@ -936,7 +931,6 @@ export function SipOptimizerReport({ data }: Props) {
             </div>
         </section>
 
-        {/* Wealth Creation Section */}
         {data.wealthCreationGoal && (
           <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -962,7 +956,6 @@ export function SipOptimizerReport({ data }: Props) {
           </section>
         )}
 
-        {/* Retirement Analysis */}
         {data.retirementCalculations && (
           <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -972,7 +965,57 @@ export function SipOptimizerReport({ data }: Props) {
           </section>
         )}
 
-        {/* Estate Planning Section */}
+        {data.insuranceAnalysis && (data.insuranceAnalysis.lifeInsurance.quotes.length > 0 || data.insuranceAnalysis.healthInsurance.quotes.length > 0) && (
+            <section className="mt-4 print-avoid-break">
+                <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
+                    <h3 className="font-bold text-gray-700">Insurance Quotation Analysis</h3>
+                </div>
+
+                {data.insuranceAnalysis.lifeInsurance.quotes.length > 0 && (
+                    <div className="mb-6">
+                        <h4 className="font-semibold text-lg text-blue-800 mb-2">Life Insurance Quotes</h4>
+                        <Card>
+                            <CardContent className="overflow-x-auto text-xs p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Plan Name</TableHead>
+                                            <TableHead className="text-right">Cover Amount</TableHead>
+                                            <TableHead className="text-right">Premium</TableHead>
+                                            <TableHead>Policy Term</TableHead>
+                                            <TableHead>Premium Term</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {data.insuranceAnalysis.lifeInsurance.quotes.map(quote => (
+                                            <TableRow key={quote.id}>
+                                                <TableCell className="font-bold">{quote.planName}</TableCell>
+                                                <TableCell className="text-right roboto">{formatCurrency(quote.coverAmount)}</TableCell>
+                                                <TableCell className="text-right roboto">{formatCurrency(quote.premiumAmount)}</TableCell>
+                                                <TableCell>{quote.policyTerm}</TableCell>
+                                                <TableCell>{quote.premiumPaymentTerm}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {data.insuranceAnalysis.healthInsurance.quotes.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold text-lg text-green-800 mb-2">Health Insurance Quotes</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {data.insuranceAnalysis.healthInsurance.quotes.map(quote => (
+                                <HealthInsuranceQuoteCard key={quote.id} quote={quote} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </section>
+        )}
+
         {data.willStatus && (
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -992,7 +1035,6 @@ export function SipOptimizerReport({ data }: Props) {
         </section>
         )}
         
-        {/* Existing Asset Allocation Section */}
         <section className="mt-4 print-avoid-break">
             <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
                 <h3 className="font-bold text-gray-700">Liquid Asset Allocation</h3>
@@ -1052,7 +1094,6 @@ export function SipOptimizerReport({ data }: Props) {
             )}
         </section>
         
-        {/* Fund Allocation & Analysis Section */}
         {data.fundAllocations && data.fundAllocations.length > 0 && (
             <section className="mt-4 print-avoid-break">
                 <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
@@ -1132,12 +1173,11 @@ export function SipOptimizerReport({ data }: Props) {
                     </>
                  )}
 
-
+                <div className="p-3 rounded-lg bg-gray-100 text-center mt-4 mb-3 print:bg-gray-100">
+                    <h3 className="font-bold text-gray-700">Model Portfolio Analysis</h3>
+                </div>
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                      <div>
-                        <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
-                            <h3 className="font-bold text-gray-700">Model Portfolio Analysis</h3>
-                        </div>
                         <Card className="p-4">
                             <CardContent className="p-2 space-y-4 text-sm">
                                 <div className="flex justify-between items-center">
@@ -1272,58 +1312,6 @@ export function SipOptimizerReport({ data }: Props) {
                     </div>
                 </div>
 
-            </section>
-        )}
-
-        {/* Insurance Analysis Section */}
-        {data.insuranceAnalysis && (data.insuranceAnalysis.lifeInsurance.quotes.length > 0 || data.insuranceAnalysis.healthInsurance.quotes.length > 0) && (
-            <section className="mt-4 print-avoid-break">
-                <div className="p-3 rounded-lg bg-gray-100 text-center mb-3 print:bg-gray-100">
-                    <h3 className="font-bold text-gray-700">Insurance Quotation Analysis</h3>
-                </div>
-
-                {data.insuranceAnalysis.lifeInsurance.quotes.length > 0 && (
-                    <div className="mb-6">
-                        <h4 className="font-semibold text-lg text-blue-800 mb-2">Life Insurance Quotes</h4>
-                        <Card>
-                            <CardContent className="overflow-x-auto text-xs p-0">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Plan Name</TableHead>
-                                            <TableHead className="text-right">Cover Amount</TableHead>
-                                            <TableHead className="text-right">Premium</TableHead>
-                                            <TableHead>Policy Term</TableHead>
-                                            <TableHead>Premium Term</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {data.insuranceAnalysis.lifeInsurance.quotes.map(quote => (
-                                            <TableRow key={quote.id}>
-                                                <TableCell className="font-bold">{quote.planName}</TableCell>
-                                                <TableCell className="text-right roboto">{formatCurrency(quote.coverAmount)}</TableCell>
-                                                <TableCell className="text-right roboto">{formatCurrency(quote.premiumAmount)}</TableCell>
-                                                <TableCell>{quote.policyTerm}</TableCell>
-                                                <TableCell>{quote.premiumPaymentTerm}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {data.insuranceAnalysis.healthInsurance.quotes.length > 0 && (
-                    <div>
-                        <h4 className="font-semibold text-lg text-green-800 mb-2">Health Insurance Quotes</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {data.insuranceAnalysis.healthInsurance.quotes.map(quote => (
-                                <HealthInsuranceQuoteCard key={quote.id} quote={quote} />
-                            ))}
-                        </div>
-                    </div>
-                )}
             </section>
         )}
         
