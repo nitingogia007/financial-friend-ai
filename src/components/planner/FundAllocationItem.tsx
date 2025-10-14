@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Trash2, Loader2, BarChart, FileText } from 'lucide-react';
-import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory, FactsheetData } from '@/lib/types';
+import type { FundAllocation, Fund, Goal, FundReturnsOutput, FundCategory, FactsheetData, SipOptimizerGoal } from '@/lib/types';
 import { getFundReturns } from '@/ai/flows/fund-returns-flow';
 import { analyzeFactsheet } from '@/ai/flows/analyze-factsheet-flow';
 import { FactsheetDisplay } from './FactsheetDisplay';
@@ -23,6 +23,8 @@ interface FundAllocationItemProps {
   availableGoals: Goal[];
   onUpdate: (id: string, field: keyof FundAllocation, value: string | number) => void;
   onRemove: (id: string) => void;
+  optimizedGoals: SipOptimizerGoal[];
+  allocatedSipForGoal: number;
 }
 
 const fundCategories: FundCategory[] = ['Equity', 'Debt', 'Hybrid', 'Solution-Oriented', 'Others'];
@@ -35,6 +37,8 @@ export function FundAllocationItem({
   availableGoals,
   onUpdate,
   onRemove,
+  optimizedGoals,
+  allocatedSipForGoal,
 }: FundAllocationItemProps) {
   const { toast } = useToast();
   const selectedFund = funds.find(f => f.fundName === alloc.fundName);
@@ -47,6 +51,13 @@ export function FundAllocationItem({
       .filter(name => !name.toLowerCase().includes('direct'));
   }, [selectedFund]);
 
+  const remainingSip = useMemo(() => {
+    const selectedGoal = optimizedGoals.find(g => g.id === alloc.goalId);
+    if (!selectedGoal) return 0;
+    const goalAllocatedSip = selectedGoal.investmentStatus.allocatedInvestment;
+    const currentSipForThisAlloc = typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0;
+    return goalAllocatedSip - allocatedSipForGoal + currentSipForThisAlloc;
+  }, [alloc.goalId, alloc.sipRequired, optimizedGoals, allocatedSipForGoal]);
   
   const [returns, setReturns] = useState<FundReturnsOutput | null>(null);
   const [isLoadingReturns, setIsLoadingReturns] = useState(false);
@@ -161,7 +172,7 @@ export function FundAllocationItem({
       >
         <Trash2 className="h-4 w-4" />
       </Button>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
         <div className="space-y-1.5">
           <Label htmlFor={`goalId-${alloc.id}`}>Goal Name</Label>
           <Select
@@ -179,6 +190,16 @@ export function FundAllocationItem({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="space-y-1.5">
+           <Label htmlFor={`remaining-sip-${alloc.id}`}>Remaining SIP</Label>
+           <Input
+              id={`remaining-sip-${alloc.id}`}
+              type="text"
+              readOnly
+              value={`₹${remainingSip.toLocaleString('en-IN')}`}
+              className="bg-muted/50 font-semibold"
+            />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`sipRequired-${alloc.id}`}>SIP required for fund</Label>
@@ -227,9 +248,6 @@ export function FundAllocationItem({
             placeholder={!alloc.fundName ? "Select a fund first" : "Search for a scheme"}
             disabled={!alloc.fundName || schemes.length === 0}
           />
-        </div>
-        <div className="flex items-end">
-           {/* Placeholder for alignment */}
         </div>
       </div>
       {(isLoadingReturns || returns) && (

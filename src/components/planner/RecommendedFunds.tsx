@@ -145,6 +145,16 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
         };
     });
   }
+  
+  const allocatedSipsByGoal = useMemo(() => {
+    const sips: { [key: string]: number } = {};
+    allocations.forEach(alloc => {
+      if (alloc.goalId) {
+        sips[alloc.goalId] = (sips[alloc.goalId] || 0) + (typeof alloc.sipRequired === 'number' ? alloc.sipRequired : 0);
+      }
+    });
+    return sips;
+  }, [allocations]);
 
   const equityFundWeights = useMemo(() => getFundWeights('Equity'), [allocations, availableGoals]);
   const debtFundWeights = useMemo(() => getFundWeights('Debt'), [allocations, availableGoals]);
@@ -252,6 +262,8 @@ export function RecommendedFunds({ allocations, setAllocations, investibleSurplu
                 availableGoals={availableGoals}
                 onUpdate={handleUpdateAllocation}
                 onRemove={handleRemoveAllocation}
+                optimizedGoals={optimizedGoals}
+                allocatedSipForGoal={allocatedSipsByGoal[alloc.goalId] || 0}
               />
             ))}
         </div>
