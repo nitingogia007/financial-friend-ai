@@ -719,30 +719,31 @@ export function SipOptimizerReport({ data }: Props) {
         background: "linear-gradient(to bottom, #FEE7E7, #FFFFFF 60%, #FFFFFF 40%, #FFFFFF 10%)"
       }}>
         {/* Header */}
-        <header className="p-4 rounded-t-lg bg-pink-100 print-avoid-break flex justify-between items-center print:bg-pink-100">
-             <div className="relative h-12 w-48">
-              <Image 
-                  src={logoUrl}
-                  alt="FinFriend Planner Logo" 
-                  width={192}
-                  height={48}
-                  style={{ objectFit: 'contain' }}
-                  priority
+        <header className="p-4 rounded-t-lg bg-pink-100 print:bg-pink-100 print-avoid-break flex justify-between items-center">
+            <div className="relative h-12 w-48">
+              <Image
+                src={logoUrl}
+                alt="Financial Friend Logo"
+                width={192}
+                height={48}
+                style={{ objectFit: 'contain' }}
+                priority
               />
             </div>
-            <div className="text-center text-xs">
-                <p><strong>RM name:</strong> Gunjan Kataria</p>
-                <p><strong>Mobile no:</strong> 9460825477</p>
-                <p><strong>Email:</strong> contact@financialfriend.in</p>
+            <div className="text-right text-xs">
+              <p><strong>RM name:</strong> {data.advisorDetails.arnName}</p>
+              <p><strong>Mobile no:</strong> {data.advisorDetails.mobile}</p>
+              <p><strong>Email:</strong> {data.advisorDetails.email}</p>
             </div>
         </header>
 
-        <section className="text-center py-4 bg-white print-avoid-break print:bg-white">
+
+        <section className="text-center py-4 bg-white print:bg-white print-avoid-break">
             <h1 className="text-xl font-bold text-gray-800 tracking-wide">Financial Planning Report</h1>
         </section>
 
         {/* Investor Details */}
-        <section className="bg-white p-1 print-avoid-break print:bg-white">
+        <section className="bg-white p-1 print:bg-white print-avoid-break">
           <div className="rounded-lg shadow-sm border overflow-hidden">
             <div className="grid grid-cols-2 print:grid-cols-2">
               <div className="bg-pink-50 p-4 space-y-4 print:bg-pink-50">
