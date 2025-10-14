@@ -192,7 +192,7 @@ export function FundAllocationItem({
           </Select>
         </div>
         <div className="space-y-1.5">
-           <Label htmlFor={`remaining-sip-${alloc.id}`} className="text-green-700 dark:text-green-400">Remaining SIP</Label>
+           <Label htmlFor={`remaining-sip-${alloc.id}`} className="text-green-700 dark:text-green-400">Allocated SIP</Label>
            <Input
               id={`remaining-sip-${alloc.id}`}
               type="text"
