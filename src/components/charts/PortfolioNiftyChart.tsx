@@ -1,7 +1,7 @@
 
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from 'next-themes';
 
@@ -49,6 +49,17 @@ export function PortfolioNiftyChart({ data, title }: Props) {
     if (name === 'modelPortfolio') return 'Model Portfolio';
     return name;
   }
+  
+  const lastDataPoint = data[data.length - 1];
+  let alpha: number | null = null;
+  if (lastDataPoint && lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined) {
+    alpha = lastDataPoint.modelPortfolio - lastDataPoint.benchmark;
+  }
+  
+  const alphaYPosition = lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined
+    ? (lastDataPoint.modelPortfolio + lastDataPoint.benchmark) / 2
+    : yDomain[1];
+
 
   return (
     <Card className="mt-6">
@@ -59,7 +70,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
             <ResponsiveContainer>
                 <LineChart
                     data={data}
-                    margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                    margin={{ top: 5, right: 50, left: 0, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
                     <XAxis 
@@ -103,6 +114,19 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                             name={formatLegendName(key)}
                         />
                     ))}
+                    {alpha !== null && lastDataPoint && (
+                      <ReferenceLine
+                        x={lastDataPoint.date}
+                        stroke="transparent"
+                        label={{
+                          position: 'right',
+                          value: `Alpha\n${alpha.toFixed(2)}`,
+                          fill: alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))',
+                          fontSize: 12,
+                          fontWeight: 'bold',
+                        }}
+                      />
+                    )}
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>
