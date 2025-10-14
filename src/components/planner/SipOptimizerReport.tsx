@@ -217,6 +217,18 @@ const FundAllocationRow = ({ alloc, goalName }: { alloc: FundAllocation, goalNam
     const [returns, setReturns] = useState<{ threeYearReturn: string | null; fiveYearReturn: string | null; tenYearReturn: string | null; } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const shortenedSchemeName = useMemo(() => {
+        if (!alloc.schemeName) return 'N/A';
+        return alloc.schemeName
+            .replace(/ - Regular Plan/gi, '')
+            .replace(/ - Growth/gi, '')
+            .replace(/ Growth/gi, '')
+            .replace(/ Regular/gi, '')
+            .replace(/ Plan/gi, '')
+            .replace(/\(formerly.*?\)/gi, '')
+            .trim();
+    }, [alloc.schemeName]);
+
     useEffect(() => {
         const fetchReturns = async () => {
             if (alloc.schemeCode) {
@@ -236,9 +248,8 @@ const FundAllocationRow = ({ alloc, goalName }: { alloc: FundAllocation, goalNam
 
     return (
         <TableRow>
-            <TableCell>
-                <p className="font-bold">{alloc.schemeName || 'N/A'}</p>
-                <p className="text-xs text-gray-500">{alloc.fundName}</p>
+            <TableCell className="font-bold max-w-xs" style={{ fontSize: '11px' }}>
+                <p className="line-clamp-2">{shortenedSchemeName}</p>
             </TableCell>
             <TableCell>{goalName}</TableCell>
             <TableCell>{formatCurrency(alloc.sipRequired)}</TableCell>
@@ -1059,7 +1070,7 @@ export function SipOptimizerReport({ data }: Props) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Scheme</TableHead>
+                                    <TableHead className="w-[30%]">Scheme</TableHead>
                                     <TableHead>Goal</TableHead>
                                     <TableHead>SIP</TableHead>
                                     <TableHead>Category</TableHead>
