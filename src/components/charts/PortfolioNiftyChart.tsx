@@ -117,7 +117,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                     {alpha !== null && lastDataPoint && (
                       <ReferenceLine
                         x={lastDataPoint.date}
-                        stroke="transparent"
+                        stroke="hsl(var(--background))"
                         label={{
                           position: 'right',
                           value: `Alpha\n${alpha.toFixed(2)}`,
