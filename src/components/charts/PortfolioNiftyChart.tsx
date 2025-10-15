@@ -97,27 +97,25 @@ export function PortfolioNiftyChart({ data, title }: Props) {
     alpha = lastDataPoint.modelPortfolio - lastDataPoint.benchmark;
   }
   
-  const alphaLabel = ({ viewBox }: any) => {
+  const AlphaLabel = ({ viewBox }: any) => {
     const { x, y, width, height } = viewBox;
     if (alpha === null) return null;
-
-    const endY1 = lastDataPoint.modelPortfolio;
-    const endY2 = lastDataPoint.benchmark;
     
-    // This is a rough estimation, for precise alignment you might need to map data values to pixel values
-    const midY = height / 2;
+    // Position the label to the left of the line
+    const labelX = x - 10;
+    const midY = y + height / 2;
 
     return (
         <Text
-            x={x + width + 5}
+            x={labelX}
             y={midY}
-            textAnchor="start"
+            textAnchor="end"
             verticalAnchor="middle"
             fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
             fontSize={12}
             fontWeight="bold"
         >
-            <tspan fontSize="18" dy="-2">↕</tspan>
+            <tspan fontSize="16" dy="-2">↕</tspan>
             <tspan dx="2">α {alpha.toFixed(1)}%</tspan>
         </Text>
     );
@@ -132,7 +130,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
             <ResponsiveContainer>
                 <LineChart
                     data={data}
-                    margin={{ top: 5, right: 50, left: 0, bottom: 5 }}
+                    margin={{ top: 5, right: 60, left: 0, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
                     <XAxis 
@@ -184,15 +182,8 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                           segment={[{ x: lastDataPoint.date, y: lastDataPoint.benchmark }, { x: lastDataPoint.date, y: lastDataPoint.modelPortfolio }]}
                           stroke={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
                           strokeDasharray="3 3"
-                      >
-                         <Text
-                            value={`↕ α ${alpha.toFixed(1)}%`}
-                            position="right"
-                            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
-                            fontSize={12}
-                            fontWeight="bold"
-                         />
-                      </ReferenceLine>
+                          label={<AlphaLabel />}
+                      />
                     )}
                 </LineChart>
             </ResponsiveContainer>
