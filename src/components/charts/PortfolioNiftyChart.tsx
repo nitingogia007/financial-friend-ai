@@ -56,7 +56,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
     alpha = lastDataPoint.modelPortfolio - lastDataPoint.benchmark;
   }
   
-  const alphaYPosition = lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined
+  const alphaYPosition = lastDataPoint && lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined
     ? (lastDataPoint.modelPortfolio + lastDataPoint.benchmark) / 2
     : yDomain[1];
 
@@ -122,7 +122,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                         strokeDasharray="3 3"
                         label={{
                           position: 'right',
-                          value: `↔ α(${alpha.toFixed(2)})`,
+                          value: `↕ α(${alpha.toFixed(2)})`,
                           fill: alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))',
                           fontSize: 12,
                           fontWeight: 'bold',
