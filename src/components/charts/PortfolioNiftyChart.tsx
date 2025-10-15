@@ -15,9 +15,80 @@ interface Props {
 }
 
 const COLORS = {
-  modelPortfolio: 'hsl(var(--chart-1))',
-  benchmark: 'hsl(var(--chart-2))',
+  modelPortfolio: 'hsl(var(--chart-2))', // Green
+  benchmark: 'hsl(var(--chart-1))',      // Blue
 };
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const date = new Date(label.split('-').reverse().join('-'));
+    const formattedDate = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    
+    return (
+      <div className="rounded-lg border bg-background p-2.5 shadow-xl">
+        <p className="text-sm text-muted-foreground">{formattedDate}</p>
+        <div className="mt-1 space-y-1 text-sm">
+           <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS.modelPortfolio }} />
+                <span className="font-medium">Model Portfolio:</span>
+                <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                    {payload.find(p => p.dataKey === 'modelPortfolio')?.value.toFixed(2)}
+                </span>
+           </div>
+           <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS.benchmark }} />
+                <span className="font-medium">Benchmark:</span>
+                 <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                    {payload.find(p => p.dataKey === 'benchmark')?.value.toFixed(2)}
+                </span>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+
+const CustomLegend = ({ payload, alpha, title }: { payload?: any[], alpha: number | null, title: string }) => {
+    const formatLegendName = (name: string) => {
+        if (name === 'benchmark') {
+             if (title.includes('NIFTY 50 Hybrid')) return 'NIFTY 50 Hybrid';
+             if (title.includes('NIFTY 10Y')) return 'NIFTY 10Y G-Sec';
+             if (title.includes('NIFTY 50')) return 'NIFTY 50';
+             return 'Benchmark';
+        }
+        if (name === 'modelPortfolio') return 'Model Portfolio';
+        return name;
+    }
+
+    if (!payload) return null;
+
+    return (
+        <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mt-4">
+            {payload.map((entry, index) => (
+                <div key={`item-${index}`} className="flex items-center gap-2">
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                    <span className="font-medium text-foreground">{formatLegendName(entry.dataKey)}</span>
+                </div>
+            ))}
+             {alpha !== null && (
+                <div 
+                    className={cn(
+                        "flex items-center gap-1.5 font-medium",
+                         alpha >= 0 ? 'text-green-600' : 'text-destructive'
+                    )}
+                >
+                    <span className="text-lg" style={{lineHeight: '1'}}>↕</span>
+                    <span>α:</span>
+                    <span>{alpha.toFixed(2)}%</span>
+                </div>
+             )}
+        </div>
+    );
+};
+
 
 export function PortfolioNiftyChart({ data, title }: Props) {
   const { theme } = useTheme();
@@ -30,37 +101,14 @@ export function PortfolioNiftyChart({ data, title }: Props) {
     );
   }
 
-  const keys = Object.keys(data[0]).filter(key => key !== 'date') as (keyof typeof COLORS)[];
+  const keys = Object.keys(data[0]).filter(key => key !== 'date');
 
-  const allValues = data.flatMap(d => 
-      keys.map(key => d[key])
-  ).filter(v => typeof v === 'number') as number[];
-
-  const yDomain = allValues.length > 0 
-      ? [Math.min(...allValues), Math.max(...allValues)] 
-      : [90, 110];
-  
-  const yAxisMin = Math.floor(yDomain[0] / 10) * 10;
-  const yAxisMax = Math.ceil(yDomain[1] / 10) * 10;
-
-  const formatLegendName = (name: string) => {
-    if (name === 'benchmark' && title.includes('NIFTY 50')) return 'NIFTY 50';
-    if (name === 'benchmark') return 'Benchmark';
-    if (name === 'modelPortfolio') return 'Model Portfolio';
-    return name;
-  }
-  
   const lastDataPoint = data[data.length - 1];
   let alpha: number | null = null;
   if (lastDataPoint && lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined) {
     alpha = lastDataPoint.modelPortfolio - lastDataPoint.benchmark;
   }
   
-  const alphaYPosition = lastDataPoint && lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined
-    ? (lastDataPoint.modelPortfolio + lastDataPoint.benchmark) / 2
-    : yDomain[1];
-
-
   return (
     <Card className="mt-6">
         <CardHeader>
@@ -70,9 +118,9 @@ export function PortfolioNiftyChart({ data, title }: Props) {
             <ResponsiveContainer>
                 <LineChart
                     data={data}
-                    margin={{ top: 5, right: 50, left: 0, bottom: 5 }}
+                    margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
                     <XAxis 
                         dataKey="date" 
                         fontSize={12} 
@@ -84,52 +132,38 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                             if (isNaN(date.getTime())) return str;
                             return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
                         }}
-                        interval={Math.floor(data.length / 6)} // Show around 6 ticks
+                        interval="preserveStartEnd" // Show around 6 ticks
                     />
                     <YAxis 
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false}
-                        domain={[yAxisMin, yAxisMax]}
                     />
                     <Tooltip
-                        contentStyle={{
-                            background: "hsl(var(--background))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                            fontSize: "12px",
-                        }}
-                        labelFormatter={(label) => new Date(label.split('-').reverse().join('-')).toLocaleDateString('en-GB')}
-                        formatter={(value: number, name: string) => [value.toFixed(2), formatLegendName(name)]}
+                        content={<CustomTooltip />}
                     />
-                    <Legend iconSize={10} formatter={(value) => formatLegendName(value)} />
-                    {keys.map((key) => (
-                         <Line 
-                            key={key}
-                            type="monotone" 
-                            dataKey={key} 
-                            stroke={COLORS[key]} 
-                            strokeWidth={2} 
-                            dot={false}
-                            name={formatLegendName(key)}
-                        />
-                    ))}
-                    {alpha !== null && lastDataPoint && (
-                      <ReferenceLine
-                        x={lastDataPoint.date}
-                        stroke="hsl(var(--border))"
-                        strokeDasharray="3 3"
-                      >
-                         <ReferenceLine.Label 
-                            value={`↕ α - ${alpha.toFixed(1)}%`} 
-                            position="right"
-                            offset={10}
-                            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
-                            fontSize={12}
-                            fontWeight="bold"
-                          />
-                      </ReferenceLine>
-                    )}
+                    <Legend 
+                        content={<CustomLegend alpha={alpha} title={title}/>}
+                        verticalAlign="bottom"
+                    />
+                    <Line 
+                        key="modelPortfolio"
+                        type="monotone" 
+                        dataKey="modelPortfolio" 
+                        stroke={COLORS.modelPortfolio}
+                        strokeWidth={2} 
+                        dot={false}
+                        name="Model Portfolio"
+                    />
+                    <Line 
+                        key="benchmark"
+                        type="monotone" 
+                        dataKey="benchmark" 
+                        stroke={COLORS.benchmark}
+                        strokeWidth={2} 
+                        dot={false}
+                        name="Benchmark"
+                    />
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>
