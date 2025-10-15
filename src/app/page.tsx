@@ -1,4 +1,4 @@
-// Triggering a new deployment to resolve a platform issue.
+// Triggering a new deployment to publish the app.
 
 "use client";
 
