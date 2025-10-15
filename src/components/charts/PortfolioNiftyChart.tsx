@@ -115,8 +115,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
             fontSize={12}
             fontWeight="bold"
         >
-            <tspan fontSize="16" dy="-2">↕</tspan>
-            <tspan dx="2">α {alpha.toFixed(1)}%</tspan>
+            {`α (${alpha.toFixed(1)}%)`}
         </Text>
     );
 };
