@@ -121,7 +121,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                         stroke="hsl(var(--border))"
                         strokeDasharray="3 3"
                         label={{
-                          position: 'right',
+                          position: 'insideRight',
                           value: `↕ α(${alpha.toFixed(2)})`,
                           fill: alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))',
                           fontSize: 12,
