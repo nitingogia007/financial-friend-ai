@@ -1,7 +1,7 @@
 
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Text } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
@@ -53,7 +53,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-const CustomLegend = ({ payload, alpha, title }: { payload?: any[], alpha: number | null, title: string }) => {
+const CustomLegend = ({ payload, title }: { payload?: any[], title: string }) => {
     const formatLegendName = (name: string) => {
         if (name === 'benchmark') {
              if (title.includes('NIFTY 50 Hybrid')) return 'NIFTY 50 Hybrid';
@@ -75,18 +75,6 @@ const CustomLegend = ({ payload, alpha, title }: { payload?: any[], alpha: numbe
                     <span className="font-medium text-foreground">{formatLegendName(entry.dataKey)}</span>
                 </div>
             ))}
-             {alpha !== null && (
-                <div 
-                    className={cn(
-                        "flex items-center gap-1.5 font-medium",
-                         alpha >= 0 ? 'text-green-600' : 'text-destructive'
-                    )}
-                >
-                    <span className="text-lg" style={{lineHeight: '1'}}>↕</span>
-                    <span>α:</span>
-                    <span>{alpha.toFixed(2)}%</span>
-                </div>
-             )}
         </div>
     );
 };
@@ -103,13 +91,37 @@ export function PortfolioNiftyChart({ data, title }: Props) {
     );
   }
 
-  const keys = Object.keys(data[0]).filter(key => key !== 'date');
-
   const lastDataPoint = data[data.length - 1];
   let alpha: number | null = null;
   if (lastDataPoint && lastDataPoint.modelPortfolio !== undefined && lastDataPoint.benchmark !== undefined) {
     alpha = lastDataPoint.modelPortfolio - lastDataPoint.benchmark;
   }
+  
+  const alphaLabel = ({ viewBox }: any) => {
+    const { x, y, width, height } = viewBox;
+    if (alpha === null) return null;
+
+    const endY1 = lastDataPoint.modelPortfolio;
+    const endY2 = lastDataPoint.benchmark;
+    
+    // This is a rough estimation, for precise alignment you might need to map data values to pixel values
+    const midY = height / 2;
+
+    return (
+        <Text
+            x={x + width + 5}
+            y={midY}
+            textAnchor="start"
+            verticalAnchor="middle"
+            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
+            fontSize={12}
+            fontWeight="bold"
+        >
+            <tspan fontSize="18" dy="-2">↕</tspan>
+            <tspan dx="2">α {alpha.toFixed(1)}%</tspan>
+        </Text>
+    );
+};
   
   return (
     <Card className="mt-6">
@@ -120,7 +132,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
             <ResponsiveContainer>
                 <LineChart
                     data={data}
-                    margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                    margin={{ top: 5, right: 50, left: 0, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
                     <XAxis 
@@ -140,12 +152,13 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false}
+                        domain={['dataMin - 5', 'dataMax + 5']}
                     />
                     <Tooltip
                         content={<CustomTooltip />}
                     />
                     <Legend 
-                        content={<CustomLegend alpha={alpha} title={title}/>}
+                        content={<CustomLegend title={title}/>}
                         verticalAlign="bottom"
                     />
                     <Line 
@@ -153,7 +166,7 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                         type="monotone" 
                         dataKey="modelPortfolio" 
                         stroke={COLORS.modelPortfolio}
-                        strokeWidth={2} 
+                        strokeWidth={1.5} 
                         dot={false}
                         name="Model Portfolio"
                     />
@@ -162,10 +175,25 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                         type="monotone" 
                         dataKey="benchmark" 
                         stroke={COLORS.benchmark}
-                        strokeWidth={2} 
+                        strokeWidth={1.5} 
                         dot={false}
                         name="Benchmark"
                     />
+                    {alpha !== null && lastDataPoint && (
+                      <ReferenceLine
+                          segment={[{ x: lastDataPoint.date, y: lastDataPoint.benchmark }, { x: lastDataPoint.date, y: lastDataPoint.modelPortfolio }]}
+                          stroke={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
+                          strokeDasharray="3 3"
+                      >
+                         <Text
+                            value={`↕ α ${alpha.toFixed(1)}%`}
+                            position="right"
+                            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
+                            fontSize={12}
+                            fontWeight="bold"
+                         />
+                      </ReferenceLine>
+                    )}
                 </LineChart>
             </ResponsiveContainer>
         </CardContent>
