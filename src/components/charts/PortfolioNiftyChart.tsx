@@ -117,18 +117,18 @@ export function PortfolioNiftyChart({ data, title }: Props) {
                     {alpha !== null && lastDataPoint && (
                       <ReferenceLine
                         x={lastDataPoint.date}
-                        y={alphaYPosition}
                         stroke="hsl(var(--border))"
                         strokeDasharray="3 3"
-                        label={{
-                          position: 'right',
-                          offset: 10,
-                          value: `↕ α - ${alpha.toFixed(1)}%`,
-                          fill: alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))',
-                          fontSize: 12,
-                          fontWeight: 'bold',
-                        }}
-                      />
+                      >
+                         <ReferenceLine.Label 
+                            value={`↕ α - ${alpha.toFixed(1)}%`} 
+                            position="right"
+                            offset={10}
+                            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
+                            fontSize={12}
+                            fontWeight="bold"
+                          />
+                      </ReferenceLine>
                     )}
                 </LineChart>
             </ResponsiveContainer>
