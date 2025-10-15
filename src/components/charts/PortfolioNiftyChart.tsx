@@ -100,27 +100,27 @@ export function PortfolioNiftyChart({ data, title }: Props) {
   const AlphaLabel = ({ viewBox }: any) => {
     const { x, y, height } = viewBox;
     if (alpha === null) return null;
-
-    // If the lines are too close, shift the label up or down
-    const yOffset = height < 15 ? (alpha >= 0 ? -10 : 10) : 0;
-    
-    const midY = y + height / 2 + yOffset;
-
+  
+    // If the lines are too close, shift the label down to avoid overlap
+    // The "y" prop is the top of the reference line box. We add the height to get the bottom.
+    // We add an extra 18px (1.5 * 12px font size) to push it down further.
+    const yPos = y + height + 18;
+  
     return (
-        <Text
-            x={x}
-            y={midY}
-            textAnchor="end"
-            verticalAnchor="middle"
-            fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
-            fontSize={12}
-            fontWeight="bold"
-            dx={-5} // Add some padding from the line
-        >
-            {`α (${alpha.toFixed(1)}%)`}
-        </Text>
+      <Text
+        x={x}
+        y={yPos}
+        textAnchor="end"
+        verticalAnchor="middle"
+        fill={alpha >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--destructive))'}
+        fontSize={12}
+        fontWeight="bold"
+        dx={-5} // Add some padding from the line
+      >
+        {`α (${alpha.toFixed(1)}%)`}
+      </Text>
     );
-};
+  };
   
   return (
     <Card className="mt-6">
