@@ -100,8 +100,11 @@ export function PortfolioNiftyChart({ data, title }: Props) {
   const AlphaLabel = ({ viewBox }: any) => {
     const { x, y, height } = viewBox;
     if (alpha === null) return null;
+
+    // If the lines are too close, shift the label up or down
+    const yOffset = height < 15 ? (alpha >= 0 ? -10 : 10) : 0;
     
-    const midY = y + height / 2;
+    const midY = y + height / 2 + yOffset;
 
     return (
         <Text
