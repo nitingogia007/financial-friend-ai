@@ -4,6 +4,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 interface Props {
   data: {
@@ -39,7 +40,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                 <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS.benchmark }} />
                 <span className="font-medium">Benchmark:</span>
                  <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
-                    {payload.find(p => p.dataKey === 'benchmark')?.value.toFixed(2)}
+                    {payload.find(p => p.dataKey === 'benchmark')?.value.toFixed(2)
+}
                 </span>
            </div>
         </div>
