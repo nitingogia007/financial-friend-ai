@@ -1,5 +1,4 @@
-
-// Triggering a new deployment. This will deploy both frontend and backend.
+// Triggering a new deployment to the new project.
 
 "use client";
 
